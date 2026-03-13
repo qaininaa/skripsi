@@ -1,15 +1,33 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
+// Redirect /dashboard berdasarkan role
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    $role = Auth::user()->role;
+    if ($role === 'super admin') {
+        return redirect()->route('dashboard.super-admin');
+    } elseif ($role === 'admin-qc') {
+        return redirect()->route('dashboard.admin-qc');
+    }
+    return redirect('/');
+})->middleware('auth')->name('dashboard');
+
+// Dashboard Super Admin
+Route::get('/dashboard/super-admin', function () {
+    return view('dashboard.super-admin');
+})->middleware(['auth', 'role:super admin'])->name('dashboard.super-admin');
+
+// Dashboard Admin QC
+Route::get('/dashboard/admin-qc', function () {
+    return view('dashboard.admin-qc');
+})->middleware(['auth', 'role:admin-qc'])->name('dashboard.admin-qc');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
