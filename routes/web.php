@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\TugasPelaporanController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,15 @@ Route::middleware(['auth', 'role:super admin'])
     ->group(function () {
         Route::resource('users', UserManagementController::class)->names('users');
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    });
+
+// Tugas Pelaporan (hanya Admin QC)
+Route::middleware(['auth', 'role:admin-qc'])
+    ->prefix('dashboard')
+    ->group(function () {
+        Route::resource('tugas-pelaporan', TugasPelaporanController::class)
+            ->only(['index', 'create', 'store'])
+            ->names('tugas-pelaporan');
     });
 
 Route::middleware('auth')->group(function () {
