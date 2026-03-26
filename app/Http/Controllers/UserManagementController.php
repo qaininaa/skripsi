@@ -35,12 +35,18 @@ class UserManagementController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name'     => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'role' => ['required', Rule::in(['super admin', 'admin-qc'])],
+            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
             'password' => ['required', 'string', 'min:8'],
         ]);
+
+        if ($validated['role'] === 'manajer' && User::where('role', 'manajer')->exists()) {
+            return back()->withInput()->withErrors([
+                'role' => 'Sudah ada pengguna dengan role Manajer. Hanya boleh ada 1 Manajer.',
+            ]);
+        }
 
         $user = User::create($validated);
 
@@ -85,9 +91,15 @@ class UserManagementController extends Controller
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
-            'role' => ['required', Rule::in(['super admin', 'admin-qc'])],
+            'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
             'password' => ['nullable', 'string', 'min:8'],
         ]);
+
+        if ($validated['role'] === 'manajer' && $user->role !== 'manajer' && User::where('role', 'manajer')->exists()) {
+            return back()->withInput()->withErrors([
+                'role' => 'Sudah ada pengguna dengan role Manajer. Hanya boleh ada 1 Manajer.',
+            ]);
+        }
 
         if (empty($validated['password'])) {
             unset($validated['password']);

@@ -57,6 +57,11 @@
                         <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih role</option>
                         <option value="super admin" {{ old('role') === 'super admin' ? 'selected' : '' }}>Super Admin</option>
                         <option value="admin-qc" {{ old('role') === 'admin-qc' ? 'selected' : '' }}>Admin QC</option>
+                        <option value="analis" {{ old('role') === 'analis' ? 'selected' : '' }}>Analis</option>
+                        <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                        <option value="manajer" {{ old('role') === 'manajer' ? 'selected' : '' }} {{ \App\Models\User::where('role', 'manajer')->exists() ? 'disabled' : '' }}>
+                            Manajer{{ \App\Models\User::where('role', 'manajer')->exists() ? ' (sudah ada)' : '' }}
+                        </option>
                     </select>
                 </div>
 
