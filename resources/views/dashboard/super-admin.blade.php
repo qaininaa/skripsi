@@ -40,9 +40,9 @@
             Dashboard
         </a>
 
-        {{-- Manajemen Pengguna --}}
-        <a href="#"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-indigo-300 hover:bg-indigo-800 hover:text-white font-medium text-sm transition-colors">
+          {{-- Manajemen Pengguna --}}
+          <a href="{{ route('users.index') }}"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-indigo-300 hover:bg-indigo-800 hover:text-white font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
@@ -66,6 +66,17 @@
             </svg>
             Laporan
         </a>
+
+        {{-- Audit Trail (hanya Super Admin) --}}
+        @if (Auth::user() && Auth::user()->role === 'super admin')
+        <a href="{{ route('audit-logs.index') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('audit-logs.*') ? 'bg-indigo-800 text-white' : 'text-indigo-300 hover:bg-indigo-800 hover:text-white' }} font-medium text-sm transition-colors">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Audit Trail
+        </a>
+        @endif
 
         <div class="pt-2 pb-1 px-3">
             <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Akun</p>
