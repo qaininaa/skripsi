@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Tambah Tugas Pelaporan')
-@section('page-title', 'Tambah Tugas Pelaporan')
+@section('title', 'Edit Tugas Pelaporan')
+@section('page-title', 'Edit Tugas Pelaporan')
 @section('avatar-color', 'bg-emerald-600')
 
 @section('sidebar')
@@ -29,7 +29,7 @@
          )"
     >
 
-        <h2 class="text-lg font-semibold text-gray-800 mb-5">Tambah Tugas Pelaporan</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-5">Edit Tugas Pelaporan</h2>
 
         @if ($errors->any())
             <div class="mb-5 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
@@ -42,20 +42,22 @@
             </div>
         @endif
 
-        <form action="{{ route('tugas-pelaporan.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('tugas-pelaporan.update', $tugasPelaporan) }}" method="POST" class="space-y-6">
             @csrf
+            @method('PUT')
 
             {{-- Tanggal --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal <span class="text-red-500">*</span></label>
-                <input type="date" name="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}"
+                <input type="date" name="tanggal"
+                       value="{{ old('tanggal', $tugasPelaporan->tanggal->format('Y-m-d')) }}"
                        class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
             </div>
 
             {{-- Nama Produk --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk <span class="text-red-500">*</span></label>
-                <input type="text" name="nama_produk" value="{{ old('nama_produk') }}"
+                <input type="text" name="nama_produk" value="{{ old('nama_produk', $tugasPelaporan->nama_produk) }}"
                        placeholder="Masukkan nama produk"
                        class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                 @error('nama_produk')
@@ -66,7 +68,7 @@
             {{-- Nomor Batch Produk --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Batch Produk <span class="text-red-500">*</span></label>
-                <input type="text" name="nomor_batch_produk" value="{{ old('nomor_batch_produk') }}"
+                <input type="text" name="nomor_batch_produk" value="{{ old('nomor_batch_produk', $tugasPelaporan->nomor_batch_produk) }}"
                        placeholder="Masukkan nomor batch produk"
                        class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                 @error('nomor_batch_produk')
@@ -86,7 +88,8 @@
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                         <option value="">— Pilih Analis —</option>
                         @foreach ($analis as $a)
-                            <option value="{{ $a->id }}" {{ old('shift1_analis_id') == $a->id ? 'selected' : '' }}>
+                            <option value="{{ $a->id }}"
+                                {{ old('shift1_analis_id', $tugasPelaporan->shift1_analis_id) == $a->id ? 'selected' : '' }}>
                                 {{ $a->name }}
                             </option>
                         @endforeach
@@ -110,7 +113,7 @@
                         <option value="">— Pilih Analis —</option>
                         <template x-for="a in availS2" :key="a.id">
                             <option :value="a.id" x-text="a.name"
-                                    :selected="a.id == {{ old('shift2_analis_id', 0) }}"></option>
+                                    :selected="a.id == {{ old('shift2_analis_id', $tugasPelaporan->shift2_analis_id) }}"></option>
                         </template>
                     </select>
                     <p class="mt-1 text-xs text-gray-400">Tidak bisa memilih analis yang sudah ditugaskan di Shift 1.</p>
@@ -134,7 +137,7 @@
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                         <option value="">— Pilih Nama Alat —</option>
                         @foreach ($instruments as $inst)
-                            <option value="{{ $inst }}" {{ old('instrument') == $inst ? 'selected' : '' }}>
+                            <option value="{{ $inst }}" {{ old('instrument', $selectedInstrument) == $inst ? 'selected' : '' }}>
                                 {{ ucwords(str_replace('_', ' ', $inst)) }}
                             </option>
                         @endforeach
@@ -149,7 +152,7 @@
                         <option value="">— Pilih Jenis Laporan —</option>
                         <template x-for="rt in filteredReportTypes" :key="rt.id">
                             <option :value="rt.id" x-text="rt.annex_number + ' — ' + rt.name"
-                                    :selected="rt.id == {{ old('report_type_id', 0) }}"></option>
+                                    :selected="rt.id == {{ old('report_type_id', $selectedReportType ?? 0) }}"></option>
                         </template>
                     </select>
                     @error('report_type_id')
@@ -165,7 +168,7 @@
                 </a>
                 <button type="submit"
                         class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm">
-                    Simpan
+                    Simpan Perubahan
                 </button>
             </div>
         </form>
@@ -178,10 +181,10 @@ function tugasForm(analysts, reportTypes, instrumentMap) {
         analysts: analysts,
         reportTypes: reportTypes,
         instrumentMap: instrumentMap,
-        s1: '{{ old('shift1_analis_id', '') }}',
-        s2: '{{ old('shift2_analis_id', '') }}',
-        selectedInstrument: '{{ old('instrument', '') }}',
-        selectedReportType: '{{ old('report_type_id', '') }}',
+        s1: '{{ old('shift1_analis_id', $tugasPelaporan->shift1_analis_id) }}',
+        s2: '{{ old('shift2_analis_id', $tugasPelaporan->shift2_analis_id) }}',
+        selectedInstrument: '{{ old('instrument', $selectedInstrument ?? '') }}',
+        selectedReportType: '{{ old('report_type_id', $selectedReportType ?? '') }}',
 
         get availS2() {
             return this.analysts.filter(a => String(a.id) !== String(this.s1));

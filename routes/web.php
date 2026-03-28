@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\TugasPelaporanController;
+use App\Http\Controllers\AnalisLaporanController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,8 @@ Route::get('/dashboard', function () {
         return redirect()->route('dashboard.super-admin');
     } elseif ($role === 'admin-qc') {
         return redirect()->route('dashboard.admin-qc');
+    } elseif ($role === 'analis') {
+        return redirect()->route('dashboard.analis');
     }
     return redirect('/');
 })->middleware('auth')->name('dashboard');
@@ -45,8 +48,19 @@ Route::middleware(['auth', 'role:admin-qc'])
     ->prefix('dashboard')
     ->group(function () {
         Route::resource('tugas-pelaporan', TugasPelaporanController::class)
-            ->only(['index', 'create', 'store'])
+            ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('tugas-pelaporan');
+    });
+
+// Dashboard & Laporan Analis
+Route::middleware(['auth', 'role:analis'])
+    ->prefix('dashboard')
+    ->group(function () {
+        Route::get('analis', function () {
+            return view('dashboard.analis');
+        })->name('dashboard.analis');
+
+        Route::get('laporan', [AnalisLaporanController::class, 'index'])->name('laporan.index');
     });
 
 Route::middleware('auth')->group(function () {

@@ -27,5 +27,35 @@ class AdminSeeder extends Seeder
             'email' => 'adminqc@company.com',
             'password' => Hash::make('admin123'),
         ]);
+
+        // 4 Akun Analis
+        User::create([
+            'name' => 'Analis 1',
+            'username' => 'analis1',
+            'role' => 'analis',
+            'email' => 'analis1@company.com',
+            'password' => Hash::make('admin123'),
+        ]);
+        User::create([
+            'name' => 'Analis 2',
+            'username' => 'analis2',
+            'role' => 'analis',
+            'email' => 'analis2@company.com',
+            'password' => Hash::make('admin123'),
+        ]);
+        User::create([
+            'name' => 'Analis 3',
+            'username' => 'analis3',
+            'role' => 'analis',
+            'email' => 'analis3@company.com',
+            'password' => Hash::make('admin123'),
+        ]);
+        User::create([
+            'name' => 'Analis 4',
+            'username' => 'analis4',
+            'role' => 'analis',
+            'email' => 'analis4@company.com',
+            'password' => Hash::make('admin123'),
+        ]);
     }
 }
