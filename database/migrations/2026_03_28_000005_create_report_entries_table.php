@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('report_entries', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('report_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('report_location_id')->constrained()->cascadeOnDelete();
+            $table->unsignedTinyInteger('period_number')->default(1);
+            $table->unsignedTinyInteger('shift');           // 1 or 2
+            $table->foreignId('analis_id')->constrained('users')->cascadeOnDelete();
+            $table->time('jam_mulai')->nullable();
+            $table->time('jam_selesai')->nullable();
+            $table->unsignedSmallInteger('cfu_bacteria')->nullable();
+            $table->unsignedSmallInteger('cfu_fungi')->nullable();
+            $table->string('conclusion', 50)->nullable();   // pass / alert / action
+            $table->timestamps();
+
+            $table->unique(['report_id', 'report_location_id', 'period_number', 'shift'], 'entry_unique');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('report_entries');
+    }
+};
