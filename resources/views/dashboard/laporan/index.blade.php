@@ -77,7 +77,8 @@
                     <thead>
                         <tr class="text-xs font-semibold uppercase tracking-wide text-gray-500 bg-gray-50/60">
                             <th class="px-5 py-3 text-left">Tanggal</th>
-                            <th class="px-5 py-3 text-left">Jenis Laporan</th>
+                            <th class="px-5 py-3 text-left">Nama Produk</th>
+                            <th class="px-5 py-3 text-left">Nomor Batch Produk</th>
                             <th class="px-5 py-3 text-center">Shift</th>
                             <th class="px-5 py-3 text-center">Status</th>
                             <th class="px-5 py-3 text-center">Aksi</th>
@@ -90,9 +91,10 @@
                                     {{ $item->tanggal->isoFormat('D MMM Y') }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    <span class="font-semibold text-sky-700">{{ $item->reportType->annex_number }}</span>
-                                    <span class="text-gray-400 mx-1">—</span>
-                                    <span class="text-gray-600">{{ $item->reportType->name }}</span>
+                                    {{ $item->nama_produk }}
+                                </td>
+                                <td class="px-5 py-3.5 text-gray-700">
+                                    {{ $item->nomor_batch_produk }}
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
                                     @php
