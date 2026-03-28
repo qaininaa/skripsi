@@ -200,5 +200,126 @@ class ReportTypeSeeder extends Seeder
             'alert_limit_fungi'      => null,
             'action_limit_fungi'     => null,
         ]);
+
+        // ---------------------------------------------------------------
+        // Annex 24: Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5
+        // ---------------------------------------------------------------
+        $annex24 = ReportType::create([
+            'code'         => 'HVAC-6.1.5',
+            'name'         => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5',
+            'annex_number' => 'Annex 24',
+            'instrument'   => 'air_sampler',
+            'frequency'    => 'campuran',
+        ]);
+
+        // Ruangan Annex 24
+        $rooms24 = [
+            ['s_no' => 1, 'room_name' => 'LAF Sampling Room',    'class' => 'C', 'room_number' => '061P116'],
+            ['s_no' => 2, 'room_name' => 'Sampling Room',        'class' => 'D', 'room_number' => '061P116'],
+            ['s_no' => 3, 'room_name' => 'Material Airlock In 3','class' => 'D', 'room_number' => '061C112'],
+            ['s_no' => 4, 'room_name' => 'Material Airlock Out 3','class' => 'D', 'room_number' => '061C113'],
+            ['s_no' => 5, 'room_name' => 'Change Room 5',        'class' => 'D', 'room_number' => '061C114'],
+            ['s_no' => 6, 'room_name' => 'Personnel Airlock 5',  'class' => 'D', 'room_number' => '061C115'],
+        ];
+
+        // Seksi 1: Settle Plate (3 exposure per lokasi)
+        $settleLimits24 = [
+            'C' => ['alert_b' => 25,   'action_b' => 50,  'alert_f' => 2,    'action_f' => 5],
+            'D' => ['alert_b' => null, 'action_b' => 50,  'alert_f' => null, 'action_f' => 10],
+        ];
+
+        $settleSection24 = ReportSection::create([
+            'report_type_id'   => $annex24->id,
+            'name'             => 'Settle Plate',
+            'slug'             => 'settle_plate',
+            'measurement_unit' => 'CFU/4hours/plate',
+            'measurement_type' => 'settle_plate',
+            'max_exposures'    => 3,
+            'order'            => 1,
+        ]);
+
+        foreach ($rooms24 as $room) {
+            $lim = $settleLimits24[$room['class']];
+            ReportLocation::create([
+                'report_section_id'     => $settleSection24->id,
+                'location_number'       => 'SP1',
+                'alert_limit_bacteria'  => $lim['alert_b'],
+                'action_limit_bacteria' => $lim['action_b'],
+                'alert_limit_fungi'     => $lim['alert_f'],
+                'action_limit_fungi'    => $lim['action_f'],
+            ] + $room);
+        }
+
+        // Seksi 2: Air Sampler (2 shift)
+        $airLimits24 = [
+            'C' => ['alert_b' => 25,  'action_b' => 100, 'alert_f' => 2,  'action_f' => 5],
+            'D' => ['alert_b' => 50,  'action_b' => 200, 'alert_f' => 5,  'action_f' => 10],
+        ];
+
+        $airSection24 = ReportSection::create([
+            'report_type_id'   => $annex24->id,
+            'name'             => 'Air Sampler',
+            'slug'             => 'air_sampler',
+            'measurement_unit' => 'CFU/10min/m3',
+            'measurement_type' => 'air_sampler',
+            'max_exposures'    => 2,
+            'order'            => 2,
+        ]);
+
+        foreach ($rooms24 as $room) {
+            $lim = $airLimits24[$room['class']];
+            ReportLocation::create([
+                'report_section_id'     => $airSection24->id,
+                'location_number'       => 'AS1',
+                'alert_limit_bacteria'  => $lim['alert_b'],
+                'action_limit_bacteria' => $lim['action_b'],
+                'alert_limit_fungi'     => $lim['alert_f'],
+                'action_limit_fungi'    => $lim['action_f'],
+            ] + $room);
+        }
+
+        // Seksi 3: Contact Plate (2 shift)
+        $contactLimits24 = [
+            'C' => ['alert_b' => 10,  'action_b' => 25,  'alert_f' => 2,  'action_f' => 5],
+            'D' => ['alert_b' => 20,  'action_b' => 50,  'alert_f' => 2,  'action_f' => 10],
+        ];
+
+        $contactSection24 = ReportSection::create([
+            'report_type_id'   => $annex24->id,
+            'name'             => 'Contact Plate',
+            'slug'             => 'contact_plate',
+            'measurement_unit' => 'CFU/plate D=55mm/15sec',
+            'measurement_type' => 'contact_plate',
+            'max_exposures'    => 2,
+            'order'            => 3,
+        ]);
+
+        $contactLocations24 = [
+            ['s_no'=>1,'room_name'=>'LAF Sampling Room',    'class'=>'C','room_number'=>'061P116','location_number'=>'CP1'],
+            ['s_no'=>1,'room_name'=>'LAF Sampling Room',    'class'=>'C','room_number'=>'061P116','location_number'=>'CP2'],
+            ['s_no'=>1,'room_name'=>'LAF Sampling Room',    'class'=>'C','room_number'=>'061P116','location_number'=>'CP3'],
+            ['s_no'=>1,'room_name'=>'LAF Sampling Room',    'class'=>'C','room_number'=>'061P116','location_number'=>'CP4'],
+            ['s_no'=>2,'room_name'=>'Sampling Room',        'class'=>'D','room_number'=>'061P116','location_number'=>'CP1'],
+            ['s_no'=>2,'room_name'=>'Sampling Room',        'class'=>'D','room_number'=>'061P116','location_number'=>'CP2'],
+            ['s_no'=>2,'room_name'=>'Sampling Room',        'class'=>'D','room_number'=>'061P116','location_number'=>'CP3'],
+            ['s_no'=>3,'room_name'=>'Material Airlock In 3','class'=>'D','room_number'=>'061C112','location_number'=>'CP1'],
+            ['s_no'=>3,'room_name'=>'Material Airlock In 3','class'=>'D','room_number'=>'061C112','location_number'=>'SCP1'],
+            ['s_no'=>4,'room_name'=>'Material Airlock Out 3','class'=>'D','room_number'=>'061C113','location_number'=>'CP1'],
+            ['s_no'=>4,'room_name'=>'Material Airlock Out 3','class'=>'D','room_number'=>'061C113','location_number'=>'SCP1'],
+            ['s_no'=>5,'room_name'=>'Change Room 5',        'class'=>'D','room_number'=>'061C114','location_number'=>'CP1'],
+            ['s_no'=>5,'room_name'=>'Change Room 5',        'class'=>'D','room_number'=>'061C114','location_number'=>'SCP1'],
+            ['s_no'=>6,'room_name'=>'Personnel Airlock 5',  'class'=>'D','room_number'=>'061C115','location_number'=>'CP1'],
+        ];
+
+        foreach ($contactLocations24 as $loc) {
+            $lim = $contactLimits24[$loc['class']];
+            ReportLocation::create([
+                'report_section_id'     => $contactSection24->id,
+                'alert_limit_bacteria'  => $lim['alert_b'],
+                'action_limit_bacteria' => $lim['action_b'],
+                'alert_limit_fungi'     => $lim['alert_f'],
+                'action_limit_fungi'    => $lim['action_f'],
+            ] + $loc);
+        }
     }
 }
