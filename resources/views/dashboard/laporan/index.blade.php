@@ -15,7 +15,7 @@
         'all'         => ['label' => 'Semua',              'color' => 'gray'],
         'pending'     => ['label' => 'Menunggu',           'color' => 'gray'],
         'in_progress' => ['label' => 'Dikerjakan',         'color' => 'yellow'],
-        'handed_over' => ['label' => 'Diteruskan Shift 2', 'color' => 'amber'],
+        'handed_over' => ['label' => 'Diteruskan ke Shift 2', 'color' => 'amber'],
         'submitted'   => ['label' => 'Dikirim',            'color' => 'blue'],
         'approved'    => ['label' => 'Disetujui',          'color' => 'green'],
         'rejected'    => ['label' => 'Ditolak',            'color' => 'red'],

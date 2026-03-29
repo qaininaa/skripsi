@@ -206,7 +206,7 @@
     <div class="px-5 py-3.5 border-b border-gray-100">
         <h3 class="font-semibold text-sm text-gray-700">3. Identitas Medium</h3>
     </div>
-    <div class="p-5 grid grid-cols-1 lg:grid-cols-{{ count($mediumGroups) > 2 ? '3' : '2' }} gap-6">
+    <div class="p-5 grid grid-cols-1 gap-6 {{ count($mediumGroups) > 2 ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
         @foreach ($mediumGroups as $medKey => $medLabel)
         @php $med = $hd[$medKey] ?? []; @endphp
         <div>
