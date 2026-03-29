@@ -965,8 +965,8 @@ document.addEventListener('input', function (e) {
     const bInput = document.querySelector(`[data-loc="${loc}"][data-col="${col}"][data-type="b"]`);
     const fInput = document.querySelector(`[data-loc="${loc}"][data-col="${col}"][data-type="f"]`);
 
-    const b = parseInt(bInput?.value) >= 0 ? parseInt(bInput.value) : 0;
-    const f = parseInt(fInput?.value) >= 0 ? parseInt(fInput.value) : 0;
+    const b = parseFloat(bInput?.value) >= 0 ? parseFloat(bInput.value) : 0;
+    const f = parseFloat(fInput?.value) >= 0 ? parseFloat(fInput.value) : 0;
 
     const tSpan = document.getElementById(`t-${loc}-${col}`);
     if (tSpan) {
