@@ -46,8 +46,7 @@
             Simpan Draft
         </button>
         @if ($myShift === 1 && !$shift1HandedOver && $report->shift2Analis)
-        <button type="submit" name="action" value="handover"
-                onclick="return validateAction('handover')"
+        <button type="button" onclick="openConfirmModal('handover')"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
@@ -55,6 +54,7 @@
             Estafet ke Shift 2
         </button>
         @endif
+        @if (!$report->shift2Analis)
         <button type="submit" name="action" value="submit"
                 onclick="return validateAction('submit')"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
@@ -63,6 +63,7 @@
             </svg>
             Kirim Laporan
         </button>
+        @endif
     </div>
     @else
         @if ($myShift === 1 && $shift1HandedOver)
@@ -799,17 +800,18 @@
         Simpan Draft
     </button>
     @if ($myShift === 1 && !$shift1HandedOver && $report->shift2Analis)
-    <button type="submit" name="action" value="handover"
-            onclick="return validateAction('handover')"
+    <button type="button" onclick="openConfirmModal('handover')"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
         Estafet ke Shift 2
     </button>
     @endif
+    @if (!$report->shift2Analis)
     <button type="submit" name="action" value="submit"
             onclick="return validateAction('submit')"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
         Kirim Laporan
     </button>
+    @endif
 </div>
 @endif
 
@@ -820,8 +822,8 @@
 <div id="save-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40" onclick="closeSaveModal()"></div>
     <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
-        <h3 class="text-base font-semibold text-gray-800">Konfirmasi Simpan Draft</h3>
-        <p class="text-sm text-gray-500">Masukkan username dan password Anda untuk menyimpan.</p>
+        <h3 id="save-modal-title" class="text-base font-semibold text-gray-800">Konfirmasi Simpan Draft</h3>
+        <p id="save-modal-desc" class="text-sm text-gray-500">Masukkan username dan password Anda untuk menyimpan.</p>
         <div class="space-y-3">
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Username</label>
@@ -852,12 +854,37 @@
 
 @push('scripts')
 <script>
-// ── Simpan Draft: password confirmation modal ────────────────
-function openSaveModal() {
+// ── Simpan Draft / Estafet: password confirmation modal ────────────────
+let _pendingAction = 'save';
+
+const _modalConfig = {
+    save: {
+        title: 'Konfirmasi Simpan Draft',
+        desc:  'Masukkan username dan password Anda untuk menyimpan.',
+        btnText: 'Simpan',
+        btnClass: 'bg-sky-500 hover:bg-sky-600',
+    },
+    handover: {
+        title: 'Konfirmasi Estafet ke Shift 2',
+        desc:  'Setelah diteruskan, data Shift 1 tidak dapat diubah lagi. Masukkan username dan password Anda untuk melanjutkan.',
+        btnText: 'Estafet',
+        btnClass: 'bg-amber-500 hover:bg-amber-600',
+    },
+};
+
+function openSaveModal()    { openConfirmModal('save'); }
+function openConfirmModal(action) {
+    _pendingAction = action;
+    const cfg = _modalConfig[action];
+    document.getElementById('save-modal-title').textContent   = cfg.title;
+    document.getElementById('save-modal-desc').textContent    = cfg.desc;
+    const btn = document.getElementById('save-modal-confirm');
+    btn.textContent = cfg.btnText;
+    btn.className   = `px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 ${cfg.btnClass}`;
+    btn.disabled    = false;
     document.getElementById('save-modal-username').value = '';
     document.getElementById('save-modal-password').value = '';
     document.getElementById('save-modal-error').classList.add('hidden');
-    document.getElementById('save-modal-confirm').disabled = false;
     document.getElementById('save-modal').classList.remove('hidden');
     document.getElementById('save-modal-username').focus();
 }
@@ -867,6 +894,7 @@ function closeSaveModal() {
 }
 
 async function confirmSave() {
+    const action   = _pendingAction;
     const username = document.getElementById('save-modal-username').value.trim();
     const password = document.getElementById('save-modal-password').value;
     const errEl    = document.getElementById('save-modal-error');
@@ -875,6 +903,12 @@ async function confirmSave() {
     if (!username || !password) {
         errEl.textContent = 'Username dan password harus diisi.';
         errEl.classList.remove('hidden');
+        return;
+    }
+
+    // For handover, run the existing column-validation first
+    if (action === 'handover' && !validateAction('handover')) {
+        closeSaveModal();
         return;
     }
 
@@ -897,20 +931,20 @@ async function confirmSave() {
 
         if (data.ok) {
             closeSaveModal();
-            document.getElementById('save-action-input').value = 'save';
+            document.getElementById('save-action-input').value = action;
             formDirty = false;
             document.getElementById('laporan-form').submit();
         } else {
             errEl.textContent = data.message ?? 'Username atau password salah.';
             errEl.classList.remove('hidden');
             btn.disabled = false;
-            btn.textContent = 'Simpan';
+            btn.textContent = _modalConfig[action].btnText;
         }
     } catch (e) {
         errEl.textContent = 'Terjadi kesalahan. Coba lagi.';
         errEl.classList.remove('hidden');
         btn.disabled = false;
-        btn.textContent = 'Simpan';
+        btn.textContent = _modalConfig[action].btnText;
     }
 }
 
