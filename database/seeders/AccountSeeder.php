@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class AdminSeeder extends Seeder
+class AccountSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -55,6 +55,27 @@ class AdminSeeder extends Seeder
             'username' => 'analis4',
             'role' => 'analis',
             'email' => 'analis4@company.com',
+            'password' => Hash::make('admin123'),
+        ]);
+        User::create([
+            'name' => 'Manajer',
+            'username' => 'manajer',
+            'role' => 'manajer',
+            'email' => 'manajer@company.com',
+            'password' => Hash::make('admin123'),
+        ]);
+        User::create([
+            'name' => 'Supervisor 1',
+            'username' => 'supervisor1',
+            'role' => 'supervisor',
+            'email' => 'supervisor1@company.com',
+            'password' => Hash::make('admin123'),
+        ]);
+        User::create([
+            'name' => 'Supervisor 2',
+            'username' => 'supervisor2',
+            'role' => 'supervisor',
+            'email' => 'supervisor2@company.com',
             'password' => Hash::make('admin123'),
         ]);
     }
