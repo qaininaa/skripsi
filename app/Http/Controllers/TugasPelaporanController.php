@@ -43,7 +43,7 @@ class TugasPelaporanController extends Controller
             'nama_produk'          => ['required', 'string', 'max:255'],
             'nomor_batch_produk'   => ['required', 'string', 'max:255'],
             'shift1_analis_id'     => ['required', 'exists:users,id'],
-            'shift2_analis_id'     => ['required', 'exists:users,id', 'different:shift1_analis_id'],
+            'shift2_analis_id'     => ['nullable', 'exists:users,id', 'different:shift1_analis_id'],
             'report_type_id'       => ['required', 'exists:report_types,id'],
         ]);
 
@@ -86,7 +86,7 @@ class TugasPelaporanController extends Controller
             'nama_produk'        => ['required', 'string', 'max:255'],
             'nomor_batch_produk' => ['required', 'string', 'max:255'],
             'shift1_analis_id'   => ['required', 'exists:users,id'],
-            'shift2_analis_id'   => ['required', 'exists:users,id', 'different:shift1_analis_id'],
+            'shift2_analis_id'   => ['nullable', 'exists:users,id', 'different:shift1_analis_id'],
             'report_type_id'     => ['required', 'exists:report_types,id'],
         ]);
 

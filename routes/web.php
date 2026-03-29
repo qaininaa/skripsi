@@ -63,6 +63,7 @@ Route::middleware(['auth', 'role:analis'])
         Route::get('laporan', [AnalisLaporanController::class, 'index'])->name('laporan.index');
         Route::get('laporan/{report}/isi', [AnalisLaporanController::class, 'isi'])->name('laporan.isi');
         Route::post('laporan/{report}/save', [AnalisLaporanController::class, 'save'])->name('laporan.save');
+        Route::post('laporan/verify-password', [AnalisLaporanController::class, 'verifyPassword'])->name('laporan.verify-password');
     });
 
 Route::middleware('auth')->group(function () {

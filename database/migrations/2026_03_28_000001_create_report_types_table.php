@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('annex_number', 50);
             $table->string('instrument', 50);          // air_sampler, settle_plate, contact_plate, swab
             $table->string('frequency', 50)->nullable(); // daily, weekly, etc.
+            $table->json('medium_groups')->nullable();     // null = tidak ada seksi medium; map key→label
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

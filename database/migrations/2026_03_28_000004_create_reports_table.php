@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('nama_produk');
             $table->string('nomor_batch_produk');
             $table->foreignId('shift1_analis_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('shift2_analis_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('shift2_analis_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('status', 30)->default('pending');
             // pending → in_progress → submitted → approved / rejected
             $table->json('header_data')->nullable();

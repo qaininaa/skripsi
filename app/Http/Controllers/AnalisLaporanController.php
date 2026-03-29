@@ -6,6 +6,8 @@ use App\Models\Report;
 use App\Models\ReportEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class AnalisLaporanController extends Controller
 {
@@ -45,10 +47,10 @@ class AnalisLaporanController extends Controller
         if ($status === 'handed_over') {
             $query->where('status', 'in_progress')
                   ->where('shift1_analis_id', $userId)
-                  ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')) = 'true'");
+                  ->whereRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')), 'false') = 'true'");
         } elseif ($status === 'in_progress') {
             $query->where('status', 'in_progress')
-                  ->whereRaw("NOT (shift1_analis_id = ? AND JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')) = 'true')", [$userId]);
+                  ->whereRaw("NOT (shift1_analis_id = ? AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')), 'false') = 'true')", [$userId]);
         } elseif ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -224,5 +226,22 @@ class AnalisLaporanController extends Controller
                 );
             }
         }
+    }
+
+    public function verifyPassword(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'username' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = Auth::user();
+
+        // Must match the currently logged-in user
+        if ($user->username !== $request->username || !Hash::check($request->password, $user->password)) {
+            return response()->json(['ok' => false, 'message' => 'Username atau password salah.'], 422);
+        }
+
+        return response()->json(['ok' => true]);
     }
 }

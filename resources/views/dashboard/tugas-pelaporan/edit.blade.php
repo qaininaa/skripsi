@@ -102,21 +102,22 @@
 
             {{-- SHIFT 2 --}}
             <div class="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-4">
-                <h3 class="text-sm font-bold text-indigo-800 uppercase tracking-wide">Shift 2</h3>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-indigo-800 uppercase tracking-wide">Shift 2</h3>
+                    <span class="text-xs text-gray-400 font-normal normal-case">(opsional)</span>
+                </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Analis <span class="text-red-500">*</span>
-                    </label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Analis</label>
                     <select name="shift2_analis_id" x-model="s2"
-                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="">— Pilih Analis —</option>
+                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">— Tidak ada Shift 2 —</option>
                         <template x-for="a in availS2" :key="a.id">
                             <option :value="a.id" x-text="a.name"
                                     :selected="a.id == {{ old('shift2_analis_id', $tugasPelaporan->shift2_analis_id) }}"></option>
                         </template>
                     </select>
-                    <p class="mt-1 text-xs text-gray-400">Tidak bisa memilih analis yang sudah ditugaskan di Shift 1.</p>
+                    <p class="mt-1 text-xs text-gray-400">Kosongkan jika laporan ini tidak memiliki Shift 2. Tidak bisa memilih analis yang sama dengan Shift 1.</p>
                     @error('shift2_analis_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror

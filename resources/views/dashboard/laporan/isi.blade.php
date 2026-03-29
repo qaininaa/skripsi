@@ -38,14 +38,14 @@
 
     @if ($isEditable)
     <div class="flex items-center gap-2">
-        <button type="submit" name="action" value="save"
+        <button type="button" onclick="openSaveModal()"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
             </svg>
             Simpan Draft
         </button>
-        @if ($myShift === 1 && !$shift1HandedOver)
+        @if ($myShift === 1 && !$shift1HandedOver && $report->shift2Analis)
         <button type="submit" name="action" value="handover"
                 onclick="return validateAction('handover')"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
@@ -156,7 +156,7 @@
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Produk</label>
-            <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm font-mono text-gray-700">
+            <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                 {{ $report->nomor_batch_produk }}
             </div>
         </div>
@@ -210,7 +210,7 @@
         @foreach ($mediumGroups as $medKey => $medLabel)
         @php $med = $hd[$medKey] ?? []; @endphp
         <div>
-            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{{ $medLabel }}</h4>
+            <h4 class="text-xs font-semibold text-sky-600 uppercase tracking-wide mb-3">{{ $medLabel }}</h4>
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
@@ -295,6 +295,8 @@
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
+            {{-- spacer: ocupy col 1-2 on large screens so keluar fields align under masuk fields --}}
+            <div class="hidden lg:block lg:col-span-2"></div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
                 <input type="date" name="header_data[{{ $inkKey }}][tanggal_keluar]" value="{{ $ink['tanggal_keluar'] ?? '' }}"
@@ -792,11 +794,11 @@
 {{-- Bottom save bar --}}
 @if ($isEditable)
 <div class="flex justify-end gap-2 pb-2">
-    <button type="submit" name="action" value="save"
+    <button type="button" onclick="openSaveModal()"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
         Simpan Draft
     </button>
-    @if ($myShift === 1 && !$shift1HandedOver)
+    @if ($myShift === 1 && !$shift1HandedOver && $report->shift2Analis)
     <button type="submit" name="action" value="handover"
             onclick="return validateAction('handover')"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
@@ -811,11 +813,114 @@
 </div>
 @endif
 
+{{-- Hidden action input for save confirmation --}}
+<input type="hidden" id="save-action-input" name="action" value="">
+
 </form>
+<div id="save-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeSaveModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <h3 class="text-base font-semibold text-gray-800">Konfirmasi Simpan Draft</h3>
+        <p class="text-sm text-gray-500">Masukkan username dan password Anda untuk menyimpan.</p>
+        <div class="space-y-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Username</label>
+                <input id="save-modal-username" type="text" autocomplete="username"
+                       class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Password</label>
+                <input id="save-modal-password" type="password" autocomplete="current-password"
+                       class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+            </div>
+            <p id="save-modal-error" class="hidden text-xs text-red-600"></p>
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+            <button type="button" onclick="closeSaveModal()"
+                    class="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+                Batal
+            </button>
+            <button type="button" id="save-modal-confirm" onclick="confirmSave()"
+                    class="px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 disabled:opacity-50">
+                Simpan
+            </button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+// ── Simpan Draft: password confirmation modal ────────────────
+function openSaveModal() {
+    document.getElementById('save-modal-username').value = '';
+    document.getElementById('save-modal-password').value = '';
+    document.getElementById('save-modal-error').classList.add('hidden');
+    document.getElementById('save-modal-confirm').disabled = false;
+    document.getElementById('save-modal').classList.remove('hidden');
+    document.getElementById('save-modal-username').focus();
+}
+
+function closeSaveModal() {
+    document.getElementById('save-modal').classList.add('hidden');
+}
+
+async function confirmSave() {
+    const username = document.getElementById('save-modal-username').value.trim();
+    const password = document.getElementById('save-modal-password').value;
+    const errEl    = document.getElementById('save-modal-error');
+    const btn      = document.getElementById('save-modal-confirm');
+
+    if (!username || !password) {
+        errEl.textContent = 'Username dan password harus diisi.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Memeriksa...';
+    errEl.classList.add('hidden');
+
+    try {
+        const res = await fetch('{{ route('laporan.verify-password') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                             ?? document.querySelector('input[name="_token"]')?.value,
+            },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+            closeSaveModal();
+            document.getElementById('save-action-input').value = 'save';
+            formDirty = false;
+            document.getElementById('laporan-form').submit();
+        } else {
+            errEl.textContent = data.message ?? 'Username atau password salah.';
+            errEl.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Simpan';
+        }
+    } catch (e) {
+        errEl.textContent = 'Terjadi kesalahan. Coba lagi.';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Simpan';
+    }
+}
+
+// Close modal on Enter key in password field
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('save-modal-password')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') confirmSave();
+    });
+});
+
 // Auto-calculate T = B + F when user types in a CFU input
 document.addEventListener('input', function (e) {
     if (!e.target.classList.contains('cfu-input')) return;
