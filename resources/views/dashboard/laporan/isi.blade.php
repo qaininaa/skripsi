@@ -55,8 +55,7 @@
         </button>
         @endif
         @if (!$report->shift2Analis)
-        <button type="submit" name="action" value="submit"
-                onclick="return validateAction('submit')"
+        <button type="button" onclick="openSubmitFlow()"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -566,7 +565,7 @@
                         @if ($isEditable)
                             <input type="number" min="0" name="entries[{{ $loc->id }}][0][cfu_bacteria]"
                                    value="{{ $msEntry?->cfu_bacteria }}"
-                                   data-loc="{{ $loc->id }}" data-col="0" data-type="b"
+                                   data-loc="{{ $loc->id }}" data-col="0" data-type="b" data-section-id="{{ $section->id }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @else
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -628,7 +627,7 @@
                         @if ($editable)
                             <input type="number" min="0" name="{{ $iName }}[cfu_bacteria]"
                                    value="{{ $existEntry?->cfu_bacteria }}"
-                                   data-loc="{{ $loc->id }}" data-col="{{ $col }}" data-type="b"
+                                   data-loc="{{ $loc->id }}" data-col="{{ $col }}" data-type="b" data-section-id="{{ $section->id }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @else
@@ -806,8 +805,7 @@
     </button>
     @endif
     @if (!$report->shift2Analis)
-    <button type="submit" name="action" value="submit"
-            onclick="return validateAction('submit')"
+    <button type="button" onclick="openSubmitFlow()"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
         Kirim Laporan
     </button>
@@ -850,6 +848,40 @@
     </div>
 </div>
 
+{{-- Alert modal (replaces browser alert()) --}}
+<div id="alert-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeAlertModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-3">
+        <h3 id="alert-modal-title" class="text-base font-semibold text-gray-800">Perhatian</h3>
+        <p id="alert-modal-msg" class="text-sm text-gray-600 whitespace-pre-line"></p>
+        <div class="flex justify-end pt-1">
+            <button type="button" onclick="closeAlertModal()"
+                    class="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm font-medium hover:bg-gray-700">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Confirm modal (replaces browser confirm()) --}}
+<div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-3">
+        <h3 id="confirm-modal-title" class="text-base font-semibold text-gray-800">Konfirmasi</h3>
+        <p id="confirm-modal-msg" class="text-sm text-gray-600"></p>
+        <div class="flex justify-end gap-2 pt-1">
+            <button type="button" onclick="closeConfirmModal()"
+                    class="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+                Batal
+            </button>
+            <button type="button" id="confirm-modal-ok" onclick="doConfirm()"
+                    class="px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -874,6 +906,16 @@ const _modalConfig = {
 
 function openSaveModal()    { openConfirmModal('save'); }
 function openConfirmModal(action) {
+    if (action === 'handover') {
+        const missing = getMissingCols(1);
+        if (missing.size > 0) {
+            showAlertModal(
+                'Data Belum Lengkap',
+                'Kolom Shift 1 berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.'
+            );
+            return;
+        }
+    }
     _pendingAction = action;
     const cfg = _modalConfig[action];
     document.getElementById('save-modal-title').textContent   = cfg.title;
@@ -903,12 +945,6 @@ async function confirmSave() {
     if (!username || !password) {
         errEl.textContent = 'Username dan password harus diisi.';
         errEl.classList.remove('hidden');
-        return;
-    }
-
-    // For handover, run the existing column-validation first
-    if (action === 'handover' && !validateAction('handover')) {
-        closeSaveModal();
         return;
     }
 
@@ -1011,28 +1047,86 @@ function setAssignment(secId, col, shift) {
     formDirty = true;
 }
 
-// Validate assigned columns before handover or submit
-function validateAction(action) {
-    const myShift = {{ $myShift }};
-    const checkShift = action === 'handover' ? 1 : myShift;
+// Custom alert modal
+function showAlertModal(title, msg) {
+    document.getElementById('alert-modal-title').textContent = title;
+    document.getElementById('alert-modal-msg').textContent = msg;
+    document.getElementById('alert-modal').classList.remove('hidden');
+}
+function closeAlertModal() {
+    document.getElementById('alert-modal').classList.add('hidden');
+}
+
+// Custom confirm modal
+let _confirmCallback = null;
+function showConfirmModal(title, msg, btnLabel, onConfirm) {
+    document.getElementById('confirm-modal-title').textContent = title;
+    document.getElementById('confirm-modal-msg').textContent = msg;
+    document.getElementById('confirm-modal-ok').textContent = btnLabel;
+    _confirmCallback = onConfirm;
+    document.getElementById('confirm-modal').classList.remove('hidden');
+}
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    _confirmCallback = null;
+}
+function doConfirm() {
+    const cb = _confirmCallback;
+    closeConfirmModal();
+    if (cb) cb();
+}
+
+// Helper: returns Set of missing exposure labels for a given shift
+function getMissingCols(checkShift) {
     const missing = new Set();
     document.querySelectorAll('input[id^="sa-"]').forEach(inp => {
         const m = inp.id.match(/^sa-(\d+)-(\d+)$/);
         if (!m) return;
-        const col = m[2];
+        const secId = m[1], col = m[2];
         if (parseInt(inp.value) !== checkShift) return;
-        const bInputs = document.querySelectorAll(`input[data-col="${col}"][data-type="b"]`);
+        const bInputs = document.querySelectorAll(`input[data-section-id="${secId}"][data-col="${col}"][data-type="b"]`);
         if (!bInputs.length) return;
         bInputs.forEach(bi => { if (bi.value === '') missing.add('Exposure ' + col); });
     });
+    return missing;
+}
+
+// Kirim Laporan: validate then show custom confirm
+function openSubmitFlow() {
+    const myShift = {{ $myShift }};
+    const missing = getMissingCols(myShift);
     if (missing.size > 0) {
-        alert('Kolom Shift ' + checkShift + ' berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.');
+        showAlertModal(
+            'Data Belum Lengkap',
+            'Kolom Shift ' + myShift + ' berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.'
+        );
+        return;
+    }
+    showConfirmModal(
+        'Konfirmasi Kirim Laporan',
+        'Yakin ingin mengirim laporan? Setelah dikirim, data tidak dapat diubah.',
+        'Kirim Laporan',
+        () => {
+            document.getElementById('save-action-input').value = 'submit';
+            formDirty = false;
+            document.getElementById('laporan-form').submit();
+        }
+    );
+}
+
+// Validate assigned columns before handover or submit
+function validateAction(action) {
+    const myShift = {{ $myShift }};
+    const checkShift = action === 'handover' ? 1 : myShift;
+    const missing = getMissingCols(checkShift);
+    if (missing.size > 0) {
+        showAlertModal(
+            'Data Belum Lengkap',
+            'Kolom Shift ' + checkShift + ' berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.'
+        );
         return false;
     }
-    const msg = action === 'handover'
-        ? 'Simpan data Shift 1 dan teruskan laporan ke Shift 2? Setelahnya, Anda tidak bisa mengubah data lagi.'
-        : 'Yakin ingin mengirim laporan? Setelah dikirim, data tidak dapat diubah.';
-    return confirm(msg);
+    return true;
 }
 
 // Warn before navigating away if form has been changed
