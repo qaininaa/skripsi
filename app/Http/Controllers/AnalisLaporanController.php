@@ -14,22 +14,46 @@ class AnalisLaporanController extends Controller
         $status = $request->query('status', 'all');
         $userId = Auth::id();
 
+        $mine = fn($q) => $q->where('shift1_analis_id', $userId)
+                             ->orWhere('shift2_analis_id', $userId);
+
+        // Hitung count di PHP agar bisa pisahkan status virtual "handed_over"
+        $allForCount = Report::where($mine)->get(['status', 'header_data', 'shift1_analis_id']);
+
+        $handedOverCount = $allForCount->filter(fn($r) =>
+            $r->status === 'in_progress' &&
+            $r->shift1_analis_id === $userId &&
+            !empty(($r->header_data ?? [])['shift1_handed_over'])
+        )->count();
+
+        $rawCounts = $allForCount->groupBy('status')->map->count();
+
+        $counts = collect([
+            'pending'     => $rawCounts['pending']     ?? 0,
+            'in_progress' => max(0, ($rawCounts['in_progress'] ?? 0) - $handedOverCount),
+            'handed_over' => $handedOverCount,
+            'submitted'   => $rawCounts['submitted']   ?? 0,
+            'approved'    => $rawCounts['approved']    ?? 0,
+            'rejected'    => $rawCounts['rejected']    ?? 0,
+        ]);
+
+        // Build main query
         $query = Report::with(['reportType', 'shift1Analis', 'shift2Analis'])
-            ->where(fn($q) => $q->where('shift1_analis_id', $userId)
-                                ->orWhere('shift2_analis_id', $userId))
+            ->where($mine)
             ->orderByDesc('created_at');
 
-        if ($status !== 'all') {
+        if ($status === 'handed_over') {
+            $query->where('status', 'in_progress')
+                  ->where('shift1_analis_id', $userId)
+                  ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')) = 'true'");
+        } elseif ($status === 'in_progress') {
+            $query->where('status', 'in_progress')
+                  ->whereRaw("NOT (shift1_analis_id = ? AND JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')) = 'true')", [$userId]);
+        } elseif ($status !== 'all') {
             $query->where('status', $status);
         }
 
         $items = $query->paginate(15)->withQueryString();
-
-        $counts = Report::where(fn($q) => $q->where('shift1_analis_id', $userId)
-                                             ->orWhere('shift2_analis_id', $userId))
-            ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
 
         return view('dashboard.laporan.index', compact('items', 'status', 'counts'));
     }
@@ -65,7 +89,7 @@ class AnalisLaporanController extends Controller
 
         $shift1HandedOver = !empty(($report->header_data ?? [])['shift1_handed_over']);
         $isEditable       = $report->status === 'in_progress'
-                            && ($myShift === 1 || $shift1HandedOver);
+                            && ($myShift === 1 ? !$shift1HandedOver : $shift1HandedOver);
 
         return view('dashboard.laporan.isi', compact(
             'report', 'myShift', 'otherShift', 'entryMap',
@@ -91,6 +115,11 @@ class AnalisLaporanController extends Controller
             abort(403, 'Shift 1 belum meneruskan laporan.');
         }
 
+        // Shift 1 is read-only after handover
+        if ($myShift === 1 && $shift1HandedOver) {
+            abort(403, 'Data Shift 1 sudah dikunci setelah estafet.');
+        }
+
         $this->processEntries($request, $report, $myShift);
 
         if ($request->input('action') === 'handover') {
@@ -113,11 +142,21 @@ class AnalisLaporanController extends Controller
 
     private function processEntries(Request $request, Report $report, int $myShift): void
     {
-        // Save header_data (merge to preserve other fields)
+        // Save header_data and shift assignments together
+        $hd = $report->header_data ?? [];
         if ($request->has('header_data')) {
-            $existing = $report->header_data ?? [];
-            $merged   = array_replace_recursive($existing, $request->input('header_data'));
-            $report->update(['header_data' => $merged]);
+            $hd = array_replace_recursive($hd, $request->input('header_data'));
+        }
+        $shiftAssignment = $request->input('shift_assignment', []);
+        if (!empty($shiftAssignment)) {
+            $existing = $hd['shift_assignments'] ?? [];
+            foreach ($shiftAssignment as $secId => $cols) {
+                $existing[$secId] = array_map('intval', $cols);
+            }
+            $hd['shift_assignments'] = $existing;
+        }
+        if ($request->has('header_data') || !empty($shiftAssignment)) {
+            $report->update(['header_data' => $hd]);
         }
 
         // Build location→measurement_type and location→section_id maps

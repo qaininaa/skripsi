@@ -20,6 +20,11 @@ class ReportTypeSeeder extends Seeder
             'annex_number' => 'Annex 18',
             'instrument'   => 'air_sampler',
             'frequency'    => 'harian',
+            'medium_groups' => [
+                'medium_tsp_60' => 'Medium TSP 60mm',
+                'medium_tsp_90' => 'Medium TSP 90mm',
+                'medium_swab'   => 'Swab Kit',
+            ],
         ]);
 
         // Lokasi yang sama di semua seksi Annex 18
@@ -55,6 +60,7 @@ class ReportTypeSeeder extends Seeder
         // Lokasi & location_number untuk settle plate (ada beberapa SP per ruangan utk kelas B)
         $settleLocations = [
             ['s_no'=>1,'room_name'=>'LAF Mesin Filling 2',   'class'=>'A','room_number'=>'061P075','location_number'=>'SP1'],
+            ['s_no'=>1,'room_name'=>'LAF Mesin Filling 2',   'class'=>'A','room_number'=>'061P075','location_number'=>'SP2'],
             ['s_no'=>2,'room_name'=>'Filling Room 2',         'class'=>'B','room_number'=>'061P075','location_number'=>'SP1'],
             ['s_no'=>2,'room_name'=>'Filling Room 2',         'class'=>'B','room_number'=>'061P075','location_number'=>'SP2'],
             ['s_no'=>2,'room_name'=>'Filling Room 2',         'class'=>'B','room_number'=>'061P075','location_number'=>'SP3'],
@@ -210,6 +216,10 @@ class ReportTypeSeeder extends Seeder
             'annex_number' => 'Annex 24',
             'instrument'   => 'air_sampler',
             'frequency'    => 'campuran',
+            'medium_groups' => [
+                'medium_tsp_65' => 'Medium TSP 65mm',
+                'medium_tsp_90' => 'Medium TSP 90mm',
+            ],
         ]);
 
         // Ruangan Annex 24

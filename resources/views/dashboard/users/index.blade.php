@@ -71,6 +71,8 @@
                                         $avatarColor = match($user->role) {
                                             'super admin' => 'bg-indigo-500',
                                             'admin-qc' => 'bg-emerald-500',
+                                            'supervisor' => 'bg-orange-500',
+                                            'manajer' => 'bg-blue-500',
                                             default => 'bg-gray-400',
                                         };
                                     @endphp
@@ -87,6 +89,8 @@
                                     $badgeClass = match($user->role) {
                                         'super admin' => 'bg-indigo-100 text-indigo-700',
                                         'admin-qc' => 'bg-emerald-100 text-emerald-700',
+                                        'supervisor' => 'bg-orange-100 text-orange-700',
+                                        'manajer' => 'bg-blue-100 text-blue-700',
                                         default => 'bg-gray-100 text-gray-600',
                                     };
                                 @endphp

@@ -47,23 +47,16 @@
         </button>
         @if ($myShift === 1 && !$shift1HandedOver)
         <button type="submit" name="action" value="handover"
-                onclick="return confirm('Simpan data Shift 1 dan teruskan laporan ke Shift 2? Anda masih bisa mengedit setelahnya.')"
+                onclick="return validateAction('handover')"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
             </svg>
             Estafet ke Shift 2
         </button>
-        @elseif ($myShift === 1 && $shift1HandedOver)
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Sudah diteruskan ke Shift 2
-        </span>
         @endif
         <button type="submit" name="action" value="submit"
-                onclick="return confirm('Yakin ingin mengirim laporan? Setelah dikirim, data tidak dapat diubah.')"
+                onclick="return validateAction('submit')"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -72,15 +65,24 @@
         </button>
     </div>
     @else
-    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-        @if ($report->status === 'submitted') bg-blue-50 text-blue-700
-        @elseif ($report->status === 'approved') bg-green-50 text-green-700
-        @else bg-gray-100 text-gray-500 @endif">
-        @php
-            $statusLabel = ['submitted' => 'Dikirim', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$report->status] ?? $report->status;
-        @endphp
-        {{ $statusLabel }} — Mode Lihat
-    </span>
+        @if ($myShift === 1 && $shift1HandedOver)
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Sudah diteruskan ke Shift 2 — Mode Lihat
+        </span>
+        @else
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
+            @if ($report->status === 'submitted') bg-blue-50 text-blue-700
+            @elseif ($report->status === 'approved') bg-green-50 text-green-700
+            @else bg-gray-100 text-gray-500 @endif">
+            @php
+                $statusLabel = ['submitted' => 'Dikirim', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$report->status] ?? $report->status;
+            @endphp
+            {{ $statusLabel }} — Mode Lihat
+        </span>
+        @endif
     @endif
 </div>
 
@@ -115,7 +117,7 @@
     <div class="px-5 py-3.5 border-b border-gray-100">
         <h3 class="font-semibold text-sm text-gray-700">1. Pemantauan Ruang</h3>
     </div>
-    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Pemantauan Ruang</label>
             <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
@@ -123,12 +125,26 @@
             </div>
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Nama Analis</label>
-            <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700 flex items-center gap-2">
-                {{ Auth::user()->name }}
-                <span class="inline-flex items-center justify-center h-5 w-14 rounded-full text-[11px] font-semibold
-                    {{ $myShift === 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700' }}">
-                    Shift {{ $myShift }}
+            <label class="block text-xs font-medium text-gray-500 mb-1">Analis Shift 1</label>
+            <div class="px-3 py-2 rounded-lg border text-sm flex items-center gap-2
+                {{ $myShift === 1 ? 'bg-emerald-50 border-emerald-100 text-emerald-800 font-medium' : 'bg-gray-50 border-gray-100 text-gray-700' }}">
+                {{ $report->shift1Analis->name }}
+                <span class="inline-flex items-center justify-center h-5 w-12 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700 flex-shrink-0">
+                    Shift 1
+                </span>
+            </div>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Analis Shift 2</label>
+            <div class="px-3 py-2 rounded-lg border text-sm flex items-center gap-2
+                {{ $myShift === 2 ? 'bg-indigo-50 border-indigo-100 text-indigo-800 font-medium' : 'bg-gray-50 border-gray-100 text-gray-700' }}">
+                @if ($report->shift2Analis)
+                    {{ $report->shift2Analis->name }}
+                @else
+                    <span class="text-gray-400 italic">Belum ditentukan</span>
+                @endif
+                <span class="inline-flex items-center justify-center h-5 w-12 rounded-full text-[11px] font-semibold bg-indigo-100 text-indigo-700 flex-shrink-0">
+                    Shift 2
                 </span>
             </div>
         </div>
@@ -153,7 +169,7 @@
 @if ($needsAirSampler)
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
-        <h3 class="font-semibold text-sm text-gray-700">2a. Identitas Instrumen — Air Sampler</h3>
+        <h3 class="font-semibold text-sm text-gray-700">2. Identitas Instrumen </h3>
     </div>
     <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
@@ -183,18 +199,59 @@
 </div>
 @endif
 
-{{-- ── 2b–2c. Identitas Instrumen — Inkubator ──────────── --}}
-@if ($needsInkubator)
-@foreach ([
-    'inkubator_20_25' => 'Inkubator Suhu 20–25°C',
-    'inkubator_30_35' => 'Inkubator Suhu 30–35°C',
-] as $inkKey => $inkLabel)
-@php $ink = $hd[$inkKey] ?? []; $inkIdx = $loop->index === 0 ? 'b' : 'c'; @endphp
+{{-- ── 3. Identitas Medium ─────────────────────────────── --}}
+@php $mediumGroups = $report->reportType->medium_groups ?? []; @endphp
+@if (!empty($mediumGroups))
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
-        <h3 class="font-semibold text-sm text-gray-700">2{{ $inkIdx }}. Identitas Instrumen — {{ $inkLabel }}</h3>
+        <h3 class="font-semibold text-sm text-gray-700">3. Identitas Medium</h3>
     </div>
-    <div class="p-5 space-y-4">
+    <div class="p-5 grid grid-cols-1 lg:grid-cols-{{ count($mediumGroups) > 2 ? '3' : '2' }} gap-6">
+        @foreach ($mediumGroups as $medKey => $medLabel)
+        @php $med = $hd[$medKey] ?? []; @endphp
+        <div>
+            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{{ $medLabel }}</h4>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
+                    <input type="text" name="header_data[{{ $medKey }}][nomor_batch]" value="{{ $med['nomor_batch'] ?? '' }}"
+                           @if(!$isEditable) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+                </div>
+                @if ($medKey !== 'medium_swab')
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
+                    <input type="text" name="header_data[{{ $medKey }}][nomor_gpt]" value="{{ $med['nomor_gpt'] ?? '' }}"
+                           @if(!$isEditable) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+                </div>
+                @endif
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medKey === 'medium_swab' ? 'Swab Kit' : 'Medium' }}</label>
+                    <input type="date" name="header_data[{{ $medKey }}][tanggal_ed]" value="{{ $med['tanggal_ed'] ?? '' }}"
+                           @if(!$isEditable) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+{{-- ── 4. Proses Inkubasi Medium Monitoring ──────────── --}}
+@if ($needsInkubator)
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
+    <div class="px-5 py-3.5 border-b border-gray-100">
+        <h3 class="font-semibold text-sm text-gray-700">4. Proses Inkubasi Medium Monitoring</h3>
+    </div>
+    @foreach ([
+        'inkubator_20_25' => ['label' => 'Inkubator Suhu 20–25°C', 'min_days' => 3],
+        'inkubator_30_35' => ['label' => 'Inkubator Suhu 30–35°C', 'min_days' => 2],
+    ] as $inkKey => $inkInfo)
+    @php $ink = $hd[$inkKey] ?? []; $inkLabel = $inkInfo['label']; $inkMin = $inkInfo['min_days']; @endphp
+    <div class="p-5 space-y-4 @if(!$loop->last) border-b border-gray-100 @endif">
+        <p class="text-xs font-semibold text-sky-600 uppercase tracking-wide">{{ $inkLabel }}</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Nama Alat</label>
@@ -220,6 +277,12 @@
             </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-gray-50">
+            <div class="lg:col-span-2">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</label>
+                <input type="date" name="header_data[{{ $inkKey }}][tanggal_inkubasi]" value="{{ $ink['tanggal_inkubasi'] ?? '' }}"
+                       @if(!$isEditable) readonly @endif
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+            </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
                 <input type="date" name="header_data[{{ $inkKey }}][tanggal_masuk]" value="{{ $ink['tanggal_masuk'] ?? '' }}"
@@ -244,46 +307,50 @@
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
-        </div>
-    </div>
-</div>
-@endforeach
-@endif
-
-{{-- ── 3. Identitas Medium ─────────────────────────────── --}}
-@if ($needsMedium)
-<div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
-    <div class="px-5 py-3.5 border-b border-gray-100">
-        <h3 class="font-semibold text-sm text-gray-700">3. Identitas Medium</h3>
-    </div>
-    <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        @foreach (['medium_tsp_65' => 'Medium TSP 65mm', 'medium_tsp_90' => 'Medium TSP 90mm'] as $medKey => $medLabel)
-        @php $med = $hd[$medKey] ?? []; @endphp
-        <div>
-            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{{ $medLabel }}</h4>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
-                    <input type="text" name="header_data[{{ $medKey }}][nomor_batch]" value="{{ $med['nomor_batch'] ?? '' }}"
+            {{-- Diinkubasi & Dikeluarkan oleh --}}
+            <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                @foreach ([
+                    ['key' => 'diinkubasi',  'label' => 'Diinkubasi oleh',   'default_date' => date('Y-m-d')],
+                    ['key' => 'dikeluarkan', 'label' => 'Dikeluarkan oleh',  'default_date' => ''],
+                ] as $field)
+                @php
+                    $fKey    = $field['key'];
+                    $fName   = $fKey . '_oleh';
+                    $fDate   = $fKey . '_tanggal';
+                    $savedWho  = $ink[$fName] ?? '';
+                    $savedDate = $ink[$fDate] ?? $field['default_date'];
+                @endphp
+                <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-3 space-y-2">
+                    <p class="text-xs font-semibold text-gray-500">{{ $field['label'] }}</p>
+                    @if ($isEditable)
+                    <div class="flex flex-wrap gap-2" data-radio-group="{{ $inkKey }}_{{ $fKey }}">
+                        @foreach ([1 => $report->shift1Analis, 2 => $report->shift2Analis] as $sNum => $analyst)
+                        @if ($analyst)
+                        <button type="button"
+                                data-value="{{ $analyst->name }}"
+                                onclick="toggleAnalis('{{ $inkKey }}', '{{ $fKey }}', this.dataset.value, this)"
+                                class="inkubasi-radio-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors
+                                       {{ $savedWho === $analyst->name ? 'bg-sky-50 border-sky-300 text-sky-700' : 'border-gray-200 bg-white text-gray-600 hover:border-sky-200' }}">
+                            {{ $analyst->name }}
+                            <span class="px-1 py-0.5 rounded text-[10px] font-semibold {{ $sNum === 1 ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600' }}">S{{ $sNum }}</span>
+                        </button>
+                        @endif
+                        @endforeach
+                        <input type="hidden" name="header_data[{{ $inkKey }}][{{ $fName }}]" id="radio-val-{{ $inkKey }}-{{ $fKey }}" value="{{ $savedWho }}">
+                    </div>
+                    @else
+                    <div class="text-sm text-gray-700">{{ $savedWho ?: '—' }}</div>
+                    @endif
+                    <input type="date" name="header_data[{{ $inkKey }}][{{ $fDate }}]"
+                           value="{{ $savedDate }}"
                            @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+                           class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
-                    <input type="text" name="header_data[{{ $medKey }}][nomor_gpt]" value="{{ $med['nomor_gpt'] ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED Medium</label>
-                    <input type="date" name="header_data[{{ $medKey }}][tanggal_ed]" value="{{ $med['tanggal_ed'] ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
-                </div>
+                @endforeach
             </div>
         </div>
-        @endforeach
     </div>
+    @endforeach
 </div>
 @endif
 
@@ -293,7 +360,12 @@
     $isShiftBased = in_array($section->measurement_type, ['air_sampler', 'contact_plate']);
     $maxCols      = $section->max_exposures;
     $romanNums    = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-    $secNum       = $loop->index + 4;
+    $secNum       = $loop->index + 5;
+    $savedAsgn      = ($report->header_data['shift_assignments'] ?? [])[$section->id] ?? [];
+    $secAssignments = [];
+    for ($c = 1; $c <= $maxCols; $c++) {
+        $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
+    }
 @endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4 overflow-hidden">
     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
@@ -307,17 +379,21 @@
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + ($maxCols * ($isShiftBased ? 220 : 130)) }}px">
+        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + (!$isShiftBased ? 130 : 0) + ($maxCols * ($isShiftBased ? 220 : 130)) }}px">
             <thead>
                 {{-- Row 1: group headers --}}
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">No.</th>
-                    <th class="px-3 py-2 text-left font-semibold border-r border-sky-100" rowspan="3">Nama Ruangan</th>
-                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Kls</th>
-                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">No. Ruangan</th>
-                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Machine<br>Set-up</th>
+                    <th class="px-3 py-2 text-left font-semibold border-r border-sky-100" rowspan="3">Room Name</th>
+                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Class</th>
+                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Room Number</th>
+                    @if (!$isShiftBased)
+                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Location<br>Number</th>
+                    @else
+                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Location<br>Number</th>
+                    @endif
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100"
-                        colspan="{{ $maxCols * ($isShiftBased ? 4 : 3) }}">
+                        colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($isShiftBased ? 4 : 3) }}">
                         {{ $section->measurement_unit }}
                     </th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Alert<br>Limit</th>
@@ -326,6 +402,37 @@
                 </tr>
                 {{-- Row 2: period/shift labels --}}
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
+                    @if (!$isShiftBased)
+                    @php
+                        $msJamMulai = null; $msJamSelesai = null;
+                        foreach ($section->locations as $loc2) {
+                            $e0 = $entryMap[$loc2->id][0][$myShift] ?? null;
+                            if ($e0 && ($e0->jam_mulai || $e0->jam_selesai)) {
+                                $msJamMulai   = $e0->jam_mulai;
+                                $msJamSelesai = $e0->jam_selesai;
+                                break;
+                            }
+                        }
+                    @endphp
+                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100" colspan="3">
+                        <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
+                        @if ($isEditable)
+                        <div class="flex justify-center items-center gap-1">
+                            <input type="time" name="exposure_times[{{ $section->id }}][0][jam_mulai]"
+                                   value="{{ $msJamMulai }}"
+                                   class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                            <span class="text-gray-400 text-[10px] font-normal">–</span>
+                            <input type="time" name="exposure_times[{{ $section->id }}][0][jam_selesai]"
+                                   value="{{ $msJamSelesai }}"
+                                   class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        </div>
+                        @else
+                        <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
+                            {{ $msJamMulai ? $msJamMulai . ' – ' . ($msJamSelesai ?? '—') : '—' }}
+                        </div>
+                        @endif
+                    </th>
+                    @endif
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @if ($isShiftBased)
                     <th class="px-2 py-1.5 text-center font-semibold border-r border-sky-100 whitespace-nowrap"
@@ -366,12 +473,32 @@
                             {{ $expJamMulai ? $expJamMulai . ' – ' . ($expJamSelesai ?? '—') : '—' }}
                         </div>
                         @endif
+                        {{-- Shift assignment toggle --}}
+                        @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
+                        <input type="hidden" name="shift_assignment[{{ $section->id }}][{{ $col }}]" id="sa-{{ $section->id }}-{{ $col }}" value="{{ $colAsgn }}">
+                        @if ($isEditable && $myShift === 1 && !$shift1HandedOver)
+                        <div class="flex justify-center gap-1 mt-1.5">
+                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 1)" id="sa-btn-{{ $section->id }}-{{ $col }}-1"
+                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 1 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S1</button>
+                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 2)" id="sa-btn-{{ $section->id }}-{{ $col }}-2"
+                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 2 ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S2</button>
+                        </div>
+                        @else
+                        <div class="flex justify-center mt-1.5">
+                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700' }}">Shift {{ $colAsgn }}</span>
+                        </div>
+                        @endif
                     </th>
                     @endif
                     @endfor
                 </tr>
                 {{-- Row 3: sub-column headers --}}
                 <tr class="bg-sky-50/60 text-gray-500 border-b border-gray-200">
+                    @if (!$isShiftBased)
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
+                    @endif
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @if ($isShiftBased)
                         <th class="px-1.5 py-1.5 text-center font-medium border-r border-sky-100 whitespace-nowrap">JAM</th>
@@ -426,6 +553,43 @@
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
                         <span class="font-mono text-[11px] text-gray-500">{{ $loc->location_number }}</span>
                     </td>
+                    @if (!$isShiftBased)
+                    @php
+                        $msEntry = $entryMap[$loc->id][0][$myShift] ?? null;
+                        $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
+                            ? ($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0) : null;
+                    @endphp
+                    <td class="px-1 py-2 border-r border-gray-100 text-center">
+                        @if ($isEditable)
+                            <input type="number" min="0" name="entries[{{ $loc->id }}][0][cfu_bacteria]"
+                                   value="{{ $msEntry?->cfu_bacteria }}"
+                                   data-loc="{{ $loc->id }}" data-col="0" data-type="b"
+                                   class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
+                        @else
+                            <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
+                                {{ $msEntry?->cfu_bacteria ?? '—' }}
+                            </span>
+                        @endif
+                    </td>
+                    <td class="px-1 py-2 border-r border-gray-100 text-center">
+                        @if ($isEditable)
+                            <input type="number" min="0" name="entries[{{ $loc->id }}][0][cfu_fungi]"
+                                   value="{{ $msEntry?->cfu_fungi }}"
+                                   data-loc="{{ $loc->id }}" data-col="0" data-type="f"
+                                   class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
+                        @else
+                            <span class="text-[11px] {{ $msEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
+                                {{ $msEntry?->cfu_fungi ?? '—' }}
+                            </span>
+                        @endif
+                    </td>
+                    <td class="px-1 py-2 border-r border-gray-100 text-center bg-gray-50/40">
+                        <span id="t-{{ $loc->id }}-0"
+                              class="text-[11px] font-semibold {{ $msTVal !== null ? 'text-gray-700' : 'text-gray-300' }}">
+                            {{ $msTVal ?? '—' }}
+                        </span>
+                    </td>
+                    @endif
 
                     {{-- Data columns per exposure/shift --}}
                     @for ($col = 1; $col <= $maxCols; $col++)
@@ -434,8 +598,9 @@
                             $existEntry = $entryMap[$loc->id][1][$col] ?? null;
                             $editable   = $isEditable && $col === $myShift;
                         } else {
-                            $existEntry = $entryMap[$loc->id][$col][$myShift] ?? null;
-                            $editable   = $isEditable;
+                            $colAsgn    = $secAssignments[$col] ?? 1;
+                            $existEntry = $entryMap[$loc->id][$col][$colAsgn] ?? null;
+                            $editable   = $isEditable && ($colAsgn == $myShift);
                         }
                         $iName = "entries[{$loc->id}][{$col}]";
                         $rowKey = "{$loc->id}-{$col}";
@@ -513,12 +678,12 @@
                     {{-- Action Limit --}}
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
                         <span class="text-[11px] font-medium {{ $loc->action_limit_bacteria !== null ? 'text-red-600' : 'text-gray-300' }}">
-                            {{ $loc->action_limit_bacteria ?? '—' }}
+                            {{ $loc->action_limit_bacteria !== null ? ($loc->action_limit_bacteria == 1 ? '<1' : $loc->action_limit_bacteria) : '—' }}
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
                         <span class="text-[11px] font-medium {{ $loc->action_limit_fungi !== null ? 'text-red-600' : 'text-gray-300' }}">
-                            {{ $loc->action_limit_fungi ?? '—' }}
+                            {{ $loc->action_limit_fungi !== null ? ($loc->action_limit_fungi == 1 ? '<1' : $loc->action_limit_fungi) : '—' }}
                         </span>
                     </td>
                     {{-- Kesimpulan --}}
@@ -633,13 +798,13 @@
     </button>
     @if ($myShift === 1 && !$shift1HandedOver)
     <button type="submit" name="action" value="handover"
-            onclick="return confirm('Simpan data Shift 1 dan teruskan laporan ke Shift 2?')"
+            onclick="return validateAction('handover')"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
         Estafet ke Shift 2
     </button>
     @endif
     <button type="submit" name="action" value="submit"
-            onclick="return confirm('Yakin ingin mengirim laporan? Setelah dikirim, data tidak dapat diubah.')"
+            onclick="return validateAction('submit')"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
         Kirim Laporan
     </button>
@@ -671,6 +836,65 @@ document.addEventListener('input', function (e) {
         tSpan.className    = `text-[11px] font-semibold ${hasValue ? 'text-gray-700' : 'text-gray-300'}`;
     }
 });
+
+// Deselectable analis radio (click same button again to clear)
+function toggleAnalis(inkKey, field, value, btn) {
+    const hidden = document.getElementById(`radio-val-${inkKey}-${field}`);
+    if (!hidden) return;
+    const isSelected = hidden.value === value;
+    hidden.value = isSelected ? '' : value;
+    const group = btn.parentElement;
+    group.querySelectorAll('.inkubasi-radio-btn').forEach(b => {
+        const active = !isSelected && b.dataset.value === value;
+        b.classList.toggle('bg-sky-50', active);
+        b.classList.toggle('border-sky-300', active);
+        b.classList.toggle('text-sky-700', active);
+        b.classList.toggle('border-gray-200', !active);
+        b.classList.toggle('bg-white', !active);
+        b.classList.toggle('text-gray-600', !active);
+    });
+    formDirty = true;
+}
+
+// Shift assignment toggle
+function setAssignment(secId, col, shift) {
+    const hidden = document.getElementById(`sa-${secId}-${col}`);
+    if (hidden) hidden.value = shift;
+    for (const s of [1, 2]) {
+        const btn = document.getElementById(`sa-btn-${secId}-${col}-${s}`);
+        if (!btn) continue;
+        if (s === shift) {
+            btn.className = 'px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors ' + (s === 1 ? 'bg-sky-500 text-white' : 'bg-amber-500 text-white');
+        } else {
+            btn.className = 'px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors bg-gray-100 text-gray-500 hover:bg-gray-200';
+        }
+    }
+    formDirty = true;
+}
+
+// Validate assigned columns before handover or submit
+function validateAction(action) {
+    const myShift = {{ $myShift }};
+    const checkShift = action === 'handover' ? 1 : myShift;
+    const missing = new Set();
+    document.querySelectorAll('input[id^="sa-"]').forEach(inp => {
+        const m = inp.id.match(/^sa-(\d+)-(\d+)$/);
+        if (!m) return;
+        const col = m[2];
+        if (parseInt(inp.value) !== checkShift) return;
+        const bInputs = document.querySelectorAll(`input[data-col="${col}"][data-type="b"]`);
+        if (!bInputs.length) return;
+        bInputs.forEach(bi => { if (bi.value === '') missing.add('Exposure ' + col); });
+    });
+    if (missing.size > 0) {
+        alert('Kolom Shift ' + checkShift + ' berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.');
+        return false;
+    }
+    const msg = action === 'handover'
+        ? 'Simpan data Shift 1 dan teruskan laporan ke Shift 2? Setelahnya, Anda tidak bisa mengubah data lagi.'
+        : 'Yakin ingin mengirim laporan? Setelah dikirim, data tidak dapat diubah.';
+    return confirm(msg);
+}
 
 // Warn before navigating away if form has been changed
 let formDirty = false;
