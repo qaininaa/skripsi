@@ -54,7 +54,7 @@
             Estafet ke Shift 2
         </button>
         @endif
-        @if (!$report->shift2Analis)
+        @if (!$report->shift2Analis || $myShift === 2)
         <button type="button" onclick="openSubmitFlow()"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -359,10 +359,13 @@
 {{-- ── 4+. Tabel Pengukuran per Seksi ─────────────────── --}}
 @foreach ($report->reportType->sections as $section)
 @php
-    $isShiftBased = in_array($section->measurement_type, ['air_sampler', 'contact_plate']);
-    $maxCols      = $section->max_exposures;
-    $romanNums    = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-    $secNum       = $loop->index + 5;
+    $isShiftBased  = in_array($section->measurement_type, ['air_sampler', 'contact_plate', 'swab']);
+    $isSettlePlate = $section->measurement_type === 'settle_plate';
+    $isSwab        = $section->measurement_type === 'swab';
+    $hasJam        = $section->measurement_type === 'air_sampler';
+    $maxCols       = $section->max_exposures;
+    $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+    $secNum        = $loop->index + 5;
     $savedAsgn      = ($report->header_data['shift_assignments'] ?? [])[$section->id] ?? [];
     $secAssignments = [];
     for ($c = 1; $c <= $maxCols; $c++) {
@@ -381,7 +384,7 @@
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + (!$isShiftBased ? 130 : 0) + ($maxCols * ($isShiftBased ? 220 : 130)) }}px">
+        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + (!$isShiftBased ? 130 : 0) + ($maxCols * ($isShiftBased ? ($hasJam ? 220 : ($isSwab ? 220 : 160)) : 130)) }}px">
             <thead>
                 {{-- Row 1: group headers --}}
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
@@ -395,7 +398,7 @@
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Location<br>Number</th>
                     @endif
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100"
-                        colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($isShiftBased ? 4 : 3) }}">
+                    colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($isShiftBased ? ($hasJam ? 4 : 3) : 3) }}">
                         {{ $section->measurement_unit }}
                     </th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Alert<br>Limit</th>
@@ -437,22 +440,66 @@
                     @endif
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @if ($isShiftBased)
+                    @php $colAsgn = $secAssignments[$col] ?? $col; @endphp
                     <th class="px-2 py-1.5 text-center font-semibold border-r border-sky-100 whitespace-nowrap"
-                        colspan="4">
-                        Shift {{ $col }}
-                        @if ($col === $myShift)
-                            <span class="ml-1 px-1.5 py-0.5 rounded bg-sky-200 text-sky-700 text-[10px] font-semibold">Anda</span>
+                        colspan="{{ $hasJam ? 4 : 3 }}">
+                        Shift
+                        @if ($isSwab)
+                        @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
+                        @if ($isEditable)
+                        <div class="space-y-0.5 mt-1">
+                            @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
+                            @php $st = $swabColTimes[$swabKey] ?? []; @endphp
+                            <div class="flex items-center justify-center gap-0.5">
+                                <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
+                                <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][mulai]"
+                                       value="{{ $st['mulai'] ?? '' }}"
+                                       class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                                <span class="text-gray-400 text-[10px]">–</span>
+                                <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][selesai]"
+                                       value="{{ $st['selesai'] ?? '' }}"
+                                       class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
+                            @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
+                            @php $st = $swabColTimes[$swabKey] ?? []; @endphp
+                            <div>{{ $swabLabel }}: {{ ($st['mulai'] ?? '') ?: '—' }} – {{ ($st['selesai'] ?? '') ?: '—' }}</div>
+                            @endforeach
+                        </div>
+                        @endif
+                        @endif
+                        <input type="hidden" name="shift_assignment[{{ $section->id }}][{{ $col }}]" id="sa-{{ $section->id }}-{{ $col }}" value="{{ $colAsgn }}">
+                        @if ($isEditable && $myShift === 1 && !$shift1HandedOver)
+                        <div class="flex justify-center gap-1 mt-1.5">
+                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 1)" id="sa-btn-{{ $section->id }}-{{ $col }}-1"
+                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 1 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S1</button>
+                            @if ($report->shift2Analis)
+                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 2)" id="sa-btn-{{ $section->id }}-{{ $col }}-2"
+                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 2 ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S2</button>
+                            @endif
+                        </div>
+                        @else
+                        <div class="flex justify-center mt-1.5">
+                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700' }}">{{ $colAsgn == 1 ? 'S1' : 'S2' }}</span>
+                        </div>
                         @endif
                     </th>
                     @else
                     @php
-                        $expJamMulai = null; $expJamSelesai = null;
-                        foreach ($section->locations as $loc2) {
-                            $e2 = $entryMap[$loc2->id][$col][$myShift] ?? null;
-                            if ($e2 && ($e2->jam_mulai || $e2->jam_selesai)) {
-                                $expJamMulai   = $e2->jam_mulai;
-                                $expJamSelesai = $e2->jam_selesai;
-                                break;
+                        if ($isSettlePlate) {
+                            $expJamMulai = null; $expJamSelesai = null;
+                        } else {
+                            $expJamMulai = null; $expJamSelesai = null;
+                            foreach ($section->locations as $loc2) {
+                                $e2 = $entryMap[$loc2->id][$col][$myShift] ?? null;
+                                if ($e2 && ($e2->jam_mulai || $e2->jam_selesai)) {
+                                    $expJamMulai   = $e2->jam_mulai;
+                                    $expJamSelesai = $e2->jam_selesai;
+                                    break;
+                                }
                             }
                         }
                     @endphp
@@ -460,6 +507,32 @@
                         <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">
                             Exposure {{ $romanNums[$col - 1] ?? $col }}
                         </div>
+                        @if ($isSettlePlate)
+                            @if ($isEditable)
+                            <div class="space-y-0.5 mt-1">
+                                @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
+                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                <div class="flex items-center justify-center gap-0.5">
+                                    <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][jam_mulai]"
+                                           value="{{ $stAB['jam_mulai'] ?? '' }}"
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                                    <span class="text-gray-400 text-[10px]">–</span>
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][jam_selesai]"
+                                           value="{{ $stAB['jam_selesai'] ?? '' }}"
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                                </div>
+                                @endforeach
+                            </div>
+                            @else
+                            <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
+                                @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
+                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                <div>{{ $abLabel }}: {{ ($stAB['jam_mulai'] ?? '') ?: '—' }} – {{ ($stAB['jam_selesai'] ?? '') ?: '—' }}</div>
+                                @endforeach
+                            </div>
+                            @endif
+                        @else
                         @if ($isEditable)
                         <div class="flex justify-center items-center gap-1">
                             <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][jam_mulai]"
@@ -475,6 +548,7 @@
                             {{ $expJamMulai ? $expJamMulai . ' – ' . ($expJamSelesai ?? '—') : '—' }}
                         </div>
                         @endif
+                        @endif
                         {{-- Shift assignment toggle --}}
                         @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
                         <input type="hidden" name="shift_assignment[{{ $section->id }}][{{ $col }}]" id="sa-{{ $section->id }}-{{ $col }}" value="{{ $colAsgn }}">
@@ -482,12 +556,14 @@
                         <div class="flex justify-center gap-1 mt-1.5">
                             <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 1)" id="sa-btn-{{ $section->id }}-{{ $col }}-1"
                                     class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 1 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S1</button>
+                            @if ($report->shift2Analis)
                             <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 2)" id="sa-btn-{{ $section->id }}-{{ $col }}-2"
                                     class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 2 ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S2</button>
+                            @endif
                         </div>
                         @else
                         <div class="flex justify-center mt-1.5">
-                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700' }}">Shift {{ $colAsgn }}</span>
+                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700' }}">{{ $colAsgn == 1 ? 'S1' : 'S2' }}</span>
                         </div>
                         @endif
                     </th>
@@ -503,7 +579,9 @@
                     @endif
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @if ($isShiftBased)
+                        @if ($hasJam)
                         <th class="px-1.5 py-1.5 text-center font-medium border-r border-sky-100 whitespace-nowrap">JAM</th>
+                        @endif
                     @endif
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
@@ -529,11 +607,11 @@
                     }
                     $maxB   = $locEntries->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
                     $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                    $hasTMS = ($loc->action_limit_bacteria && $maxB > $loc->action_limit_bacteria)
-                           || ($loc->action_limit_fungi && $maxF > $loc->action_limit_fungi);
+                    $hasTMS = ($loc->action_limit_bacteria && $maxB >= $loc->action_limit_bacteria)
+                           || ($loc->action_limit_fungi && $maxF >= $loc->action_limit_fungi);
                     $hasAlt = !$hasTMS && (
-                                ($loc->alert_limit_bacteria && $maxB > $loc->alert_limit_bacteria)
-                             || ($loc->alert_limit_fungi    && $maxF > $loc->alert_limit_fungi));
+                                ($loc->alert_limit_bacteria && $maxB >= $loc->alert_limit_bacteria)
+                             || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                     $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
 
                     $classBadge = match($loc->class) {
@@ -553,7 +631,11 @@
                     </td>
                     <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap font-mono text-[11px]">{{ $loc->room_number }}</td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                        <span class="font-mono text-[11px] text-gray-500">{{ $loc->location_number }}</span>
+                        @if (str_starts_with($loc->location_number, '*)'))
+                            <span class="font-mono text-[11px] text-gray-400 italic">{{ $loc->location_number }}</span>
+                        @else
+                            <span class="font-mono text-[11px] text-gray-500">{{ $loc->location_number }}</span>
+                        @endif
                     </td>
                     @if (!$isShiftBased)
                     @php
@@ -596,11 +678,11 @@
                     {{-- Data columns per exposure/shift --}}
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @php
+                        $colAsgn = $secAssignments[$col] ?? 1;
                         if ($isShiftBased) {
-                            $existEntry = $entryMap[$loc->id][1][$col] ?? null;
-                            $editable   = $isEditable && $col === $myShift;
+                            $existEntry = $entryMap[$loc->id][1][$colAsgn] ?? null;
+                            $editable   = $isEditable && ($colAsgn == $myShift);
                         } else {
-                            $colAsgn    = $secAssignments[$col] ?? 1;
                             $existEntry = $entryMap[$loc->id][$col][$colAsgn] ?? null;
                             $editable   = $isEditable && ($colAsgn == $myShift);
                         }
@@ -608,8 +690,8 @@
                         $rowKey = "{$loc->id}-{$col}";
                     @endphp
 
-                    {{-- JAM input (only for shift-based) --}}
-                    @if ($isShiftBased)
+                    {{-- JAM input (only for air_sampler) --}}
+                    @if ($hasJam)
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($editable)
                             <input type="time" name="{{ $iName }}[jam_mulai]"
@@ -617,7 +699,7 @@
                                    class="w-[84px] rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
-                            <span class="text-gray-{{ $existEntry?->jam_mulai ? '600' : '300' }} text-[11px]">{{ $existEntry?->jam_mulai ?? '—' }}</span>
+                            <span class="text-gray-{{ $existEntry?->jam_mulai ? '600' : '300' }} text-[11px]">{{ $existEntry?->jam_mulai ? \Illuminate\Support\Str::substr($existEntry->jam_mulai, 0, 5) : '-' }}</span>
                         @endif
                     </td>
                     @endif
@@ -628,6 +710,7 @@
                             <input type="number" min="0" name="{{ $iName }}[cfu_bacteria]"
                                    value="{{ $existEntry?->cfu_bacteria }}"
                                    data-loc="{{ $loc->id }}" data-col="{{ $col }}" data-type="b" data-section-id="{{ $section->id }}"
+                                   @if (str_starts_with($loc->location_number, '*)')) data-optional="true" @endif
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @else
@@ -642,7 +725,7 @@
                         @if ($editable)
                             <input type="number" min="0" name="{{ $iName }}[cfu_fungi]"
                                    value="{{ $existEntry?->cfu_fungi }}"
-                                   data-loc="{{ $loc->id }}" data-col="{{ $col }}" data-type="f"
+                                   data-loc="{{ $loc->id }}" data-col="{{ $col }}" data-type="f" data-section-id="{{ $section->id }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @else
@@ -689,7 +772,12 @@
                         </span>
                     </td>
                     {{-- Kesimpulan --}}
-                    <td class="px-2 py-2.5 text-center">
+                    <td class="px-2 py-2.5 text-center"
+                        id="konklusi-{{ $loc->id }}"
+                        data-alert-b="{{ $loc->alert_limit_bacteria ?? '' }}"
+                        data-alert-f="{{ $loc->alert_limit_fungi ?? '' }}"
+                        data-action-b="{{ $loc->action_limit_bacteria ?? '' }}"
+                        data-action-f="{{ $loc->action_limit_fungi ?? '' }}">
                         @if ($konklusi === 'TMS')
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
                         @elseif ($konklusi === 'Alert')
@@ -707,9 +795,62 @@
     </div>
 
     <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-gray-400">
+        @if ($section->measurement_type === 'swab')
+        <p class="mb-1"><span class="text-gray-500">*)</span> diisi jika dibutuhkan</p>
+        @endif
         <strong class="text-gray-500">Keterangan:</strong>
         B: Total Bakteri &nbsp;·&nbsp; F: Total Fungi &nbsp;·&nbsp; T: Total Bakteri + Fungi &nbsp;·&nbsp;
         MS: Memenuhi Spesifikasi &nbsp;·&nbsp; TMS: Tidak Memenuhi Spesifikasi
+    </div>
+
+    {{-- Catatan & Kesimpulan per seksi --}}
+    @php $secNote = $hd['section_notes'][$section->id] ?? []; @endphp
+    <div class="px-5 py-4 border-t border-gray-100 space-y-3">
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
+            @if ($isEditable)
+            <textarea name="header_data[section_notes][{{ $section->id }}][catatan]" rows="2"
+                      placeholder="Catatan untuk seksi ini..."
+                      class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 resize-none
+                             focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">{{ $secNote['catatan'] ?? '' }}</textarea>
+            @else
+            <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700 min-h-[40px]">
+                {{ $secNote['catatan'] ?? '—' }}
+            </div>
+            @endif
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1.5">Kesimpulan</label>
+            @if ($isEditable)
+            <div class="flex flex-wrap gap-2">
+                <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 transition-colors
+                              {{ ($secNote['kesimpulan'] ?? '') === 'MS' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-200' }}">
+                    <input type="radio" name="header_data[section_notes][{{ $section->id }}][kesimpulan]" value="MS"
+                           {{ ($secNote['kesimpulan'] ?? '') === 'MS' ? 'checked' : '' }}
+                           class="text-green-500 focus:ring-green-400">
+                    <span class="text-xs font-medium text-green-700">Memenuhi Spesifikasi <span class="font-bold">(MS)</span></span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 transition-colors
+                              {{ ($secNote['kesimpulan'] ?? '') === 'TMS' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-red-200' }}">
+                    <input type="radio" name="header_data[section_notes][{{ $section->id }}][kesimpulan]" value="TMS"
+                           {{ ($secNote['kesimpulan'] ?? '') === 'TMS' ? 'checked' : '' }}
+                           class="text-red-500 focus:ring-red-400">
+                    <span class="text-xs font-medium text-red-700">Tidak Memenuhi Spesifikasi <span class="font-bold">(TMS)</span></span>
+                </label>
+            </div>
+            @else
+                @php $sk = $secNote['kesimpulan'] ?? ''; @endphp
+                <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
+                    @if ($sk === 'MS')
+                        <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
+                    @elseif ($sk === 'TMS')
+                        <span class="text-red-700 font-semibold">Tidak Memenuhi Spesifikasi (TMS)</span>
+                    @else
+                        <span class="text-gray-400">Belum ditentukan</span>
+                    @endif
+                </div>
+            @endif
+        </div>
     </div>
 </div>
 @endforeach
@@ -804,7 +945,7 @@
         Estafet ke Shift 2
     </button>
     @endif
-    @if (!$report->shift2Analis)
+    @if (!$report->shift2Analis || $myShift === 2)
     <button type="button" onclick="openSubmitFlow()"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
         Kirim Laporan
@@ -1010,6 +1151,32 @@ document.addEventListener('input', function (e) {
         tSpan.textContent  = hasValue ? (b + f) : '—';
         tSpan.className    = `text-[11px] font-semibold ${hasValue ? 'text-gray-700' : 'text-gray-300'}`;
     }
+
+    // Recalculate Kesimpulan for this location across all its inputs
+    const konklusiCell = document.getElementById(`konklusi-${loc}`);
+    if (konklusiCell) {
+        // Gather max B and max F across all cols for this loc
+        let maxB = 0, maxF = 0, hasAny = false;
+        document.querySelectorAll(`[data-loc="${loc}"][data-type="b"]`).forEach(inp => {
+            if (inp.value !== '') { hasAny = true; maxB = Math.max(maxB, parseFloat(inp.value) || 0); }
+        });
+        document.querySelectorAll(`[data-loc="${loc}"][data-type="f"]`).forEach(inp => {
+            if (inp.value !== '') { hasAny = true; maxF = Math.max(maxF, parseFloat(inp.value) || 0); }
+        });
+        const alertB  = konklusiCell.dataset.alertB  !== '' ? parseFloat(konklusiCell.dataset.alertB)  : null;
+        const alertF  = konklusiCell.dataset.alertF  !== '' ? parseFloat(konklusiCell.dataset.alertF)  : null;
+        const actionB = konklusiCell.dataset.actionB !== '' ? parseFloat(konklusiCell.dataset.actionB) : null;
+        const actionF = konklusiCell.dataset.actionF !== '' ? parseFloat(konklusiCell.dataset.actionF) : null;
+        let label = '—', cls = 'text-gray-300 text-[11px]';
+        if (hasAny) {
+            const isTMS = (actionB !== null && maxB >= actionB) || (actionF !== null && maxF >= actionF);
+            const isAlert = !isTMS && ((alertB !== null && maxB >= alertB) || (alertF !== null && maxF >= alertF));
+            if (isTMS)       { label = 'TMS';   cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700'; }
+            else if (isAlert){ label = 'Alert'; cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700'; }
+            else             { label = 'MS';    cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700'; }
+        }
+        konklusiCell.innerHTML = `<span class="${cls}">${label}</span>`;
+    }
 });
 
 // Deselectable analis radio (click same button again to clear)
@@ -1033,6 +1200,7 @@ function toggleAnalis(inkKey, field, value, btn) {
 
 // Shift assignment toggle
 function setAssignment(secId, col, shift) {
+    const myShift = {{ $myShift }};
     const hidden = document.getElementById(`sa-${secId}-${col}`);
     if (hidden) hidden.value = shift;
     for (const s of [1, 2]) {
@@ -1044,6 +1212,26 @@ function setAssignment(secId, col, shift) {
             btn.className = 'px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors bg-gray-100 text-gray-500 hover:bg-gray-200';
         }
     }
+    // Toggle editability of column inputs based on assignment
+    const isMine = (shift === myShift);
+    document.querySelectorAll(`input[data-section-id="${secId}"][data-col="${col}"]`).forEach(inp => {
+        inp.disabled = !isMine;
+        inp.classList.toggle('bg-gray-100', !isMine);
+        inp.classList.toggle('bg-white', isMine);
+        if (!isMine) inp.value = '';
+    });
+    // Also toggle time inputs in the same column (JAM)
+    const colCell = document.querySelectorAll(`input[name*="entries"][name*="[${col}]"][name*="jam_mulai"]`);
+    colCell.forEach(inp => {
+        const row = inp.closest('tr');
+        if (!row) return;
+        const secInput = row.querySelector(`input[data-section-id="${secId}"]`);
+        if (!secInput) return;
+        inp.disabled = !isMine;
+        inp.classList.toggle('bg-gray-100', !isMine);
+        inp.classList.toggle('bg-white', isMine);
+        if (!isMine) inp.value = '';
+    });
     formDirty = true;
 }
 
@@ -1086,7 +1274,7 @@ function getMissingCols(checkShift) {
         if (parseInt(inp.value) !== checkShift) return;
         const bInputs = document.querySelectorAll(`input[data-section-id="${secId}"][data-col="${col}"][data-type="b"]`);
         if (!bInputs.length) return;
-        bInputs.forEach(bi => { if (bi.value === '') missing.add('Exposure ' + col); });
+        bInputs.forEach(bi => { if (!bi.dataset.optional && bi.value === '') missing.add('Exposure ' + col); });
     });
     return missing;
 }

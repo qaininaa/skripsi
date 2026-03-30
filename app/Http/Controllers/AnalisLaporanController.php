@@ -157,7 +157,15 @@ class AnalisLaporanController extends Controller
             }
             $hd['shift_assignments'] = $existing;
         }
-        if ($request->has('header_data') || !empty($shiftAssignment)) {
+        $settleTimes = $request->input('settle_times', []);
+        if (!empty($settleTimes)) {
+            $hd['settle_times'] = array_replace_recursive($hd['settle_times'] ?? [], $settleTimes);
+        }
+        $swabTimes = $request->input('swab_times', []);
+        if (!empty($swabTimes)) {
+            $hd['swab_times'] = array_replace_recursive($hd['swab_times'] ?? [], $swabTimes);
+        }
+        if ($request->has('header_data') || !empty($shiftAssignment) || !empty($settleTimes) || !empty($swabTimes)) {
             $report->update(['header_data' => $hd]);
         }
 
@@ -181,13 +189,14 @@ class AnalisLaporanController extends Controller
                 continue;
             }
 
-            $isShiftBased = in_array($sectionType, ['air_sampler', 'contact_plate']);
+            $isShiftBased = in_array($sectionType, ['air_sampler', 'contact_plate', 'swab']);
             $sectionId    = $locationSectionId[(int) $locationId] ?? null;
 
             foreach ($cols as $colIdx => $data) {
                 if ($isShiftBased) {
-                    // colIdx = shift; only save current user's column
-                    if ((int) $colIdx !== $myShift) {
+                    // only save columns assigned to the current user's shift
+                    $assignedShift = (int) ($hd['shift_assignments'][$sectionId][$colIdx] ?? 1);
+                    if ($assignedShift !== $myShift) {
                         continue;
                     }
                     $periodNumber = 1;
@@ -213,11 +222,11 @@ class AnalisLaporanController extends Controller
                     [
                         'analis_id'    => Auth::id(),
                         'jam_mulai'    => $isShiftBased
-                            ? ($data['jam_mulai'] ?: null)
-                            : ($exposureTimes[$sectionId][$colIdx]['jam_mulai'] ?: null),
+                            ? ($data['jam_mulai'] ?? null ?: null)
+                            : ($exposureTimes[$sectionId][$colIdx]['jam_mulai'] ?? null ?: null),
                         'jam_selesai'  => $isShiftBased
                             ? null
-                            : ($exposureTimes[$sectionId][$colIdx]['jam_selesai'] ?: null),
+                            : ($exposureTimes[$sectionId][$colIdx]['jam_selesai'] ?? null ?: null),
                         'cfu_bacteria' => isset($data['cfu_bacteria']) && $data['cfu_bacteria'] !== ''
                             ? (int) $data['cfu_bacteria'] : null,
                         'cfu_fungi'    => isset($data['cfu_fungi']) && $data['cfu_fungi'] !== ''
