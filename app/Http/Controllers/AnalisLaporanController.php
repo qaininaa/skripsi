@@ -134,9 +134,23 @@ class AnalisLaporanController extends Controller
         }
 
         if ($request->input('action') === 'submit') {
+            $supervisorId = (int) $request->input('supervisor_id');
+            abort_if($supervisorId === 0, 422, 'Pilih supervisor terlebih dahulu.');
+            abort_unless(
+                \App\Models\User::where('id', $supervisorId)->where('role', 'supervisor')->exists(),
+                422,
+                'Supervisor tidak valid.'
+            );
+
             $report->update(['status' => 'submitted']);
+
+            \App\Models\ReportApproval::updateOrCreate(
+                ['report_id' => $report->id, 'step' => 2],
+                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending']
+            );
+
             return redirect()->route('laporan.index')
-                ->with('success', 'Laporan berhasil dikirim untuk review.');
+                ->with('success', 'Laporan berhasil dikirim ke supervisor.');
         }
 
         return back()->with('success', 'Data berhasil disimpan sebagai draft.');

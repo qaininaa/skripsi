@@ -954,8 +954,9 @@
 </div>
 @endif
 
-{{-- Hidden action input for save confirmation --}}
+{{-- Hidden inputs for save confirmation --}}
 <input type="hidden" id="save-action-input" name="action" value="">
+<input type="hidden" id="save-supervisor-input" name="supervisor_id" value="">
 
 </form>
 <div id="save-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
@@ -964,6 +965,18 @@
         <h3 id="save-modal-title" class="text-base font-semibold text-gray-800">Konfirmasi Simpan Draft</h3>
         <p id="save-modal-desc" class="text-sm text-gray-500">Masukkan username dan password Anda untuk menyimpan.</p>
         <div class="space-y-3">
+            {{-- Supervisor select (only shown for submit action) --}}
+            <div id="supervisor-select-row" class="hidden">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Kirim ke Supervisor</label>
+                <select id="save-modal-supervisor"
+                        class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none bg-white">
+                    <option value="">-- Pilih Supervisor --</option>
+                    @foreach (\App\Models\User::where('role', 'supervisor')->orderBy('name')->get() as $sup)
+                        <option value="{{ $sup->id }}">{{ $sup->name }}</option>
+                    @endforeach
+                </select>
+                <p id="save-modal-supervisor-error" class="hidden mt-1 text-xs text-red-600">Pilih supervisor terlebih dahulu.</p>
+            </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Username</label>
                 <input id="save-modal-username" type="text" autocomplete="username"
@@ -1043,6 +1056,12 @@ const _modalConfig = {
         btnText: 'Estafet',
         btnClass: 'bg-amber-500 hover:bg-amber-600',
     },
+    submit: {
+        title: 'Konfirmasi Kirim Laporan',
+        desc:  'Setelah dikirim, data tidak dapat diubah lagi. Masukkan username dan password Anda untuk melanjutkan.',
+        btnText: 'Kirim Laporan',
+        btnClass: 'bg-sky-500 hover:bg-sky-600',
+    },
 };
 
 function openSaveModal()    { openConfirmModal('save'); }
@@ -1068,6 +1087,15 @@ function openConfirmModal(action) {
     document.getElementById('save-modal-username').value = '';
     document.getElementById('save-modal-password').value = '';
     document.getElementById('save-modal-error').classList.add('hidden');
+    // Show supervisor dropdown only for submit action
+    const supRow = document.getElementById('supervisor-select-row');
+    if (action === 'submit') {
+        supRow.classList.remove('hidden');
+        document.getElementById('save-modal-supervisor').value = '';
+        document.getElementById('save-modal-supervisor-error').classList.add('hidden');
+    } else {
+        supRow.classList.add('hidden');
+    }
     document.getElementById('save-modal').classList.remove('hidden');
     document.getElementById('save-modal-username').focus();
 }
@@ -1082,6 +1110,17 @@ async function confirmSave() {
     const password = document.getElementById('save-modal-password').value;
     const errEl    = document.getElementById('save-modal-error');
     const btn      = document.getElementById('save-modal-confirm');
+
+    // Validate supervisor selection for submit action
+    if (action === 'submit') {
+        const supId = document.getElementById('save-modal-supervisor').value;
+        const supErr = document.getElementById('save-modal-supervisor-error');
+        if (!supId) {
+            supErr.classList.remove('hidden');
+            return;
+        }
+        supErr.classList.add('hidden');
+    }
 
     if (!username || !password) {
         errEl.textContent = 'Username dan password harus diisi.';
@@ -1109,6 +1148,10 @@ async function confirmSave() {
         if (data.ok) {
             closeSaveModal();
             document.getElementById('save-action-input').value = action;
+            if (action === 'submit') {
+                document.getElementById('save-supervisor-input').value =
+                    document.getElementById('save-modal-supervisor').value;
+            }
             formDirty = false;
             document.getElementById('laporan-form').submit();
         } else {
@@ -1279,7 +1322,7 @@ function getMissingCols(checkShift) {
     return missing;
 }
 
-// Kirim Laporan: validate then show custom confirm
+// Kirim Laporan: validate then open password modal
 function openSubmitFlow() {
     const myShift = {{ $myShift }};
     const missing = getMissingCols(myShift);
@@ -1290,16 +1333,7 @@ function openSubmitFlow() {
         );
         return;
     }
-    showConfirmModal(
-        'Konfirmasi Kirim Laporan',
-        'Yakin ingin mengirim laporan? Setelah dikirim, data tidak dapat diubah.',
-        'Kirim Laporan',
-        () => {
-            document.getElementById('save-action-input').value = 'submit';
-            formDirty = false;
-            document.getElementById('laporan-form').submit();
-        }
-    );
+    openConfirmModal('submit');
 }
 
 // Validate assigned columns before handover or submit

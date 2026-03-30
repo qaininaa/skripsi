@@ -5,6 +5,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\TugasPelaporanController;
 use App\Http\Controllers\AnalisLaporanController;
+use App\Http\Controllers\SupervisorLaporanController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,8 @@ Route::get('/dashboard', function () {
         return redirect()->route('dashboard.admin-qc');
     } elseif ($role === 'analis') {
         return redirect()->route('dashboard.analis');
+    } elseif ($role === 'supervisor') {
+        return redirect()->route('dashboard.supervisor');
     }
     return redirect('/');
 })->middleware('auth')->name('dashboard');
@@ -64,6 +67,18 @@ Route::middleware(['auth', 'role:analis'])
         Route::get('laporan/{report}/isi', [AnalisLaporanController::class, 'isi'])->name('laporan.isi');
         Route::post('laporan/{report}/save', [AnalisLaporanController::class, 'save'])->name('laporan.save');
         Route::post('laporan/verify-password', [AnalisLaporanController::class, 'verifyPassword'])->name('laporan.verify-password');
+    });
+
+// Dashboard & Laporan Masuk Supervisor
+Route::middleware(['auth', 'role:supervisor'])
+    ->prefix('dashboard')
+    ->group(function () {
+        Route::get('supervisor', [SupervisorLaporanController::class, 'dashboard'])->name('dashboard.supervisor');
+        Route::get('supervisor/laporan-masuk', [SupervisorLaporanController::class, 'laporanMasuk'])->name('supervisor.laporan-masuk');
+        Route::get('supervisor/laporan/{report}', [SupervisorLaporanController::class, 'show'])->name('supervisor.laporan.show');
+        Route::get('supervisor/laporan/{report}/cetak', [SupervisorLaporanController::class, 'cetak'])->name('supervisor.laporan.cetak');
+        Route::post('supervisor/laporan/{report}/approve', [SupervisorLaporanController::class, 'approve'])->name('supervisor.laporan.approve');
+        Route::post('supervisor/laporan/{report}/reject', [SupervisorLaporanController::class, 'reject'])->name('supervisor.laporan.reject');
     });
 
 Route::middleware('auth')->group(function () {
