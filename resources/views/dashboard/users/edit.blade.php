@@ -48,11 +48,6 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" value="{{ old('email', $user->email) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                </div>
-
-                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         <option value="super admin" {{ old('role', $user->role) === 'super admin' ? 'selected' : '' }}>Super Admin</option>

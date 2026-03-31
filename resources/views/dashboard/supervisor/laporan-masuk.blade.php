@@ -83,13 +83,13 @@
                         @foreach ($reports as $report)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-5 py-3.5 text-gray-700 whitespace-nowrap">
-                                    {{ \Carbon\Carbon::parse($report->tanggal)->isoFormat('D MMM Y') }}
+                                    {{ \Carbon\Carbon::parse($report->report_date)->isoFormat('D MMM Y') }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $report->nama_produk }}
+                                    {{ $report->product_name }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $report->nomor_batch_produk ?: '—' }}
+                                    {{ $report->batch_number ?: '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
                                     {{ $report->shift1Analis->name ?? '—' }}

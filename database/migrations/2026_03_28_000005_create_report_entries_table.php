@@ -14,9 +14,9 @@ return new class extends Migration
             $table->foreignId('report_location_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('period_number')->default(1);
             $table->unsignedTinyInteger('shift');           // 1 or 2
-            $table->foreignId('analis_id')->constrained('users')->cascadeOnDelete();
-            $table->time('jam_mulai')->nullable();
-            $table->time('jam_selesai')->nullable();
+            $table->foreignId('analyst_id')->constrained('users')->cascadeOnDelete();
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
             $table->unsignedSmallInteger('cfu_bacteria')->nullable();
             $table->unsignedSmallInteger('cfu_fungi')->nullable();
             $table->string('conclusion', 50)->nullable();   // pass / alert / action

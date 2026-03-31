@@ -83,7 +83,6 @@ class SupervisorLaporanController extends Controller
         $approval->update([
             'status'    => 'approved',
             'signed_at' => now(),
-            'catatan'   => $request->input('catatan'),
         ]);
 
         $report->update(['status' => 'approved']);
@@ -92,7 +91,7 @@ class SupervisorLaporanController extends Controller
             ->with('success', 'Laporan berhasil disetujui.');
     }
 
-    public function reject(Request $request, Report $report)
+    public function returnReport(Request $request, Report $report)
     {
         $userId = Auth::id();
         $approval = ReportApproval::where('report_id', $report->id)
@@ -101,15 +100,29 @@ class SupervisorLaporanController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
+        $returnedToUserId = (int) $request->input('returned_to_user_id');
+        abort_unless(
+            in_array($returnedToUserId, array_filter([
+                $report->shift1_analyst_id,
+                $report->shift2_analyst_id,
+            ])),
+            422,
+            'Analis tujuan tidak valid.'
+        );
+
         $approval->update([
-            'status'  => 'rejected',
-            'catatan' => $request->input('catatan'),
+            'status'               => 'returned',
+            'notes'                => $request->input('notes'),
+            'returned_to_user_id'  => $returnedToUserId,
         ]);
 
-        $report->update(['status' => 'rejected']);
+        // Reset handover so analis can re-edit from the beginning
+        $hd = $report->header_data ?? [];
+        unset($hd['shift1_handed_over']);
+        $report->update(['status' => 'returned', 'header_data' => $hd]);
 
         return redirect()->route('supervisor.laporan-masuk')
-            ->with('success', 'Laporan telah ditolak.');
+            ->with('success', 'Laporan telah dikembalikan ke analis.');
     }
 
     public function cetak(Report $report)

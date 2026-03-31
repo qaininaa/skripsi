@@ -8,8 +8,8 @@ class ReportEntry extends Model
 {
     protected $fillable = [
         'report_id', 'report_location_id', 'period_number',
-        'shift', 'analis_id',
-        'jam_mulai', 'jam_selesai', 'cfu_bacteria', 'cfu_fungi', 'conclusion',
+        'shift', 'analyst_id',
+        'start_time', 'end_time', 'cfu_bacteria', 'cfu_fungi', 'conclusion',
     ];
 
     public function report()
@@ -24,6 +24,6 @@ class ReportEntry extends Model
 
     public function analis()
     {
-        return $this->belongsTo(User::class, 'analis_id');
+        return $this->belongsTo(User::class, 'analyst_id');
     }
 }

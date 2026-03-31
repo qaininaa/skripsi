@@ -29,8 +29,8 @@
 {{-- Quick stats --}}
 @php
     use App\Models\Report;
-    $myItems = Report::where(fn($q) => $q->where('shift1_analis_id', Auth::id())
-                                         ->orWhere('shift2_analis_id', Auth::id()))
+    $myItems = Report::where(fn($q) => $q->where('shift1_analyst_id', Auth::id())
+                                         ->orWhere('shift2_analyst_id', Auth::id()))
         ->selectRaw('status, count(*) as total')
         ->groupBy('status')
         ->pluck('total', 'status');
@@ -85,6 +85,21 @@
         <p class="text-3xl font-bold text-blue-600">{{ $myItems['submitted'] ?? 0 }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Dikirim</p>
         <p class="text-xs text-gray-400 mt-1">Menunggu review</p>
+    </a>
+
+    {{-- Dikembalikan --}}
+    <a href="{{ route('laporan.index', ['status' => 'returned']) }}"
+       class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="h-11 w-11 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+            </div>
+        </div>
+        <p class="text-3xl font-bold text-orange-500">{{ $myItems['returned'] ?? 0 }}</p>
+        <p class="text-sm font-medium text-gray-600 mt-0.5">Dikembalikan</p>
+        <p class="text-xs text-gray-400 mt-1">Perlu direvisi</p>
     </a>
 
     {{-- Disetujui --}}

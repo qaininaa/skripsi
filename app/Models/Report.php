@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Report extends Model
 {
     protected $fillable = [
-        'report_type_id', 'tanggal', 'nama_produk', 'nomor_batch_produk',
-        'shift1_analis_id', 'shift2_analis_id',
+        'report_type_id', 'report_date', 'product_name', 'batch_number',
+        'shift1_analyst_id', 'shift2_analyst_id',
         'status', 'header_data', 'created_by',
     ];
 
     protected $casts = [
-        'tanggal'     => 'date',
+        'report_date' => 'date',
         'header_data' => 'array',
     ];
 
@@ -24,12 +24,12 @@ class Report extends Model
 
     public function shift1Analis()
     {
-        return $this->belongsTo(User::class, 'shift1_analis_id');
+        return $this->belongsTo(User::class, 'shift1_analyst_id');
     }
 
     public function shift2Analis()
     {
-        return $this->belongsTo(User::class, 'shift2_analis_id');
+        return $this->belongsTo(User::class, 'shift2_analyst_id');
     }
 
     public function entries()

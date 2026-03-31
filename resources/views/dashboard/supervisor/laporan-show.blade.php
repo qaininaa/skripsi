@@ -29,8 +29,8 @@
                 <span class="text-base font-normal text-gray-600">{{ $report->reportType->name ?? '—' }}</span>
             </h2>
             <p class="text-sm text-gray-500 mt-0.5">
-                {{ $report->nama_produk }} · Batch <span class="font-mono">{{ $report->nomor_batch_produk }}</span>
-                · {{ $report->tanggal->isoFormat('D MMM Y') }}
+                {{ $report->product_name }} · Batch <span class="font-mono">{{ $report->batch_number }}</span>
+                · {{ $report->report_date->isoFormat('D MMM Y') }}
             </p>
         </div>
         </div>
@@ -55,11 +55,13 @@
             @if ($approval->signed_at)
                 <span class="text-xs text-gray-400">pada {{ $approval->signed_at->isoFormat('D MMM Y, HH:mm') }}</span>
             @endif
+        @elseif ($approval->isReturned())
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Dikembalikan</span>
         @else
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Ditolak</span>
         @endif
-        @if ($approval->catatan)
-            <span class="text-xs text-gray-500 border-l border-gray-200 pl-3">&ldquo;{{ $approval->catatan }}&rdquo;</span>
+        @if ($approval->notes)
+            <span class="text-xs text-gray-500 border-l border-gray-200 pl-3">&ldquo;{{ $approval->notes }}&rdquo;</span>
         @endif
     </div>
 
@@ -72,7 +74,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Pemantauan Ruang</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    {{ $report->tanggal->isoFormat('D MMMM Y') }}
+                    {{ $report->report_date->isoFormat('D MMMM Y') }}
                 </div>
             </div>
             <div>
@@ -95,11 +97,11 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Nama Produk</label>
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $report->nama_produk }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $report->product_name }}</div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Produk</label>
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $report->nomor_batch_produk ?: '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $report->batch_number ?: '—' }}</div>
             </div>
         </div>
     </div>
@@ -122,11 +124,11 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['tanggal_kalibrasi'] ?? '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['calibration_date'] ?? '—' }}</div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['tanggal_due_date'] ?? '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['due_date'] ?? '—' }}</div>
             </div>
         </div>
     </div>
@@ -157,7 +159,7 @@
                     @endif
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medKey === 'medium_swab' ? 'Swab Kit' : 'Medium' }}</label>
-                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['tanggal_ed'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['expiry_date'] ?? '—' }}</div>
                     </div>
                 </div>
             </div>
@@ -190,45 +192,45 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['tanggal_kalibrasi'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['calibration_date'] ?? '—' }}</div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['tanggal_due_date'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['due_date'] ?? '—' }}</div>
                 </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-gray-50">
                 <div class="lg:col-span-2">
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['tanggal_inkubasi'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['incubation_date'] ?? '—' }}</div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['tanggal_masuk'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['date_in'] ?? '—' }}</div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['jam_masuk'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['time_in'] ?? '—' }}</div>
                 </div>
                 <div class="hidden lg:block lg:col-span-2"></div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['tanggal_keluar'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['date_out'] ?? '—' }}</div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['jam_keluar'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['time_out'] ?? '—' }}</div>
                 </div>
                 <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                     @foreach ([
-                        ['key' => 'diinkubasi',  'label' => 'Diinkubasi oleh'],
-                        ['key' => 'dikeluarkan', 'label' => 'Dikeluarkan oleh'],
+                        ['key' => 'incubated',  'label' => 'Diinkubasi oleh'],
+                        ['key' => 'removed', 'label' => 'Dikeluarkan oleh'],
                     ] as $field)
                     @php $fKey = $field['key']; @endphp
                     <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-3 space-y-2">
                         <p class="text-xs font-semibold text-gray-500">{{ $field['label'] }}</p>
-                        <div class="text-sm text-gray-700">{{ $ink[$fKey . '_oleh'] ?? '—' }}</div>
-                        <div class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700">{{ $ink[$fKey . '_tanggal'] ?? '—' }}</div>
+                        <div class="text-sm text-gray-700">{{ $ink[$fKey . '_by'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700">{{ $ink[$fKey . '_date'] ?? '—' }}</div>
                     </div>
                     @endforeach
                 </div>
@@ -291,9 +293,9 @@
                             $msJamMulai = null; $msJamSelesai = null;
                             foreach ($section->locations as $loc2) {
                                 $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
-                                if ($e0 && ($e0->jam_mulai || $e0->jam_selesai)) {
-                                    $msJamMulai   = $e0->jam_mulai;
-                                    $msJamSelesai = $e0->jam_selesai;
+                                if ($e0 && ($e0->start_time || $e0->end_time)) {
+                                    $msJamMulai   = $e0->start_time;
+                                    $msJamSelesai = $e0->end_time;
                                     break;
                                 }
                             }
@@ -332,9 +334,9 @@
                             if (!$isSettlePlate) {
                                 foreach ($section->locations as $loc2) {
                                     $e2 = $entryMap[$loc2->id][$col][1] ?? $entryMap[$loc2->id][$col][2] ?? null;
-                                    if ($e2 && ($e2->jam_mulai || $e2->jam_selesai)) {
-                                        $expJamMulai   = $e2->jam_mulai;
-                                        $expJamSelesai = $e2->jam_selesai;
+                                    if ($e2 && ($e2->start_time || $e2->end_time)) {
+                                        $expJamMulai   = $e2->start_time;
+                                        $expJamSelesai = $e2->end_time;
                                         break;
                                     }
                                 }
@@ -348,7 +350,7 @@
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
                                 @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
-                                <div>{{ $abLabel }}: {{ ($stAB['jam_mulai'] ?? '') ?: '—' }} – {{ ($stAB['jam_selesai'] ?? '') ?: '—' }}</div>
+                                <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
                             @else
@@ -464,8 +466,8 @@
 
                         @if ($hasJam)
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
-                            <span class="text-gray-{{ $existEntry?->jam_mulai ? '600' : '300' }} text-[11px]">
-                                {{ $existEntry?->jam_mulai ? \Illuminate\Support\Str::substr($existEntry->jam_mulai, 0, 5) : '-' }}
+                            <span class="text-gray-{{ $existEntry?->start_time ? '600' : '300' }} text-[11px]">
+                                {{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '-' }}
                             </span>
                         </td>
                         @endif
@@ -541,12 +543,12 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700 min-h-[40px]">
-                    {{ $secNote['catatan'] ?? '—' }}
+                    {{ $secNote['notes'] ?? '—' }}
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1.5">Kesimpulan</label>
-                @php $sk = $secNote['kesimpulan'] ?? ''; @endphp
+                @php $sk = $secNote['conclusion'] ?? ''; @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
                         <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
@@ -570,12 +572,12 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700 min-h-[60px]">
-                    {{ $hd['catatan'] ?? '—' }}
+                    {{ $hd['notes'] ?? '—' }}
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-2">Kesimpulan Akhir</label>
-                @php $kg = $hd['kesimpulan_global'] ?? ''; @endphp
+                @php $kg = $hd['global_conclusion'] ?? ''; @endphp
                 <div class="px-4 py-2.5 rounded-lg border border-gray-100 bg-gray-50 inline-block text-sm">
                     @if ($kg === 'MS')
                         <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
@@ -616,39 +618,75 @@
         </div>
     </div>
 
-    {{-- ── Aksi: Setujui / Tolak ──────────────────────────── --}}
+    {{-- ── Aksi: Setujui / Kembalikan ──────────────────────────── --}}
     @if ($approval->isPending())
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
-        <h3 class="text-sm font-semibold text-gray-800">Tindakan</h3>
-        <div class="flex flex-col sm:flex-row gap-3">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <h3 class="text-sm font-semibold text-gray-700 mb-4">Tindakan</h3>
+        <div class="flex flex-col gap-3">
+
             {{-- Approve --}}
-            <form method="POST" action="{{ route('supervisor.laporan.approve', $report->id) }}" class="flex-1">
-                @csrf
-                <textarea name="catatan" placeholder="Catatan (opsional)"
-                    class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm mb-2 resize-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none"
-                    rows="2"></textarea>
-                <button type="submit"
-                    class="w-full px-4 py-2.5 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Setujui Laporan
-                </button>
-            </form>
-            {{-- Reject --}}
-            <form method="POST" action="{{ route('supervisor.laporan.reject', $report->id) }}" class="flex-1">
-                @csrf
-                <textarea name="catatan" placeholder="Alasan penolakan (opsional)"
-                    class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm mb-2 resize-none focus:border-red-400 focus:ring-1 focus:ring-red-400 focus:outline-none"
-                    rows="2"></textarea>
-                <button type="submit"
-                    class="w-full px-4 py-2.5 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Tolak Laporan
-                </button>
-            </form>
+            <div class="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-emerald-800">Setujui Laporan</p>
+                        <p class="text-xs text-emerald-600">Laporan akan ditandai sebagai disetujui</p>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('supervisor.laporan.approve', $report->id) }}">
+                    @csrf
+                    <button type="submit"
+                        class="px-5 py-2.5 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 active:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Setujui Laporan
+                    </button>
+                </form>
+            </div>
+
+            {{-- Return --}}
+            <div class="rounded-xl border-2 border-orange-200 bg-orange-50 p-4 flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-orange-800">Kembalikan Laporan</p>
+                        <p class="text-xs text-orange-600">Kirim kembali ke analis untuk diperbaiki</p>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('supervisor.laporan.return', $report->id) }}" class="flex flex-col gap-2">
+                    @csrf
+                    <div class="flex gap-2">
+                        <select name="returned_to_user_id"
+                            class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
+                            <option value="">-- Pilih Analis Tujuan --</option>
+                            <option value="{{ $report->shift1_analyst_id }}">{{ $report->shift1Analis->name }} (Shift 1)</option>
+                            @if ($report->shift2Analis)
+                            <option value="{{ $report->shift2_analyst_id }}">{{ $report->shift2Analis->name }} (Shift 2)</option>
+                            @endif
+                        </select>
+                        <textarea name="notes" placeholder="Catatan / alasan pengembalian (opsional)"
+                            class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm resize-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none"
+                            rows="1"></textarea>
+                        <button type="submit"
+                            class="px-5 py-2.5 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 active:bg-orange-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
+                            Kembalikan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
     @endif

@@ -49,18 +49,18 @@
             {{-- Tanggal --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal <span class="text-red-500">*</span></label>
-                <input type="date" name="tanggal"
-                       value="{{ old('tanggal', $tugasPelaporan->tanggal->format('Y-m-d')) }}"
+                <input type="date" name="report_date"
+                       value="{{ old('report_date', $tugasPelaporan->report_date->format('Y-m-d')) }}"
                        class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
             </div>
 
             {{-- Nama Produk --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk <span class="text-red-500">*</span></label>
-                <input type="text" name="nama_produk" value="{{ old('nama_produk', $tugasPelaporan->nama_produk) }}"
+                <input type="text" name="product_name" value="{{ old('product_name', $tugasPelaporan->product_name) }}"
                        placeholder="Masukkan nama produk"
                        class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
-                @error('nama_produk')
+                @error('product_name')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -68,10 +68,10 @@
             {{-- Nomor Batch Produk --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Batch Produk <span class="text-red-500">*</span></label>
-                <input type="text" name="nomor_batch_produk" value="{{ old('nomor_batch_produk', $tugasPelaporan->nomor_batch_produk) }}"
+                <input type="text" name="batch_number" value="{{ old('batch_number', $tugasPelaporan->batch_number) }}"
                        placeholder="Masukkan nomor batch produk"
                        class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
-                @error('nomor_batch_produk')
+                @error('batch_number')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -84,17 +84,17 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Analis <span class="text-red-500">*</span>
                     </label>
-                    <select name="shift1_analis_id" x-model="s1" @change="onS1Change()"
+                    <select name="shift1_analyst_id" x-model="s1" @change="onS1Change()"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                         <option value="">— Pilih Analis —</option>
                         @foreach ($analis as $a)
                             <option value="{{ $a->id }}"
-                                {{ old('shift1_analis_id', $tugasPelaporan->shift1_analis_id) == $a->id ? 'selected' : '' }}>
+                                {{ old('shift1_analyst_id', $tugasPelaporan->shift1_analyst_id) == $a->id ? 'selected' : '' }}>
                                 {{ $a->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('shift1_analis_id')
+                    @error('shift1_analyst_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -109,16 +109,16 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Analis</label>
-                    <select name="shift2_analis_id" x-model="s2"
+                    <select name="shift2_analyst_id" x-model="s2"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="">— Tidak ada Shift 2 —</option>
                         <template x-for="a in availS2" :key="a.id">
                             <option :value="a.id" x-text="a.name"
-                                    :selected="a.id == {{ old('shift2_analis_id', $tugasPelaporan->shift2_analis_id) }}"></option>
+                                    :selected="a.id == {{ old('shift2_analyst_id', $tugasPelaporan->shift2_analyst_id) }}"></option>
                         </template>
                     </select>
                     <p class="mt-1 text-xs text-gray-400">Kosongkan jika laporan ini tidak memiliki Shift 2. Tidak bisa memilih analis yang sama dengan Shift 1.</p>
-                    @error('shift2_analis_id')
+                    @error('shift2_analyst_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -182,8 +182,8 @@ function tugasForm(analysts, reportTypes, instrumentMap) {
         analysts: analysts,
         reportTypes: reportTypes,
         instrumentMap: instrumentMap,
-        s1: '{{ old('shift1_analis_id', $tugasPelaporan->shift1_analis_id) }}',
-        s2: '{{ old('shift2_analis_id', $tugasPelaporan->shift2_analis_id) }}',
+        s1: '{{ old('shift1_analyst_id', $tugasPelaporan->shift1_analyst_id) }}',
+        s2: '{{ old('shift2_analyst_id', $tugasPelaporan->shift2_analyst_id) }}',
         selectedInstrument: '{{ old('instrument', $selectedInstrument ?? '') }}',
         selectedReportType: '{{ old('report_type_id', $selectedReportType ?? '') }}',
 

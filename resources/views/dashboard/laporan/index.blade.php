@@ -17,6 +17,7 @@
         'in_progress' => ['label' => 'Dikerjakan',         'color' => 'yellow'],
         'handed_over' => ['label' => 'Diteruskan ke Shift 2', 'color' => 'amber'],
         'submitted'   => ['label' => 'Dikirim',            'color' => 'blue'],
+        'returned'    => ['label' => 'Dikembalikan',       'color' => 'orange'],
         'approved'    => ['label' => 'Disetujui',          'color' => 'green'],
         'rejected'    => ['label' => 'Ditolak',            'color' => 'red'],
     ];
@@ -89,17 +90,17 @@
                         @foreach ($items as $item)
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-5 py-3.5 text-gray-700 whitespace-nowrap font-medium">
-                                    {{ $item->tanggal->isoFormat('D MMM Y') }}
+                                    {{ $item->report_date->isoFormat('D MMM Y') }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $item->nama_produk }}
+                                    {{ $item->product_name }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $item->nomor_batch_produk }}
+                                    {{ $item->batch_number }}
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
                                     @php
-                                        $myShift = $item->shift1_analis_id == Auth::id() ? 1 : 2;
+                                        $myShift = $item->shift1_analyst_id == Auth::id() ? 1 : 2;
                                     @endphp
                                     <span class="inline-flex items-center justify-center h-6 w-14 rounded-full text-xs font-semibold
                                                  {{ $myShift === 1 ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-50 text-indigo-700' }}">
@@ -115,6 +116,7 @@
                                             $item->status === 'pending'      => ['bg-gray-100 text-gray-600',   'Menunggu'],
                                             $item->status === 'in_progress'  => ['bg-yellow-100 text-yellow-700','Dikerjakan'],
                                             $item->status === 'submitted'    => ['bg-blue-100 text-blue-700',   'Dikirim'],
+                                            $item->status === 'returned'     => ['bg-orange-100 text-orange-700','Dikembalikan'],
                                             $item->status === 'approved'     => ['bg-green-100 text-green-700', 'Disetujui'],
                                             $item->status === 'rejected'     => ['bg-red-100 text-red-700',     'Ditolak'],
                                             default                          => ['bg-gray-100 text-gray-600',   $item->status],
@@ -134,6 +136,22 @@
                                             </svg>
                                             Lihat
                                         </a>
+                                    @elseif ($item->status === 'returned')
+                                        @php $retApproval = $item->approvals->firstWhere('status', 'returned'); @endphp
+                                        <div class="flex flex-col items-start gap-1">
+                                            <a href="{{ route('laporan.isi', $item) }}"
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-xs font-medium hover:bg-orange-600 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Revisi
+                                            </a>
+                                            @if ($retApproval?->notes)
+                                                <p class="text-xs text-orange-600 italic max-w-[160px] leading-snug">
+                                                    &ldquo;{{ $retApproval->notes }}&rdquo;
+                                                </p>
+                                            @endif
+                                        </div>
                                     @elseif ($myShift === 1)
                                         {{-- Shift 1: tombol aktif sesuai status --}}
                                         @if ($item->status === 'pending')

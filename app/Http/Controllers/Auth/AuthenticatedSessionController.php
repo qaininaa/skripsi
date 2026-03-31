@@ -28,7 +28,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $role = $request->user()->role;
+        $user = $request->user();
+
+        // Check if password must be changed
+        if ($user->mustChangePassword()) {
+            return redirect()->route('password.change');
+        }
+
+        $role = $user->role;
 
         if ($role === 'super admin') {
             return redirect()->route('dashboard.super-admin');

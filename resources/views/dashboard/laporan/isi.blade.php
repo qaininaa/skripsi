@@ -30,8 +30,8 @@
                 <span class="text-sm font-normal text-gray-600">{{ $report->reportType->name }}</span>
             </h2>
             <p class="text-xs text-gray-500 mt-0.5">
-                {{ $report->nama_produk }} · Batch <span class="font-mono">{{ $report->nomor_batch_produk }}</span>
-                · {{ $report->tanggal->isoFormat('D MMM Y') }}
+                {{ $report->product_name }} · Batch <span class="font-mono">{{ $report->batch_number }}</span>
+                · {{ $report->report_date->isoFormat('D MMM Y') }}
             </p>
         </div>
     </div>
@@ -121,7 +121,7 @@
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Pemantauan Ruang</label>
             <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                {{ $report->tanggal->isoFormat('D MMMM Y') }}
+                {{ $report->report_date->isoFormat('D MMMM Y') }}
             </div>
         </div>
         <div>
@@ -151,13 +151,13 @@
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Nama Produk</label>
             <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                {{ $report->nama_produk }}
+                {{ $report->product_name }}
             </div>
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Produk</label>
             <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                {{ $report->nomor_batch_produk }}
+                {{ $report->batch_number }}
             </div>
         </div>
     </div>
@@ -185,13 +185,13 @@
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
-            <input type="date" name="header_data[air_sampler][tanggal_kalibrasi]" value="{{ $as['tanggal_kalibrasi'] ?? '' }}"
+            <input type="date" name="header_data[air_sampler][calibration_date]" value="{{ $as['calibration_date'] ?? '' }}"
                    @if(!$isEditable) readonly @endif
                    class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
-            <input type="date" name="header_data[air_sampler][tanggal_due_date]" value="{{ $as['tanggal_due_date'] ?? '' }}"
+            <input type="date" name="header_data[air_sampler][due_date]" value="{{ $as['due_date'] ?? '' }}"
                    @if(!$isEditable) readonly @endif
                    class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
         </div>
@@ -228,7 +228,7 @@
                 @endif
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medKey === 'medium_swab' ? 'Swab Kit' : 'Medium' }}</label>
-                    <input type="date" name="header_data[{{ $medKey }}][tanggal_ed]" value="{{ $med['tanggal_ed'] ?? '' }}"
+                    <input type="date" name="header_data[{{ $medKey }}][expiry_date]" value="{{ $med['expiry_date'] ?? '' }}"
                            @if(!$isEditable) readonly @endif
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
                 </div>
@@ -265,13 +265,13 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
-                <input type="date" name="header_data[{{ $inkKey }}][tanggal_kalibrasi]" value="{{ $ink['tanggal_kalibrasi'] ?? '' }}"
+                <input type="date" name="header_data[{{ $inkKey }}][calibration_date]" value="{{ $ink['calibration_date'] ?? '' }}"
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
-                <input type="date" name="header_data[{{ $inkKey }}][tanggal_due_date]" value="{{ $ink['tanggal_due_date'] ?? '' }}"
+                <input type="date" name="header_data[{{ $inkKey }}][due_date]" value="{{ $ink['due_date'] ?? '' }}"
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
@@ -279,19 +279,19 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-gray-50">
             <div class="lg:col-span-2">
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</label>
-                <input type="date" name="header_data[{{ $inkKey }}][tanggal_inkubasi]" value="{{ $ink['tanggal_inkubasi'] ?? '' }}"
+                <input type="date" name="header_data[{{ $inkKey }}][incubation_date]" value="{{ $ink['incubation_date'] ?? '' }}"
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
-                <input type="date" name="header_data[{{ $inkKey }}][tanggal_masuk]" value="{{ $ink['tanggal_masuk'] ?? '' }}"
+                <input type="date" name="header_data[{{ $inkKey }}][date_in]" value="{{ $ink['date_in'] ?? '' }}"
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
-                <input type="time" name="header_data[{{ $inkKey }}][jam_masuk]" value="{{ $ink['jam_masuk'] ?? '' }}"
+                <input type="time" name="header_data[{{ $inkKey }}][time_in]" value="{{ $ink['time_in'] ?? '' }}"
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
@@ -299,26 +299,26 @@
             <div class="hidden lg:block lg:col-span-2"></div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
-                <input type="date" name="header_data[{{ $inkKey }}][tanggal_keluar]" value="{{ $ink['tanggal_keluar'] ?? '' }}"
+                <input type="date" name="header_data[{{ $inkKey }}][date_out]" value="{{ $ink['date_out'] ?? '' }}"
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
-                <input type="time" name="header_data[{{ $inkKey }}][jam_keluar]" value="{{ $ink['jam_keluar'] ?? '' }}"
+                <input type="time" name="header_data[{{ $inkKey }}][time_out]" value="{{ $ink['time_out'] ?? '' }}"
                        @if(!$isEditable) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
             </div>
             {{-- Diinkubasi & Dikeluarkan oleh --}}
             <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 @foreach ([
-                    ['key' => 'diinkubasi',  'label' => 'Diinkubasi oleh',   'default_date' => date('Y-m-d')],
-                    ['key' => 'dikeluarkan', 'label' => 'Dikeluarkan oleh',  'default_date' => ''],
+                    ['key' => 'incubated',  'label' => 'Diinkubasi oleh',   'default_date' => date('Y-m-d')],
+                    ['key' => 'removed', 'label' => 'Dikeluarkan oleh',  'default_date' => ''],
                 ] as $field)
                 @php
                     $fKey    = $field['key'];
-                    $fName   = $fKey . '_oleh';
-                    $fDate   = $fKey . '_tanggal';
+                    $fName   = $fKey . '_by';
+                    $fDate   = $fKey . '_date';
                     $savedWho  = $ink[$fName] ?? '';
                     $savedDate = $ink[$fDate] ?? $field['default_date'];
                 @endphp
@@ -412,9 +412,9 @@
                         $msJamMulai = null; $msJamSelesai = null;
                         foreach ($section->locations as $loc2) {
                             $e0 = $entryMap[$loc2->id][0][$myShift] ?? null;
-                            if ($e0 && ($e0->jam_mulai || $e0->jam_selesai)) {
-                                $msJamMulai   = $e0->jam_mulai;
-                                $msJamSelesai = $e0->jam_selesai;
+                            if ($e0 && ($e0->start_time || $e0->end_time)) {
+                                $msJamMulai   = $e0->start_time;
+                                $msJamSelesai = $e0->end_time;
                                 break;
                             }
                         }
@@ -423,11 +423,11 @@
                         <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
                         @if ($isEditable)
                         <div class="flex justify-center items-center gap-1">
-                            <input type="time" name="exposure_times[{{ $section->id }}][0][jam_mulai]"
+                            <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
                                    value="{{ $msJamMulai }}"
                                    class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                             <span class="text-gray-400 text-[10px] font-normal">–</span>
-                            <input type="time" name="exposure_times[{{ $section->id }}][0][jam_selesai]"
+                            <input type="time" name="exposure_times[{{ $section->id }}][0][end_time]"
                                    value="{{ $msJamSelesai }}"
                                    class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         </div>
@@ -495,9 +495,9 @@
                             $expJamMulai = null; $expJamSelesai = null;
                             foreach ($section->locations as $loc2) {
                                 $e2 = $entryMap[$loc2->id][$col][$myShift] ?? null;
-                                if ($e2 && ($e2->jam_mulai || $e2->jam_selesai)) {
-                                    $expJamMulai   = $e2->jam_mulai;
-                                    $expJamSelesai = $e2->jam_selesai;
+                                if ($e2 && ($e2->start_time || $e2->end_time)) {
+                                    $expJamMulai   = $e2->start_time;
+                                    $expJamSelesai = $e2->end_time;
                                     break;
                                 }
                             }
@@ -514,12 +514,12 @@
                                 @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
-                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][jam_mulai]"
-                                           value="{{ $stAB['jam_mulai'] ?? '' }}"
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][start_time]"
+                                           value="{{ $stAB['start_time'] ?? '' }}"
                                            class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                     <span class="text-gray-400 text-[10px]">–</span>
-                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][jam_selesai]"
-                                           value="{{ $stAB['jam_selesai'] ?? '' }}"
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][end_time]"
+                                           value="{{ $stAB['end_time'] ?? '' }}"
                                            class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 </div>
                                 @endforeach
@@ -528,18 +528,18 @@
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
                                 @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
-                                <div>{{ $abLabel }}: {{ ($stAB['jam_mulai'] ?? '') ?: '—' }} – {{ ($stAB['jam_selesai'] ?? '') ?: '—' }}</div>
+                                <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
                             @endif
                         @else
                         @if ($isEditable)
                         <div class="flex justify-center items-center gap-1">
-                            <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][jam_mulai]"
+                            <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][start_time]"
                                    value="{{ $expJamMulai }}"
                                    class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                             <span class="text-gray-400 text-[10px] font-normal">–</span>
-                            <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][jam_selesai]"
+                            <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][end_time]"
                                    value="{{ $expJamSelesai }}"
                                    class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         </div>
@@ -694,12 +694,12 @@
                     @if ($hasJam)
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($editable)
-                            <input type="time" name="{{ $iName }}[jam_mulai]"
-                                   value="{{ $existEntry?->jam_mulai }}"
+                            <input type="time" name="{{ $iName }}[start_time]"
+                                   value="{{ $existEntry?->start_time }}"
                                    class="w-[84px] rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
-                            <span class="text-gray-{{ $existEntry?->jam_mulai ? '600' : '300' }} text-[11px]">{{ $existEntry?->jam_mulai ? \Illuminate\Support\Str::substr($existEntry->jam_mulai, 0, 5) : '-' }}</span>
+                            <span class="text-gray-{{ $existEntry?->start_time ? '600' : '300' }} text-[11px]">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '-' }}</span>
                         @endif
                     </td>
                     @endif
@@ -809,13 +809,13 @@
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
             @if ($isEditable)
-            <textarea name="header_data[section_notes][{{ $section->id }}][catatan]" rows="2"
+            <textarea name="header_data[section_notes][{{ $section->id }}][notes]" rows="2"
                       placeholder="Catatan untuk seksi ini..."
                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 resize-none
-                             focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">{{ $secNote['catatan'] ?? '' }}</textarea>
+                             focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">{{ $secNote['notes'] ?? '' }}</textarea>
             @else
             <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700 min-h-[40px]">
-                {{ $secNote['catatan'] ?? '—' }}
+                {{ $secNote['notes'] ?? '—' }}
             </div>
             @endif
         </div>
@@ -824,22 +824,22 @@
             @if ($isEditable)
             <div class="flex flex-wrap gap-2">
                 <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 transition-colors
-                              {{ ($secNote['kesimpulan'] ?? '') === 'MS' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-200' }}">
-                    <input type="radio" name="header_data[section_notes][{{ $section->id }}][kesimpulan]" value="MS"
-                           {{ ($secNote['kesimpulan'] ?? '') === 'MS' ? 'checked' : '' }}
+                              {{ ($secNote['conclusion'] ?? '') === 'MS' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-200' }}">
+                    <input type="radio" name="header_data[section_notes][{{ $section->id }}][conclusion]" value="MS"
+                           {{ ($secNote['conclusion'] ?? '') === 'MS' ? 'checked' : '' }}
                            class="text-green-500 focus:ring-green-400">
                     <span class="text-xs font-medium text-green-700">Memenuhi Spesifikasi <span class="font-bold">(MS)</span></span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 transition-colors
-                              {{ ($secNote['kesimpulan'] ?? '') === 'TMS' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-red-200' }}">
-                    <input type="radio" name="header_data[section_notes][{{ $section->id }}][kesimpulan]" value="TMS"
-                           {{ ($secNote['kesimpulan'] ?? '') === 'TMS' ? 'checked' : '' }}
+                              {{ ($secNote['conclusion'] ?? '') === 'TMS' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-red-200' }}">
+                    <input type="radio" name="header_data[section_notes][{{ $section->id }}][conclusion]" value="TMS"
+                           {{ ($secNote['conclusion'] ?? '') === 'TMS' ? 'checked' : '' }}
                            class="text-red-500 focus:ring-red-400">
                     <span class="text-xs font-medium text-red-700">Tidak Memenuhi Spesifikasi <span class="font-bold">(TMS)</span></span>
                 </label>
             </div>
             @else
-                @php $sk = $secNote['kesimpulan'] ?? ''; @endphp
+                @php $sk = $secNote['conclusion'] ?? ''; @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
                         <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
@@ -863,34 +863,34 @@
     <div class="p-5 space-y-4">
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
-            <textarea name="header_data[catatan]" rows="3"
+            <textarea name="header_data[notes]" rows="3"
                       @if(!$isEditable) readonly @endif
                       placeholder="Masukkan catatan pemantauan..."
                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 resize-none
                              focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none
-                             @if(!$isEditable) bg-gray-50 @endif">{{ $hd['catatan'] ?? '' }}</textarea>
+                             @if(!$isEditable) bg-gray-50 @endif">{{ $hd['notes'] ?? '' }}</textarea>
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-2">Kesimpulan Akhir</label>
             @if ($isEditable)
             <div class="flex flex-wrap gap-3">
                 <label class="flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg border-2 transition-colors
-                              {{ ($hd['kesimpulan_global'] ?? '') === 'MS' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-200' }}">
-                    <input type="radio" name="header_data[kesimpulan_global]" value="MS"
-                           {{ ($hd['kesimpulan_global'] ?? '') === 'MS' ? 'checked' : '' }}
+                              {{ ($hd['global_conclusion'] ?? '') === 'MS' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-200' }}">
+                    <input type="radio" name="header_data[global_conclusion]" value="MS"
+                           {{ ($hd['global_conclusion'] ?? '') === 'MS' ? 'checked' : '' }}
                            class="text-green-500 focus:ring-green-400">
                     <span class="text-sm font-medium text-green-700">Memenuhi Spesifikasi <span class="font-bold">(MS)</span></span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg border-2 transition-colors
-                              {{ ($hd['kesimpulan_global'] ?? '') === 'TMS' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-red-200' }}">
-                    <input type="radio" name="header_data[kesimpulan_global]" value="TMS"
-                           {{ ($hd['kesimpulan_global'] ?? '') === 'TMS' ? 'checked' : '' }}
+                              {{ ($hd['global_conclusion'] ?? '') === 'TMS' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-red-200' }}">
+                    <input type="radio" name="header_data[global_conclusion]" value="TMS"
+                           {{ ($hd['global_conclusion'] ?? '') === 'TMS' ? 'checked' : '' }}
                            class="text-red-500 focus:ring-red-400">
                     <span class="text-sm font-medium text-red-700">Tidak Memenuhi Spesifikasi <span class="font-bold">(TMS)</span></span>
                 </label>
             </div>
             @else
-                @php $kg = $hd['kesimpulan_global'] ?? ''; @endphp
+                @php $kg = $hd['global_conclusion'] ?? ''; @endphp
                 <div class="px-4 py-2.5 rounded-lg border border-gray-100 bg-gray-50 inline-block text-sm">
                     @if ($kg === 'MS')
                         <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
@@ -1264,7 +1264,7 @@ function setAssignment(secId, col, shift) {
         if (!isMine) inp.value = '';
     });
     // Also toggle time inputs in the same column (JAM)
-    const colCell = document.querySelectorAll(`input[name*="entries"][name*="[${col}]"][name*="jam_mulai"]`);
+    const colCell = document.querySelectorAll(`input[name*="entries"][name*="[${col}]"][name*="start_time"]`);
     colCell.forEach(inp => {
         const row = inp.closest('tr');
         if (!row) return;

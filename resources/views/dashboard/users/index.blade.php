@@ -56,7 +56,6 @@
                     <tr class="bg-gray-50 border-b border-gray-100">
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Username</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Bergabung</th>
                         <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -83,7 +82,6 @@
                                 </div>
                             </td>
                             <td class="px-6 py-3.5 text-sm text-gray-500">{{ $user->username ?? '—' }}</td>
-                            <td class="px-6 py-3.5 text-sm text-gray-500">{{ $user->email }}</td>
                             <td class="px-6 py-3.5">
                                 @php
                                     $badgeClass = match($user->role) {

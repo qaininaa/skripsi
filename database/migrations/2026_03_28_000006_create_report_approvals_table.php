@@ -15,9 +15,10 @@ return new class extends Migration
             $table->string('role_label', 50);               // Analis, Supervisor, QC Manager
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('signed_at')->nullable();
-            $table->string('paraf_path')->nullable();
+            $table->string('signature_path')->nullable();
             $table->string('status', 20)->default('pending'); // pending, approved, rejected
-            $table->text('catatan')->nullable();
+            $table->text('notes')->nullable();
+            $table->foreignId('returned_to_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

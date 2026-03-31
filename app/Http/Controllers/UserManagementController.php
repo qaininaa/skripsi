@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Rules\PasswordComplexity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -37,9 +38,8 @@ class UserManagementController extends Controller
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['required', 'string', new PasswordComplexity],
         ]);
 
         if ($validated['role'] === 'manajer' && User::where('role', 'manajer')->exists()) {
@@ -48,12 +48,14 @@ class UserManagementController extends Controller
             ]);
         }
 
+        $validated['last_password_changed_at'] = now();
+
         $user = User::create($validated);
 
         AuditLog::create([
             'user_id' => $request->user()?->id,
             'action' => 'create_user',
-            'description' => 'Membuat pengguna baru: ' . $user->name . ' (' . $user->email . ')',
+            'description' => 'Membuat pengguna baru: ' . $user->name . ' (' . $user->username . ')',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -84,15 +86,8 @@ class UserManagementController extends Controller
                 'max:255',
                 Rule::unique('users', 'username')->ignore($user->id),
             ],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
-            ],
             'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
-            'password' => ['nullable', 'string', 'min:8'],
+            'password' => ['nullable', 'string', new PasswordComplexity],
         ]);
 
         if ($validated['role'] === 'manajer' && $user->role !== 'manajer' && User::where('role', 'manajer')->exists()) {
@@ -103,6 +98,9 @@ class UserManagementController extends Controller
 
         if (empty($validated['password'])) {
             unset($validated['password']);
+        } else {
+            // Set null so user is forced to change password on next login
+            $validated['last_password_changed_at'] = null;
         }
 
         $user->update($validated);
@@ -110,7 +108,7 @@ class UserManagementController extends Controller
         AuditLog::create([
             'user_id' => $request->user()?->id,
             'action' => 'update_user',
-            'description' => 'Memperbarui pengguna: ' . $user->name . ' (' . $user->email . ')',
+            'description' => 'Memperbarui pengguna: ' . $user->name . ' (' . $user->username . ')',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -132,7 +130,7 @@ class UserManagementController extends Controller
                 ->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
-        $deletedUserInfo = $user->name . ' (' . $user->email . ')';
+        $deletedUserInfo = $user->name . ' (' . $user->username . ')';
 
         $user->delete();
 

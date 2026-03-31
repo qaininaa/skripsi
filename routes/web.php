@@ -26,20 +26,20 @@ Route::get('/dashboard', function () {
         return redirect()->route('dashboard.supervisor');
     }
     return redirect('/');
-})->middleware('auth')->name('dashboard');
+})->middleware(['auth', 'password.check'])->name('dashboard');
 
 // Dashboard Super Admin
 Route::get('/dashboard/super-admin', function () {
     return view('dashboard.super-admin');
-})->middleware(['auth', 'role:super admin'])->name('dashboard.super-admin');
+})->middleware(['auth', 'password.check', 'role:super admin'])->name('dashboard.super-admin');
 
 // Dashboard Admin QC
 Route::get('/dashboard/admin-qc', function () {
     return view('dashboard.admin-qc');
-})->middleware(['auth', 'role:admin-qc'])->name('dashboard.admin-qc');
+})->middleware(['auth', 'password.check', 'role:admin-qc'])->name('dashboard.admin-qc');
 
 // Manajemen Pengguna (hanya Super Admin)
-Route::middleware(['auth', 'role:super admin'])
+Route::middleware(['auth', 'password.check', 'role:super admin'])
     ->prefix('dashboard')
     ->group(function () {
         Route::resource('users', UserManagementController::class)->names('users');
@@ -47,7 +47,7 @@ Route::middleware(['auth', 'role:super admin'])
     });
 
 // Tugas Pelaporan (hanya Admin QC)
-Route::middleware(['auth', 'role:admin-qc'])
+Route::middleware(['auth', 'password.check', 'role:admin-qc'])
     ->prefix('dashboard')
     ->group(function () {
         Route::resource('tugas-pelaporan', TugasPelaporanController::class)
@@ -56,7 +56,7 @@ Route::middleware(['auth', 'role:admin-qc'])
     });
 
 // Dashboard & Laporan Analis
-Route::middleware(['auth', 'role:analis'])
+Route::middleware(['auth', 'password.check', 'role:analis'])
     ->prefix('dashboard')
     ->group(function () {
         Route::get('analis', function () {
@@ -70,7 +70,7 @@ Route::middleware(['auth', 'role:analis'])
     });
 
 // Dashboard & Laporan Masuk Supervisor
-Route::middleware(['auth', 'role:supervisor'])
+Route::middleware(['auth', 'password.check', 'role:supervisor'])
     ->prefix('dashboard')
     ->group(function () {
         Route::get('supervisor', [SupervisorLaporanController::class, 'dashboard'])->name('dashboard.supervisor');
@@ -78,10 +78,10 @@ Route::middleware(['auth', 'role:supervisor'])
         Route::get('supervisor/laporan/{report}', [SupervisorLaporanController::class, 'show'])->name('supervisor.laporan.show');
         Route::get('supervisor/laporan/{report}/cetak', [SupervisorLaporanController::class, 'cetak'])->name('supervisor.laporan.cetak');
         Route::post('supervisor/laporan/{report}/approve', [SupervisorLaporanController::class, 'approve'])->name('supervisor.laporan.approve');
-        Route::post('supervisor/laporan/{report}/reject', [SupervisorLaporanController::class, 'reject'])->name('supervisor.laporan.reject');
+        Route::post('supervisor/laporan/{report}/return', [SupervisorLaporanController::class, 'returnReport'])->name('supervisor.laporan.return');
     });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'password.check'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

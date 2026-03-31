@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ $report->reportType->annex_number }} — {{ $report->tanggal->format('Y-m-d') }}</title>
+<title>{{ $report->reportType->annex_number }} — {{ $report->report_date->format('Y-m-d') }}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:#d1d5db}
@@ -89,10 +89,10 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
     {{-- ── 1. Pemantauan Ruang ──────────────────────── --}}
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">1. Pemantauan Ruang</td></tr>
-        <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->tanggal->isoFormat('D MMMM Y') }}</td></tr>
+        <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->report_date->isoFormat('D MMMM Y') }}</td></tr>
         <tr><td>Nama Analis</td><td>{{ $report->shift1Analis->name }}{{ $report->shift2Analis ? ' / ' . $report->shift2Analis->name : '' }}</td></tr>
-        <tr><td>Nama Produk</td><td>{{ $report->nama_produk }}</td></tr>
-        <tr><td>Nomor Batch Produk</td><td>{{ $report->nomor_batch_produk ?: '' }}</td></tr>
+        <tr><td>Nama Produk</td><td>{{ $report->product_name }}</td></tr>
+        <tr><td>Nomor Batch Produk</td><td>{{ $report->batch_number ?: '' }}</td></tr>
     </table>
 
     {{-- ── 2. Identitas Instrumen ───────────────────── --}}
@@ -102,8 +102,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         <tr><td colspan="2" class="sec-hdr">2. Identitas Instrumen</td></tr>
         <tr><td style="width:45%">Nama Alat</td><td class="fw">Air Sampler</td></tr>
         <tr><td>No. ID Air Sampler</td><td>{{ $as['no_id'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Kalibrasi Air Sampler</td><td>{{ $as['tanggal_kalibrasi'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Due Date Kalibrasi Air Sampler</td><td>{{ $as['tanggal_due_date'] ?? '' }}</td></tr>
+        <tr><td>Tanggal Kalibrasi Air Sampler</td><td>{{ $as['calibration_date'] ?? '' }}</td></tr>
+        <tr><td>Tanggal Due Date Kalibrasi Air Sampler</td><td>{{ $as['due_date'] ?? '' }}</td></tr>
     </table>
     @endif
 
@@ -118,7 +118,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         @if ($medKey !== 'medium_swab')
         <tr><td>Nomor GPT {{ $medLabel }}</td><td>{{ $med['nomor_gpt'] ?? '' }}</td></tr>
         @endif
-        <tr><td>Tanggal ED {{ $medLabel }}</td><td>{{ $med['tanggal_ed'] ?? '' }}</td></tr>
+        <tr><td>Tanggal ED {{ $medLabel }}</td><td>{{ $med['expiry_date'] ?? '' }}</td></tr>
         @if (!$loop->last)
         <tr><td colspan="2" style="border-left:1px solid #000;border-right:1px solid #000;padding:5px"></td></tr>
         @endif
@@ -148,27 +148,27 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         @php $ink = $hd[$inkKey] ?? []; @endphp
         <tr><td style="width:35%">Nama Alat</td><td colspan="3" class="fw">{{ $inkInfo['label'] }}</td></tr>
         <tr><td>No. ID Inkubator</td><td colspan="3">{{ $ink['no_id'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Kalibrasi Inkubator</td><td colspan="3">{{ $ink['tanggal_kalibrasi'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Due Date Kalibrasi Inkubator</td><td colspan="3">{{ $ink['tanggal_due_date'] ?? '' }}</td></tr>
+        <tr><td>Tanggal Kalibrasi Inkubator</td><td colspan="3">{{ $ink['calibration_date'] ?? '' }}</td></tr>
+        <tr><td>Tanggal Due Date Kalibrasi Inkubator</td><td colspan="3">{{ $ink['due_date'] ?? '' }}</td></tr>
         {{-- Medium Monitoring --}}
         <tr>
             <td rowspan="8" style="vertical-align:middle">Tanggal Inkubasi Medium (min {{ $inkInfo['min_days'] }} hari)</td>
             <td rowspan="4" class="tc" style="vertical-align:middle;width:14%">Medium<br>Monitoring</td>
-            <td>Tanggal Masuk Inkubator: {{ $ink['tanggal_masuk'] ?? '' }}</td>
-            <td style="width:14%">Jam: {{ $ink['jam_masuk'] ?? '' }}</td>
+            <td>Tanggal Masuk Inkubator: {{ $ink['date_in'] ?? '' }}</td>
+            <td style="width:14%">Jam: {{ $ink['time_in'] ?? '' }}</td>
         </tr>
-        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['diinkubasi_oleh'] ?? '' }}{{ isset($ink['diinkubasi_tanggal']) ? ', ' . $ink['diinkubasi_tanggal'] : '' }}</td></tr>
-        <tr><td>Tanggal Keluar Inkubator: {{ $ink['tanggal_keluar'] ?? '' }}</td><td>Jam: {{ $ink['jam_keluar'] ?? '' }}</td></tr>
-        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['dikeluarkan_oleh'] ?? '' }}{{ isset($ink['dikeluarkan_tanggal']) ? ', ' . $ink['dikeluarkan_tanggal'] : '' }}</td></tr>
+        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . $ink['incubated_date'] : '' }}</td></tr>
+        <tr><td>Tanggal Keluar Inkubator: {{ $ink['date_out'] ?? '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
+        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . $ink['removed_date'] : '' }}</td></tr>
         {{-- Swab --}}
         <tr>
             <td rowspan="4" class="tc" style="vertical-align:middle">Swab</td>
-            <td>Tanggal Masuk Inkubator: {{ $ink['tanggal_masuk'] ?? '' }}</td>
-            <td>Jam: {{ $ink['jam_masuk'] ?? '' }}</td>
+            <td>Tanggal Masuk Inkubator: {{ $ink['date_in'] ?? '' }}</td>
+            <td>Jam: {{ $ink['time_in'] ?? '' }}</td>
         </tr>
-        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['diinkubasi_oleh'] ?? '' }}{{ isset($ink['diinkubasi_tanggal']) ? ', ' . $ink['diinkubasi_tanggal'] : '' }}</td></tr>
-        <tr><td>Tanggal Keluar Inkubator: {{ $ink['tanggal_keluar'] ?? '' }}</td><td>Jam: {{ $ink['jam_keluar'] ?? '' }}</td></tr>
-        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['dikeluarkan_oleh'] ?? '' }}{{ isset($ink['dikeluarkan_tanggal']) ? ', ' . $ink['dikeluarkan_tanggal'] : '' }}</td></tr>
+        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . $ink['incubated_date'] : '' }}</td></tr>
+        <tr><td>Tanggal Keluar Inkubator: {{ $ink['date_out'] ?? '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
+        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . $ink['removed_date'] : '' }}</td></tr>
         @if (!$loop->last)
         <tr><td colspan="4" style="border:none;padding:5px"></td></tr>
         @endif
@@ -234,8 +234,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                     $msJamMulai = null; $msJamSelesai = null;
                     foreach ($section->locations as $loc2) {
                         $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
-                        if ($e0 && ($e0->jam_mulai || $e0->jam_selesai)) {
-                            $msJamMulai = $e0->jam_mulai; $msJamSelesai = $e0->jam_selesai; break;
+                        if ($e0 && ($e0->start_time || $e0->end_time)) {
+                            $msJamMulai = $e0->start_time; $msJamSelesai = $e0->end_time; break;
                         }
                     }
                 @endphp
@@ -279,8 +279,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                         $cpJamMulai = null; $cpJamSelesai = null;
                         foreach ($section->locations as $loc2) {
                             $e2 = $entryMap[$loc2->id][1][$colAsgn] ?? null;
-                            if ($e2 && ($e2->jam_mulai || $e2->jam_selesai)) {
-                                $cpJamMulai = $e2->jam_mulai; $cpJamSelesai = $e2->jam_selesai; break;
+                            if ($e2 && ($e2->start_time || $e2->end_time)) {
+                                $cpJamMulai = $e2->start_time; $cpJamSelesai = $e2->end_time; break;
                             }
                         }
                     @endphp
@@ -301,8 +301,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                         $expJamMulai = null; $expJamSelesai = null;
                         foreach ($section->locations as $loc2) {
                             $e2 = $entryMap[$loc2->id][$col][1] ?? $entryMap[$loc2->id][$col][2] ?? null;
-                            if ($e2 && ($e2->jam_mulai || $e2->jam_selesai)) {
-                                $expJamMulai = $e2->jam_mulai; $expJamSelesai = $e2->jam_selesai; break;
+                            if ($e2 && ($e2->start_time || $e2->end_time)) {
+                                $expJamMulai = $e2->start_time; $expJamSelesai = $e2->end_time; break;
                             }
                         }
                     }
@@ -313,11 +313,11 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                     @if ($isSettlePlate)
                     <div style="font-weight:400;margin-top:2px">
                         JAM<br>Mulai Sebar Petri:<br>
-                        A: {{ ($stA['jam_mulai'] ?? '') ?: '__:__' }}<br>
-                        B: {{ ($stB['jam_mulai'] ?? '') ?: '__:__' }}<br><br>
+                        A: {{ ($stA['start_time'] ?? '') ?: '__:__' }}<br>
+                        B: {{ ($stB['start_time'] ?? '') ?: '__:__' }}<br><br>
                         Selesai<br>Pemantauan:<br>
-                        A: {{ ($stA['jam_selesai'] ?? '') ?: '__:__' }}<br>
-                        B: {{ ($stB['jam_selesai'] ?? '') ?: '__:__' }}
+                        A: {{ ($stA['end_time'] ?? '') ?: '__:__' }}<br>
+                        B: {{ ($stB['end_time'] ?? '') ?: '__:__' }}
                     </div>
                     @endif
                 </th>
@@ -399,7 +399,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                         ? ($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0) : null;
                 @endphp
                 @if ($hasJam)
-                <td class="tc" style="font-size:7.5pt">{{ $existEntry?->jam_mulai ? \Illuminate\Support\Str::substr($existEntry->jam_mulai, 0, 5) : '' }}</td>
+                <td class="tc" style="font-size:7.5pt">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '' }}</td>
                 @endif
                 <td class="tc">{{ $existEntry?->cfu_bacteria ?? '' }}</td>
                 <td class="tc">{{ $existEntry?->cfu_fungi ?? '' }}</td>
@@ -436,7 +436,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
 
     {{-- CATATAN --}}
     <div style="margin-top:10px">
-        @php $secCatatan = $secNote['catatan'] ?? ''; @endphp
+        @php $secCatatan = $secNote['notes'] ?? ''; @endphp
         <span class="fw">CATATAN :</span>
         @if ($secCatatan)
         <div style="margin-top:2px">{{ $secCatatan }}</div>
@@ -448,7 +448,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
     </div>
 
     {{-- KESIMPULAN --}}
-    @php $secKesp = $secNote['kesimpulan'] ?? ''; @endphp
+    @php $secKesp = $secNote['conclusion'] ?? ''; @endphp
     <div style="margin-top:8px">
         <span class="fw">KESIMPULAN</span>
         &ensp;: &ensp;

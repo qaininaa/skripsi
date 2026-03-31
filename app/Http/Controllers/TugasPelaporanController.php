@@ -39,22 +39,22 @@ class TugasPelaporanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal'              => ['required', 'date'],
-            'nama_produk'          => ['required', 'string', 'max:255'],
-            'nomor_batch_produk'   => ['required', 'string', 'max:255'],
-            'shift1_analis_id'     => ['required', 'exists:users,id'],
-            'shift2_analis_id'     => ['nullable', 'exists:users,id', 'different:shift1_analis_id'],
+            'report_date'          => ['required', 'date'],
+            'product_name'         => ['required', 'string', 'max:255'],
+            'batch_number'         => ['required', 'string', 'max:255'],
+            'shift1_analyst_id'    => ['required', 'exists:users,id'],
+            'shift2_analyst_id'    => ['nullable', 'exists:users,id', 'different:shift1_analyst_id'],
             'report_type_id'       => ['required', 'exists:report_types,id'],
         ]);
 
         Report::create([
-            'report_type_id'     => $request->report_type_id,
-            'tanggal'            => $request->tanggal,
-            'nama_produk'        => $request->nama_produk,
-            'nomor_batch_produk' => $request->nomor_batch_produk,
-            'shift1_analis_id'   => $request->shift1_analis_id,
-            'shift2_analis_id'   => $request->shift2_analis_id,
-            'created_by'         => Auth::id(),
+            'report_type_id'   => $request->report_type_id,
+            'report_date'      => $request->report_date,
+            'product_name'     => $request->product_name,
+            'batch_number'     => $request->batch_number,
+            'shift1_analyst_id' => $request->shift1_analyst_id,
+            'shift2_analyst_id' => $request->shift2_analyst_id,
+            'created_by'       => Auth::id(),
         ]);
 
         return redirect()->route('tugas-pelaporan.index')
@@ -82,21 +82,21 @@ class TugasPelaporanController extends Controller
     public function update(Request $request, Report $tugasPelaporan)
     {
         $request->validate([
-            'tanggal'            => ['required', 'date'],
-            'nama_produk'        => ['required', 'string', 'max:255'],
-            'nomor_batch_produk' => ['required', 'string', 'max:255'],
-            'shift1_analis_id'   => ['required', 'exists:users,id'],
-            'shift2_analis_id'   => ['nullable', 'exists:users,id', 'different:shift1_analis_id'],
+            'report_date'        => ['required', 'date'],
+            'product_name'       => ['required', 'string', 'max:255'],
+            'batch_number'       => ['required', 'string', 'max:255'],
+            'shift1_analyst_id'  => ['required', 'exists:users,id'],
+            'shift2_analyst_id'  => ['nullable', 'exists:users,id', 'different:shift1_analyst_id'],
             'report_type_id'     => ['required', 'exists:report_types,id'],
         ]);
 
         $tugasPelaporan->update([
-            'report_type_id'     => $request->report_type_id,
-            'tanggal'            => $request->tanggal,
-            'nama_produk'        => $request->nama_produk,
-            'nomor_batch_produk' => $request->nomor_batch_produk,
-            'shift1_analis_id'   => $request->shift1_analis_id,
-            'shift2_analis_id'   => $request->shift2_analis_id,
+            'report_type_id'    => $request->report_type_id,
+            'report_date'       => $request->report_date,
+            'product_name'      => $request->product_name,
+            'batch_number'      => $request->batch_number,
+            'shift1_analyst_id' => $request->shift1_analyst_id,
+            'shift2_analyst_id' => $request->shift2_analyst_id,
         ]);
 
         return redirect()->route('tugas-pelaporan.index')

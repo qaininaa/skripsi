@@ -16,15 +16,15 @@ class AnalisLaporanController extends Controller
         $status = $request->query('status', 'all');
         $userId = Auth::id();
 
-        $mine = fn($q) => $q->where('shift1_analis_id', $userId)
-                             ->orWhere('shift2_analis_id', $userId);
+        $mine = fn($q) => $q->where('shift1_analyst_id', $userId)
+                             ->orWhere('shift2_analyst_id', $userId);
 
         // Hitung count di PHP agar bisa pisahkan status virtual "handed_over"
-        $allForCount = Report::where($mine)->get(['status', 'header_data', 'shift1_analis_id']);
+        $allForCount = Report::where($mine)->get(['status', 'header_data', 'shift1_analyst_id']);
 
         $handedOverCount = $allForCount->filter(fn($r) =>
             $r->status === 'in_progress' &&
-            $r->shift1_analis_id === $userId &&
+            $r->shift1_analyst_id === $userId &&
             !empty(($r->header_data ?? [])['shift1_handed_over'])
         )->count();
 
@@ -35,22 +35,23 @@ class AnalisLaporanController extends Controller
             'in_progress' => max(0, ($rawCounts['in_progress'] ?? 0) - $handedOverCount),
             'handed_over' => $handedOverCount,
             'submitted'   => $rawCounts['submitted']   ?? 0,
+            'returned'    => $rawCounts['returned']    ?? 0,
             'approved'    => $rawCounts['approved']    ?? 0,
             'rejected'    => $rawCounts['rejected']    ?? 0,
         ]);
 
         // Build main query
-        $query = Report::with(['reportType', 'shift1Analis', 'shift2Analis'])
+        $query = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals'])
             ->where($mine)
             ->orderByDesc('created_at');
 
         if ($status === 'handed_over') {
             $query->where('status', 'in_progress')
-                  ->where('shift1_analis_id', $userId)
+                  ->where('shift1_analyst_id', $userId)
                   ->whereRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')), 'false') = 'true'");
         } elseif ($status === 'in_progress') {
             $query->where('status', 'in_progress')
-                  ->whereRaw("NOT (shift1_analis_id = ? AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')), 'false') = 'true')", [$userId]);
+                  ->whereRaw("NOT (shift1_analyst_id = ? AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')), 'false') = 'true')", [$userId]);
         } elseif ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -64,15 +65,20 @@ class AnalisLaporanController extends Controller
     {
         $userId = Auth::id();
         abort_if(
-            $report->shift1_analis_id !== $userId && $report->shift2_analis_id !== $userId,
+            $report->shift1_analyst_id !== $userId && $report->shift2_analyst_id !== $userId,
             403
         );
 
-        $myShift    = $report->shift1_analis_id === $userId ? 1 : 2;
+        $myShift    = $report->shift1_analyst_id === $userId ? 1 : 2;
         $otherShift = $myShift === 1 ? 2 : 1;
 
         // Hanya shift 1 yang boleh mengubah status dari pending → in_progress
         if ($report->status === 'pending' && $myShift === 1) {
+            $report->update(['status' => 'in_progress']);
+        }
+
+        // Jika laporan dikembalikan, ubah ke in_progress agar bisa diedit
+        if ($report->status === 'returned') {
             $report->update(['status' => 'in_progress']);
         }
 
@@ -104,12 +110,12 @@ class AnalisLaporanController extends Controller
     {
         $userId = Auth::id();
         abort_if(
-            $report->shift1_analis_id !== $userId && $report->shift2_analis_id !== $userId,
+            $report->shift1_analyst_id !== $userId && $report->shift2_analyst_id !== $userId,
             403
         );
         abort_if(in_array($report->status, ['submitted', 'approved']), 403);
 
-        $myShift = $report->shift1_analis_id === $userId ? 1 : 2;
+        $myShift = $report->shift1_analyst_id === $userId ? 1 : 2;
 
         // Shift 2 cannot save until shift 1 has handed over
         $shift1HandedOver = !empty(($report->header_data ?? [])['shift1_handed_over']);
@@ -144,9 +150,10 @@ class AnalisLaporanController extends Controller
 
             $report->update(['status' => 'submitted']);
 
+            // Reset approval if it was previously returned
             \App\Models\ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 2],
-                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending']
+                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending', 'notes' => null, 'returned_to_user_id' => null]
             );
 
             return redirect()->route('laporan.index')
@@ -193,7 +200,7 @@ class AnalisLaporanController extends Controller
             }
         }
 
-        // Exposure-level times (jam_mulai/jam_selesai) for settle_plate sections
+        // Exposure-level times (start_time/end_time) for settle_plate sections
         $exposureTimes = $request->input('exposure_times', []);
 
         // Upsert entries
@@ -234,13 +241,13 @@ class AnalisLaporanController extends Controller
                         'shift'              => $shift,
                     ],
                     [
-                        'analis_id'    => Auth::id(),
-                        'jam_mulai'    => $isShiftBased
-                            ? ($data['jam_mulai'] ?? null ?: null)
-                            : ($exposureTimes[$sectionId][$colIdx]['jam_mulai'] ?? null ?: null),
-                        'jam_selesai'  => $isShiftBased
+                        'analyst_id'   => Auth::id(),
+                        'start_time'   => $isShiftBased
+                            ? ($data['start_time'] ?? null ?: null)
+                            : ($exposureTimes[$sectionId][$colIdx]['start_time'] ?? null ?: null),
+                        'end_time'     => $isShiftBased
                             ? null
-                            : ($exposureTimes[$sectionId][$colIdx]['jam_selesai'] ?? null ?: null),
+                            : ($exposureTimes[$sectionId][$colIdx]['end_time'] ?? null ?: null),
                         'cfu_bacteria' => isset($data['cfu_bacteria']) && $data['cfu_bacteria'] !== ''
                             ? (int) $data['cfu_bacteria'] : null,
                         'cfu_fungi'    => isset($data['cfu_fungi']) && $data['cfu_fungi'] !== ''
