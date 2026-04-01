@@ -96,10 +96,13 @@ class UserManagementController extends Controller
             ]);
         }
 
-        if ($user->role === 'super admin' || empty($validated['password'])) {
+        if (empty($validated['password'])) {
             unset($validated['password']);
+        } elseif ($user->role === 'super admin') {
+            // Super admin tidak perlu dipaksa ganti password saat login
+            $validated['last_password_changed_at'] = now();
         } else {
-            // Set null so user is forced to change password on next login
+            // User lain dipaksa ganti password saat login berikutnya
             $validated['last_password_changed_at'] = null;
         }
 

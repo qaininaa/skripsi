@@ -61,7 +61,6 @@
                     </select>
                 </div>
 
-                @if ($user->role !== 'super admin')
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru (opsional)</label>
@@ -73,7 +72,6 @@
                         <input type="password" name="password_confirmation" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                 </div>
-                @endif
 
                 <div class="pt-2 flex justify-end gap-3">
                     <a href="{{ route('users.index') }}" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</a>

@@ -49,6 +49,10 @@ class User extends Authenticatable
 
     public function mustChangePassword(): bool
     {
+        if ($this->role === 'super admin') {
+            return false;
+        }
+
         return $this->isPasswordExpired();
     }
 }

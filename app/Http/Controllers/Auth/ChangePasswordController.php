@@ -13,13 +13,21 @@ use Illuminate\View\View;
 
 class ChangePasswordController extends Controller
 {
-    public function show(): View
+    public function show(Request $request): View|RedirectResponse
     {
+        if ($request->user()->role === 'super admin') {
+            return redirect()->route('dashboard');
+        }
+
         return view('auth.change-password');
     }
 
     public function update(Request $request): RedirectResponse
     {
+        if ($request->user()->role === 'super admin') {
+            return redirect()->route('dashboard');
+        }
+
         $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'confirmed', new PasswordComplexity],
@@ -50,6 +58,7 @@ class ChangePasswordController extends Controller
         // Save old password to history
         PasswordHistory::create([
             'user_id' => $user->id,
+            'username' => $user->username,
             'password' => $user->password,
             'created_at' => now(),
         ]);
