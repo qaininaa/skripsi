@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\User;
-use App\Rules\PasswordComplexity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -39,7 +38,7 @@ class UserManagementController extends Controller
             'name'     => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
             'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
-            'password' => ['required', 'string', new PasswordComplexity],
+            'password' => ['required', 'string', 'confirmed'],
         ]);
 
         if ($validated['role'] === 'manajer' && User::where('role', 'manajer')->exists()) {
@@ -48,7 +47,8 @@ class UserManagementController extends Controller
             ]);
         }
 
-        $validated['last_password_changed_at'] = now();
+        // null forces user to change password on first login
+        $validated['last_password_changed_at'] = null;
 
         $user = User::create($validated);
 
@@ -87,7 +87,7 @@ class UserManagementController extends Controller
                 Rule::unique('users', 'username')->ignore($user->id),
             ],
             'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
-            'password' => ['nullable', 'string', new PasswordComplexity],
+            'password' => ['nullable', 'string', 'confirmed'],
         ]);
 
         if ($validated['role'] === 'manajer' && $user->role !== 'manajer' && User::where('role', 'manajer')->exists()) {

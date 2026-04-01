@@ -54,6 +54,10 @@ class ChangePasswordController extends Controller
             'created_at' => now(),
         ]);
 
+        // Prune: keep only the last $historyCount records per user
+        $keepIds = $user->passwordHistories()->take($historyCount)->pluck('id');
+        $user->passwordHistories()->whereNotIn('id', $keepIds)->delete();
+
         // Update password
         $user->update([
             'password' => Hash::make($newPassword),

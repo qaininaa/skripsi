@@ -60,9 +60,13 @@
                     </select>
                 </div>
 
+                <div class="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
+                    <strong>Password Sementara:</strong> Pengguna akan diwajibkan mengganti password ini saat pertama kali login. Atur password sementara yang mudah dikomunikasikan.
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password Sementara</label>
                         <input type="password" name="password" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                     </div>
                     <div>

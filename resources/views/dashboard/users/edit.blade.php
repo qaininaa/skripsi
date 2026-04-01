@@ -65,7 +65,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru (opsional)</label>
                         <input type="password" name="password" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <p class="mt-1 text-xs text-gray-400">Kosongkan jika tidak ingin mengubah password.</p>
+                        <p class="mt-1 text-xs text-gray-400">Kosongkan jika tidak ingin mengubah password. Pengguna akan diwajibkan ganti password saat login.</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
