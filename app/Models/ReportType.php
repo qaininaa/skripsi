@@ -8,12 +8,13 @@ class ReportType extends Model
 {
     protected $fillable = [
         'code', 'name', 'annex_number', 'instrument',
-        'frequency', 'medium_groups', 'description', 'is_active',
+        'frequency', 'medium_groups', 'incubators', 'description', 'is_active',
     ];
 
     protected $casts = [
         'is_active'     => 'boolean',
         'medium_groups' => 'array',
+        'incubators'    => 'array',
     ];
 
     public function sections()

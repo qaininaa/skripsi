@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\ReportTypeManagementController;
 use App\Http\Controllers\TugasPelaporanController;
 use App\Http\Controllers\AnalisLaporanController;
 use App\Http\Controllers\SupervisorLaporanController;
@@ -44,6 +45,18 @@ Route::middleware(['auth', 'password.check', 'role:super admin'])
     ->group(function () {
         Route::resource('users', UserManagementController::class)->names('users');
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+        // Jenis Laporan CRUD
+        Route::resource('report-types', ReportTypeManagementController::class)->names('report-types');
+
+        // Seksi dalam jenis laporan
+        Route::post('report-types/{reportType}/sections', [ReportTypeManagementController::class, 'storeSection'])->name('report-types.sections.store');
+        Route::put('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'updateSection'])->name('report-types.sections.update');
+        Route::delete('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'destroySection'])->name('report-types.sections.destroy');
+
+        // Lokasi dalam seksi
+        Route::post('report-types/{reportType}/sections/{section}/locations', [ReportTypeManagementController::class, 'storeLocation'])->name('report-types.sections.locations.store');
+        Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportTypeManagementController::class, 'destroyLocation'])->name('report-types.sections.locations.destroy');
     });
 
 // Tugas Pelaporan (hanya Admin QC)

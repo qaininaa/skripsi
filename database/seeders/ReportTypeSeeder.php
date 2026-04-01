@@ -25,6 +25,10 @@ class ReportTypeSeeder extends Seeder
                 'medium_tsp_90' => 'Medium TSP 90mm',
                 'medium_swab'   => 'Swab Kit',
             ],
+            'incubators' => [
+                '20_25' => ['label' => '20-25°C', 'min_days' => 5],
+                '30_35' => ['label' => '30-35°C', 'min_days' => 3],
+            ],
         ]);
 
         // Lokasi yang sama di semua seksi Annex 18
@@ -243,6 +247,10 @@ class ReportTypeSeeder extends Seeder
             'medium_groups' => [
                 'medium_tsp_65' => 'Medium TSP 65mm',
                 'medium_tsp_90' => 'Medium TSP 90mm',
+            ],
+            'incubators' => [
+                '20_25' => ['label' => '20-25°C', 'min_days' => 5],
+                '30_35' => ['label' => '30-35°C', 'min_days' => 3],
             ],
         ]);
 
