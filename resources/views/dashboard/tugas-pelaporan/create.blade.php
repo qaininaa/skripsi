@@ -78,6 +78,7 @@
                         Analis <span class="text-red-500">*</span>
                     </label>
                     <select name="shift1_analyst_id" x-model="s1" @change="onS1Change()"
+                            x-init="$nextTick(() => { s1 = $el.value })"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                         <option value="">— Pilih Analis —</option>
                         @foreach ($analis as $a)

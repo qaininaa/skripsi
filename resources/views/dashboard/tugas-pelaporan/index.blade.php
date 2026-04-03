@@ -50,17 +50,17 @@
                     @forelse ($tugas as $item)
                         <tr class="hover:bg-gray-50 align-top">
                             <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
-                                {{ $item->tanggal->format('d M Y') }}
+                                {{ $item->report_date->format('d M Y') }}
                             </td>
 
                             {{-- Nama Produk --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
-                                {{ $item->nama_produk ?? '—' }}
+                                {{ $item->product_name ?? '—' }}
                             </td>
 
                             {{-- Batch Produk --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
-                                {{ $item->nomor_batch_produk ?? '—' }}
+                                {{ $item->batch_number ?? '—' }}
                             </td>
 
                             {{-- Alat Instrumen --}}
@@ -93,7 +93,7 @@
 
                                 <form action="{{ route('tugas-pelaporan.destroy', $item) }}" method="POST"
                                       class="inline-block ml-1"
-                                      onsubmit="return confirm('Hapus tugas pelaporan tanggal {{ $item->tanggal->format('d M Y') }}?')">
+                                      onsubmit="return confirm('Hapus tugas pelaporan tanggal {{ $item->report_date->format('d M Y') }}?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
