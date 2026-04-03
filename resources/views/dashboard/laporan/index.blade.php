@@ -2,12 +2,7 @@
 
 @section('title', 'Laporan Saya')
 @section('page-title', 'Laporan')
-@section('avatar-color', 'bg-sky-600')
-
-@section('sidebar')
-    @include('dashboard.laporan.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 
 @php

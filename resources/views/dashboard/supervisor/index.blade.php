@@ -2,12 +2,7 @@
 
 @section('title', 'Dashboard Supervisor')
 @section('page-title', 'Dashboard')
-@section('avatar-color', 'bg-emerald-600')
-
-@section('sidebar')
-    @include('dashboard.supervisor.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 
 {{-- Welcome Banner --}}

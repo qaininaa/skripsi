@@ -2,12 +2,7 @@
 
 @section('title', 'Isi Laporan — ' . $report->reportType->annex_number)
 @section('page-title', 'Isi Laporan')
-@section('avatar-color', 'bg-sky-600')
-
-@section('sidebar')
-    @include('dashboard.laporan.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 <form method="POST" action="{{ route('laporan.save', $report) }}" id="laporan-form">
 @csrf

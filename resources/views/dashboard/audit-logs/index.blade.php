@@ -2,12 +2,7 @@
 
 @section('title', 'Audit Trail')
 @section('page-title', 'Audit Trail')
-@section('avatar-color', 'bg-indigo-600')
-
-@section('sidebar')
-@include('dashboard.users.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
     <div class="mb-4">
         <h2 class="text-xl font-bold text-gray-800">Audit Trail</h2>

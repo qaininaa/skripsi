@@ -2,13 +2,9 @@
 
 @section('title', 'Admin QC')
 @section('page-title', 'Dashboard Quality Control')
-@section('avatar-color', 'bg-emerald-600')
+@section('avatar-color', 'bg-green-600')
 
 {{-- ===================== SIDEBAR ===================== --}}
-@section('sidebar')
-    @include('dashboard.tugas-pelaporan.partials.sidebar')
-@endsection
-
 {{-- ===================== CONTENT ===================== --}}
 @section('content')
 

@@ -2,12 +2,7 @@
 
 @section('title', 'Tinjau Laporan')
 @section('page-title', 'Tinjau Laporan')
-@section('avatar-color', 'bg-emerald-600')
-
-@section('sidebar')
-    @include('dashboard.supervisor.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 @php $hd = $report->header_data ?? []; @endphp
 

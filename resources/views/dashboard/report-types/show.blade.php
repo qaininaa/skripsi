@@ -2,12 +2,7 @@
 
 @section('title', 'Detail Jenis Laporan')
 @section('page-title', $reportType->annex_number)
-@section('avatar-color', 'bg-indigo-600')
-
-@section('sidebar')
-    @include('dashboard.report-types.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6">
 
@@ -19,7 +14,7 @@
             Kembali ke daftar
         </a>
         <div class="flex items-center gap-2">
-            <a href="{{ route('report-types.edit', $reportType) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">
+            <a href="{{ route('report-types.edit', $reportType) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 Edit
             </a>
@@ -166,7 +161,7 @@
                 </div>
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="showAddSection = false" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-100">Batal</button>
-                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700">Simpan Seksi</button>
+                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-indigo-700">Simpan Seksi</button>
                 </div>
             </form>
         </div>
@@ -237,7 +232,7 @@
                         </div>
                         <div class="flex justify-end gap-2">
                             <button type="button" @click="editSection = false" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-100">Batal</button>
-                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700">Simpan</button>
+                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-indigo-700">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -298,7 +293,7 @@
                             </div>
                             <div class="flex justify-end gap-2">
                                 <button type="button" @click="showLocForm = false" class="px-3 py-1 rounded border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-100">Batal</button>
-                                <button type="submit" class="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700">Simpan</button>
+                                <button type="submit" class="px-3 py-1 rounded bg-green-700 text-white text-xs font-medium hover:bg-indigo-700">Simpan</button>
                             </div>
                         </form>
                     </div>

@@ -2,12 +2,7 @@
 
 @section('title', 'Edit Jenis Laporan')
 @section('page-title', 'Edit Jenis Laporan')
-@section('avatar-color', 'bg-indigo-600')
-
-@section('sidebar')
-    @include('dashboard.report-types.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 <div class="max-w-3xl mx-auto" x-data="reportTypeForm()">
 
@@ -135,7 +130,7 @@
 
             <div class="pt-3 border-t border-gray-100 flex justify-end gap-3">
                 <a href="{{ route('report-types.show', $reportType) }}" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</a>
-                <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">Simpan Perubahan</button>
+                <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">Simpan Perubahan</button>
             </div>
         </form>
     </div>

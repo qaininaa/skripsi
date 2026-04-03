@@ -2,12 +2,7 @@
 
 @section('title', 'Edit Pengguna')
 @section('page-title', 'Edit Pengguna')
-@section('avatar-color', 'bg-indigo-600')
-
-@section('sidebar')
-    @include('dashboard.users.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
     <div class="max-w-2xl mx-auto">
         <div class="mb-4">
@@ -87,7 +82,7 @@
 
                 <div class="pt-2 flex justify-end gap-3">
                     <a href="{{ route('users.index') }}" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</a>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">
                         Simpan Perubahan
                     </button>
                 </div>

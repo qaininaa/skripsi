@@ -2,13 +2,9 @@
 
 @section('title', 'Manajemen Pengguna')
 @section('page-title', 'Manajemen Pengguna')
-@section('avatar-color', 'bg-indigo-600')
+@section('avatar-color', 'bg-green-600')
 
 {{-- ===================== SIDEBAR ===================== --}}
-@section('sidebar')
-    @include('dashboard.users.partials.sidebar')
-@endsection
-
 {{-- ===================== CONTENT ===================== --}}
 @section('content')
 
@@ -41,7 +37,7 @@
             <h2 class="text-xl font-bold text-gray-800">Daftar Pengguna</h2>
             <p class="text-sm text-gray-500 mt-0.5">Kelola akun Super Admin dan Admin QC.</p>
         </div>
-        <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+        <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
             </svg>

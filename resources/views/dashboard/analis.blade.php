@@ -2,12 +2,7 @@
 
 @section('title', 'Dashboard Analis')
 @section('page-title', 'Dashboard')
-@section('avatar-color', 'bg-blue-600')
-
-@section('sidebar')
-    @include('dashboard.laporan.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 
 {{-- Welcome Banner --}}

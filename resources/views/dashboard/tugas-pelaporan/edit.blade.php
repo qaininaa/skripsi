@@ -2,12 +2,7 @@
 
 @section('title', 'Edit Tugas Pelaporan')
 @section('page-title', 'Edit Tugas Pelaporan')
-@section('avatar-color', 'bg-emerald-600')
-
-@section('sidebar')
-    @include('dashboard.tugas-pelaporan.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 <div class="max-w-2xl mx-auto">
 

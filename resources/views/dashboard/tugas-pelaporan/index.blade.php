@@ -2,12 +2,7 @@
 
 @section('title', 'Tugas Pelaporan')
 @section('page-title', 'Tugas Pelaporan')
-@section('avatar-color', 'bg-emerald-600')
-
-@section('sidebar')
-    @include('dashboard.tugas-pelaporan.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 
     @if (session('success'))

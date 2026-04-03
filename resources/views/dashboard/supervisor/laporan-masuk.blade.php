@@ -2,12 +2,7 @@
 
 @section('title', 'Laporan Masuk')
 @section('page-title', 'Laporan Masuk')
-@section('avatar-color', 'bg-emerald-600')
-
-@section('sidebar')
-    @include('dashboard.supervisor.partials.sidebar')
-@endsection
-
+@section('avatar-color', 'bg-green-600')
 @section('content')
 
 @php
