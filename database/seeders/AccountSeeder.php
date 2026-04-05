@@ -19,14 +19,14 @@ class AccountSeeder extends Seeder
         User::create([
             'name' => 'Super Admin',
             'username' => 'superadmin',
-            'role' => 'super admin',
+            'role' => 'super',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
         User::create([
             'name' => 'Admin QC',
             'username' => 'adminqc',
-            'role' => 'admin-qc',
+            'role' => 'admin',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
