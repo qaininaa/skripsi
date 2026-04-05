@@ -18,12 +18,12 @@ class ReportTypeManagementController extends Controller
             ->orderBy('annex_number')
             ->paginate(15);
 
-        return view('dashboard.report-types.index', compact('reportTypes'));
+        return view('pages.report-types.index', compact('reportTypes'));
     }
 
     public function create(): View
     {
-        return view('dashboard.report-types.create');
+        return view('pages.report-types.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -82,12 +82,12 @@ class ReportTypeManagementController extends Controller
     {
         $reportType->load(['sections.locations']);
 
-        return view('dashboard.report-types.show', compact('reportType'));
+        return view('pages.report-types.show', compact('reportType'));
     }
 
     public function edit(ReportType $reportType): View
     {
-        return view('dashboard.report-types.edit', compact('reportType'));
+        return view('pages.report-types.edit', compact('reportType'));
     }
 
     public function update(Request $request, ReportType $reportType): RedirectResponse

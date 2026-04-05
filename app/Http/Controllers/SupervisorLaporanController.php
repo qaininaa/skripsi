@@ -17,7 +17,7 @@ class SupervisorLaporanController extends Controller
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
         $rejected = $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count();
 
-        return view('dashboard.supervisor.index', compact('pending', 'approved', 'rejected'));
+        return view('pages.supervisor.index', compact('pending', 'approved', 'rejected'));
     }
 
     public function laporanMasuk(Request $request)
@@ -41,7 +41,7 @@ class SupervisorLaporanController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('dashboard.supervisor.laporan-masuk', compact('reports', 'counts', 'tab'));
+        return view('pages.supervisor.laporan-masuk', compact('reports', 'counts', 'tab'));
     }
 
     public function show(Report $report)
@@ -65,7 +65,7 @@ class SupervisorLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('dashboard.supervisor.laporan-show', compact(
+        return view('pages.supervisor.laporan-show', compact(
             'report', 'approval', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
@@ -145,7 +145,7 @@ class SupervisorLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('dashboard.supervisor.laporan-cetak', compact(
+        return view('pages.supervisor.laporan-cetak', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }

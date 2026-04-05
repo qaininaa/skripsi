@@ -16,7 +16,7 @@ class TugasPelaporanController extends Controller
             ->latest()
             ->paginate(15);
 
-        return view('dashboard.tugas-pelaporan.index', compact('tugas'));
+        return view('pages.tugas-pelaporan.index', compact('tugas'));
     }
 
     public function create()
@@ -31,7 +31,7 @@ class TugasPelaporanController extends Controller
         $instrumentMap = $reportTypes->groupBy('instrument')
             ->map(fn($items) => $items->pluck('id')->values());
 
-        return view('dashboard.tugas-pelaporan.create', compact(
+        return view('pages.tugas-pelaporan.create', compact(
             'analis', 'reportTypes', 'instruments', 'instrumentMap'
         ));
     }
@@ -73,7 +73,7 @@ class TugasPelaporanController extends Controller
         $selectedReportType = $tugasPelaporan->report_type_id;
         $selectedInstrument = $tugasPelaporan->reportType->instrument;
 
-        return view('dashboard.tugas-pelaporan.edit', compact(
+        return view('pages.tugas-pelaporan.edit', compact(
             'tugasPelaporan', 'analis', 'reportTypes', 'selectedReportType',
             'instruments', 'instrumentMap', 'selectedInstrument'
         ));

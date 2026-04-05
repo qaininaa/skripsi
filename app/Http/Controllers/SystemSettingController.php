@@ -14,7 +14,7 @@ class SystemSettingController extends Controller
             'password_history_count'   => (int) SystemSetting::getValue('password_history_count', 3),
         ];
 
-        return view('dashboard.settings.index', compact('settings'));
+        return view('pages.settings.index', compact('settings'));
     }
 
     public function update(Request $request)

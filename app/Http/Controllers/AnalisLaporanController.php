@@ -58,7 +58,7 @@ class AnalisLaporanController extends Controller
 
         $items = $query->paginate(15)->withQueryString();
 
-        return view('dashboard.laporan.index', compact('items', 'status', 'counts'));
+        return view('pages.laporan.index', compact('items', 'status', 'counts'));
     }
 
     public function isi(Report $report)
@@ -99,7 +99,7 @@ class AnalisLaporanController extends Controller
         $isEditable       = $report->status === 'in_progress'
                             && ($myShift === 1 ? !$shift1HandedOver : $shift1HandedOver);
 
-        return view('dashboard.laporan.isi', compact(
+        return view('pages.laporan.isi', compact(
             'report', 'myShift', 'otherShift', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'isEditable', 'shift1HandedOver'

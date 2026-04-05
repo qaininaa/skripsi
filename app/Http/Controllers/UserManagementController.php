@@ -18,7 +18,7 @@ class UserManagementController extends Controller
     {
         $users = User::latest()->paginate(10);
 
-        return view('dashboard.users.index', compact('users'));
+        return view('pages.users.index', compact('users'));
     }
 
     /**
@@ -26,7 +26,7 @@ class UserManagementController extends Controller
      */
     public function create(): View
     {
-        return view('dashboard.users.create');
+        return view('pages.users.create');
     }
 
     /**
@@ -70,7 +70,7 @@ class UserManagementController extends Controller
      */
     public function edit(User $user): View
     {
-        return view('dashboard.users.edit', compact('user'));
+        return view('pages.users.edit', compact('user'));
     }
 
     /**

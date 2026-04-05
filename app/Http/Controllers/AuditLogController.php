@@ -13,6 +13,6 @@ class AuditLogController extends Controller
             ->latest()
             ->paginate(20);
 
-        return view('dashboard.audit-logs.index', compact('logs'));
+        return view('pages.audit-logs.index', compact('logs'));
     }
 }
