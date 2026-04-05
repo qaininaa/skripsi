@@ -1,7 +1,7 @@
 @php
     $roleText = match(auth()->user()->role) {
-        'super admin' => 'Panel Super Admin - kelola pengguna, jenis laporan, dan pengaturan sistem.',
-        'admin-qc' => 'Panel Admin QC - buat dan kelola tugas pelaporan untuk analis.',
+        'super' => 'Panel Super Admin - kelola pengguna, jenis laporan, dan pengaturan sistem.',
+        'admin' => 'Panel Admin QC - buat dan kelola tugas pelaporan untuk analis.',
         'supervisor' => 'Panel Supervisor - review dan setujui laporan dari analis lab.',
         'manajer' => 'Panel Manajer - pantau laporan dan hasil quality control.',
         default => 'Panel Analis Lab. Mikrobiologi - lihat dan kerjakan laporan pemantauan ruangan.',

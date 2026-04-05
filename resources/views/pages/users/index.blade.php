@@ -60,8 +60,8 @@
                                 <div class="flex items-center gap-3">
                                     @php
                                         $avatarColor = match($user->role) {
-                                            'super admin' => 'bg-indigo-500',
-                                            'admin-qc' => 'bg-emerald-500',
+                                            'super' => 'bg-indigo-500',
+                                            'admin' => 'bg-emerald-500',
                                             'supervisor' => 'bg-orange-500',
                                             'manajer' => 'bg-blue-500',
                                             default => 'bg-gray-400',
@@ -77,8 +77,8 @@
                             <td class="px-6 py-3.5">
                                 @php
                                     $badgeClass = match($user->role) {
-                                        'super admin' => 'bg-indigo-100 text-indigo-700',
-                                        'admin-qc' => 'bg-emerald-100 text-emerald-700',
+                                        'super' => 'bg-indigo-100 text-indigo-700',
+                                        'admin' => 'bg-emerald-100 text-emerald-700',
                                         'supervisor' => 'bg-orange-100 text-orange-700',
                                         'manajer' => 'bg-blue-100 text-blue-700',
                                         default => 'bg-gray-100 text-gray-600',

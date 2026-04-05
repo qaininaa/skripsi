@@ -32,8 +32,8 @@
                                         $name = $log->user->name ?? 'Tidak diketahui';
                                         $role = $log->user->role ?? null;
                                         $avatarColor = match($role) {
-                                            'super admin' => 'bg-indigo-500',
-                                            'admin-qc' => 'bg-emerald-500',
+                                            'super' => 'bg-indigo-500',
+                                            'admin' => 'bg-emerald-500',
                                             default => 'bg-gray-400',
                                         };
                                     @endphp

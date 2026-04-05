@@ -45,8 +45,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih role</option>
-                        <option value="super admin" {{ old('role') === 'super admin' ? 'selected' : '' }}>Super Admin</option>
-                        <option value="admin-qc" {{ old('role') === 'admin-qc' ? 'selected' : '' }}>Admin QC</option>
+                        <option value="super" {{ old('role') === 'super' ? 'selected' : '' }}>Super Admin</option>
+                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin QC</option>
                         <option value="analis" {{ old('role') === 'analis' ? 'selected' : '' }}>Analis</option>
                         <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
                         <option value="manajer" {{ old('role') === 'manajer' ? 'selected' : '' }} {{ \App\Models\User::where('role', 'manajer')->exists() ? 'disabled' : '' }}>

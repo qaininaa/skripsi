@@ -16,9 +16,9 @@
     <div class="px-5 py-3 border-b border-gray-100 flex-shrink-0">
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700">
             <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-            @if(Auth::user()->role === 'super admin')
+            @if(Auth::user()->role === 'super')
                 Super Admin
-            @elseif(Auth::user()->role === 'admin-qc')
+            @elseif(Auth::user()->role === 'admin')
                 Admin Quality Control
             @elseif(Auth::user()->role === 'analis')
                 Analis Lab. Mikrobiologi
@@ -34,10 +34,10 @@
     <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
 
         {{-- Dashboard --}}
-        @if(Auth::user()->role === 'super admin')
+        @if(Auth::user()->role === 'super')
         <a href="{{ route('dashboard.super-admin') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('dashboard.super-admin') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-        @elseif(Auth::user()->role === 'admin-qc')
+        @elseif(Auth::user()->role === 'admin')
         <a href="{{ route('dashboard.admin-qc') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('dashboard.admin-qc') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
         @elseif(Auth::user()->role === 'analis')
@@ -57,7 +57,7 @@
         </a>
 
         {{-- Super Admin only --}}
-        @if(Auth::user()->role === 'super admin')
+        @if(Auth::user()->role === 'super')
 
         <a href="{{ route('users.index') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('users.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
@@ -93,7 +93,7 @@
         </a>
 
         {{-- Admin QC only --}}
-        @elseif(Auth::user()->role === 'admin-qc')
+        @elseif(Auth::user()->role === 'admin')
 
         <a href="{{ route('tugas-pelaporan.index') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('tugas-pelaporan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">

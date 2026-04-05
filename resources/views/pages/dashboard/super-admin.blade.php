@@ -33,7 +33,7 @@
             </div>
             <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Bertugas</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Models\User::where('role', 'admin-qc')->count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \App\Models\User::where('role', 'admin')->count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Admin QC</p>
         <p class="text-xs text-gray-400 mt-1">Petugas Quality Control</p>
     </div>
@@ -48,7 +48,7 @@
             </div>
             <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">Admin</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Models\User::where('role', 'super admin')->count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \App\Models\User::where('role', 'super')->count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Super Admin</p>
         <p class="text-xs text-gray-400 mt-1">Administrator sistem</p>
     </div>
@@ -94,8 +94,8 @@
                             <div class="flex items-center gap-3">
                                 @php
                                     $avatarColor = match($user->role) {
-                                        'super admin' => 'bg-indigo-500',
-                                        'admin-qc'    => 'bg-emerald-500',
+                                        'super' => 'bg-indigo-500',
+                                        'admin'    => 'bg-emerald-500',
                                         'supervisor'  => 'bg-orange-500',
                                         'manajer'     => 'bg-blue-500',
                                         default       => 'bg-gray-400',
@@ -111,8 +111,8 @@
                         <td class="px-6 py-3.5">
                             @php
                                 $badgeClass = match($user->role) {
-                                    'super admin' => 'bg-indigo-100 text-indigo-700',
-                                    'admin-qc'    => 'bg-emerald-100 text-emerald-700',
+                                    'super' => 'bg-indigo-100 text-indigo-700',
+                                    'admin'    => 'bg-emerald-100 text-emerald-700',
                                     'supervisor'  => 'bg-orange-100 text-orange-700',
                                     'manajer'     => 'bg-blue-100 text-blue-700',
                                     default       => 'bg-gray-100 text-gray-600',

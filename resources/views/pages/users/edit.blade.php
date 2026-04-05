@@ -45,8 +45,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="super admin" {{ old('role', $user->role) === 'super admin' ? 'selected' : '' }}>Super Admin</option>
-                        <option value="admin-qc" {{ old('role', $user->role) === 'admin-qc' ? 'selected' : '' }}>Admin QC</option>
+                        <option value="super" {{ old('role', $user->role) === 'super' ? 'selected' : '' }}>Super Admin</option>
+                        <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin QC</option>
                         <option value="analis" {{ old('role', $user->role) === 'analis' ? 'selected' : '' }}>Analis</option>
                         <option value="supervisor" {{ old('role', $user->role) === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
                         @php $manajerExists = \App\Models\User::where('role', 'manajer')->where('id', '!=', $user->id)->exists(); @endphp
