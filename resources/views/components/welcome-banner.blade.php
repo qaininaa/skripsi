@@ -8,7 +8,6 @@
     };
 @endphp
 
-{{-- Welcome Banner --}}
 <div class="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
     <div class="flex items-center justify-between">
         <div>
