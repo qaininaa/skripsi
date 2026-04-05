@@ -15,12 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('username')->unique();
-            $table->string('role');
+            $table->enum('role', ['Super', 'Admin', 'Supervisor', 'Analyst', 'Manager']);
             $table->string('password');
             $table->timestamp('last_password_changed_at')->nullable();
             $table->rememberToken();
-            $table->timestamp('created_at')->nullable();
-            $table->timestamp('updated_at')->nullable();
+            $table->timestamps();
         });
 
         Schema::create('sessions', function (Blueprint $table) {

@@ -30,7 +30,7 @@
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
             class="fixed inset-y-0 left-0 z-30 w-64 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:flex-shrink-0"
         >
-            @include('dashboard.partials.sidebar')
+            @include('layouts.sidebar')
         </div>
 
         {{-- Main Content --}}

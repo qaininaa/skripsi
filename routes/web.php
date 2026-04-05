@@ -7,6 +7,7 @@ use App\Http\Controllers\ReportTypeManagementController;
 use App\Http\Controllers\TugasPelaporanController;
 use App\Http\Controllers\AnalisLaporanController;
 use App\Http\Controllers\SupervisorLaporanController;
+use App\Http\Controllers\SystemSettingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,8 @@ Route::middleware(['auth', 'password.check', 'role:super admin'])
     ->group(function () {
         Route::resource('users', UserManagementController::class)->names('users');
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('settings', [SystemSettingController::class, 'index'])->name('settings.index');
+        Route::put('settings', [SystemSettingController::class, 'update'])->name('settings.update');
 
         // Jenis Laporan CRUD
         Route::resource('report-types', ReportTypeManagementController::class)->names('report-types');
