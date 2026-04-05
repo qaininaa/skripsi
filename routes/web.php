@@ -32,12 +32,12 @@ Route::get('/dashboard', function () {
 
 // Dashboard Super Admin
 Route::get('/dashboard/super-admin', function () {
-    return view('dashboard.super-admin');
+    return view('pages.dashboard.super-admin');
 })->middleware(['auth', 'password.check', 'role:super admin'])->name('dashboard.super-admin');
 
 // Dashboard Admin QC
 Route::get('/dashboard/admin-qc', function () {
-    return view('dashboard.admin-qc');
+    return view('pages.dashboard.admin-qc');
 })->middleware(['auth', 'password.check', 'role:admin-qc'])->name('dashboard.admin-qc');
 
 // Manajemen Pengguna (hanya Super Admin)
@@ -76,7 +76,7 @@ Route::middleware(['auth', 'password.check', 'role:analis'])
     ->prefix('dashboard')
     ->group(function () {
         Route::get('analis', function () {
-            return view('dashboard.analis');
+            return view('pages.dashboard.analis');
         })->name('dashboard.analis');
 
         Route::get('laporan', [AnalisLaporanController::class, 'index'])->name('laporan.index');

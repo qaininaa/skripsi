@@ -11,7 +11,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <h1 class="text-lg font-semibold text-gray-800">Dashboard</h1>
+            <h1 class="text-lg font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h1>
         </div>
 
         {{-- User info + Logout --}}
