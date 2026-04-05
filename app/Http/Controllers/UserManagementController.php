@@ -37,7 +37,7 @@ class UserManagementController extends Controller
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
-            'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
+            'role'     => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
             'password' => ['required', 'string', 'confirmed'],
         ]);
 
@@ -86,7 +86,7 @@ class UserManagementController extends Controller
                 'max:255',
                 Rule::unique('users', 'username')->ignore($user->id),
             ],
-            'role'     => ['required', Rule::in(['super admin', 'admin-qc', 'analis', 'supervisor', 'manajer'])],
+            'role'     => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
             'password' => ['nullable', 'string', 'confirmed'],
         ]);
 
@@ -98,7 +98,7 @@ class UserManagementController extends Controller
 
         if (empty($validated['password'])) {
             unset($validated['password']);
-        } elseif ($user->role === 'super admin') {
+        } elseif ($user->role === 'super') {
             // Super admin tidak perlu dipaksa ganti password saat login
             $validated['last_password_changed_at'] = now();
         } else {

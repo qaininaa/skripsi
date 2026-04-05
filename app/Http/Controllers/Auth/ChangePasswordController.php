@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\PasswordHistory;
-use App\Models\SystemSetting;
+use App\Models\PasswordSetting;
 use App\Rules\PasswordComplexity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ class ChangePasswordController extends Controller
 {
     public function show(Request $request): View|RedirectResponse
     {
-        if ($request->user()->role === 'super admin') {
+        if ($request->user()->role === 'super') {
             return redirect()->route('dashboard');
         }
 
@@ -24,7 +24,7 @@ class ChangePasswordController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        if ($request->user()->role === 'super admin') {
+        if ($request->user()->role === 'super') {
             return redirect()->route('dashboard');
         }
 
@@ -37,7 +37,7 @@ class ChangePasswordController extends Controller
         $newPassword = $request->input('password');
 
         // Check password history
-        $historyCount = (int) SystemSetting::getValue('password_history_count', 3);
+        $historyCount = (int) PasswordSetting::getValue('password_history_count', 3);
         $recentPasswords = $user->passwordHistories()->take($historyCount)->get();
 
         foreach ($recentPasswords as $history) {

@@ -38,7 +38,7 @@ class User extends Authenticatable
 
     public function isPasswordExpired(): bool
     {
-        $expirationDays = (int) SystemSetting::getValue('password_expiration_days', 90);
+        $expirationDays = (int) PasswordSetting::getValue('password_expiration_days', 90);
 
         if (!$this->last_password_changed_at) {
             return true;
@@ -49,7 +49,7 @@ class User extends Authenticatable
 
     public function mustChangePassword(): bool
     {
-        if ($this->role === 'super admin') {
+        if ($this->role === 'super') {
             return false;
         }
 

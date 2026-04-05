@@ -7,7 +7,7 @@ use App\Http\Controllers\ReportTypeManagementController;
 use App\Http\Controllers\TugasPelaporanController;
 use App\Http\Controllers\AnalisLaporanController;
 use App\Http\Controllers\SupervisorLaporanController;
-use App\Http\Controllers\SystemSettingController;
+use App\Http\Controllers\PasswordSettingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -18,9 +18,9 @@ Route::get('/', function () {
 // Redirect /dashboard berdasarkan role
 Route::get('/dashboard', function () {
     $role = Auth::user()->role;
-    if ($role === 'super admin') {
+    if ($role === 'super') {
         return redirect()->route('dashboard.super-admin');
-    } elseif ($role === 'admin-qc') {
+    } elseif ($role === 'admin') {
         return redirect()->route('dashboard.admin-qc');
     } elseif ($role === 'analis') {
         return redirect()->route('dashboard.analis');
@@ -33,21 +33,21 @@ Route::get('/dashboard', function () {
 // Dashboard Super Admin
 Route::get('/dashboard/super-admin', function () {
     return view('pages.dashboard.super-admin');
-})->middleware(['auth', 'password.check', 'role:super admin'])->name('dashboard.super-admin');
+})->middleware(['auth', 'password.check', 'role:super'])->name('dashboard.super-admin');
 
 // Dashboard Admin QC
 Route::get('/dashboard/admin-qc', function () {
     return view('pages.dashboard.admin-qc');
-})->middleware(['auth', 'password.check', 'role:admin-qc'])->name('dashboard.admin-qc');
+})->middleware(['auth', 'password.check', 'role:admin'])->name('dashboard.admin-qc');
 
 // Manajemen Pengguna (hanya Super Admin)
-Route::middleware(['auth', 'password.check', 'role:super admin'])
+Route::middleware(['auth', 'password.check', 'role:super'])
     ->prefix('dashboard')
     ->group(function () {
         Route::resource('users', UserManagementController::class)->names('users');
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-        Route::get('settings', [SystemSettingController::class, 'index'])->name('settings.index');
-        Route::put('settings', [SystemSettingController::class, 'update'])->name('settings.update');
+        Route::get('settings', [PasswordSettingController::class, 'index'])->name('settings.index');
+        Route::put('settings', [PasswordSettingController::class, 'update'])->name('settings.update');
 
         // Jenis Laporan CRUD
         Route::resource('report-types', ReportTypeManagementController::class)->names('report-types');
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'password.check', 'role:super admin'])
     });
 
 // Tugas Pelaporan (hanya Admin QC)
-Route::middleware(['auth', 'password.check', 'role:admin-qc'])
+Route::middleware(['auth', 'password.check', 'role:admin'])
     ->prefix('dashboard')
     ->group(function () {
         Route::resource('tugas-pelaporan', TugasPelaporanController::class)
