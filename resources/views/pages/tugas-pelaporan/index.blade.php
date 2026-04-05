@@ -77,7 +77,7 @@
                                 {{ $item->shift2Analis->name ?? '—' }}
                             </td>
 
-                            <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ $item->createdBy->name ?? '—' }}</td>
+                            <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ $item->createdBy->name ?? '-' }}</td>
 
                             {{-- Tombol edit & hapus --}}
                             <td class="px-4 py-3 text-right whitespace-nowrap">
