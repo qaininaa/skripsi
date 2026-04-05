@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Detail Jenis Laporan')
 @section('page-title', $reportType->annex_number)

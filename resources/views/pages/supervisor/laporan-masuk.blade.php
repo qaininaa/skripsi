@@ -1,8 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Laporan Masuk')
 @section('page-title', 'Laporan Masuk')
-@section('avatar-color', 'bg-green-600')
 @section('content')
 
 @php

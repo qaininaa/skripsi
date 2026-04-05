@@ -1,8 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Tinjau Laporan')
 @section('page-title', 'Tinjau Laporan')
-@section('avatar-color', 'bg-green-600')
 @section('content')
 @php $hd = $report->header_data ?? []; @endphp
 

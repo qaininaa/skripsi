@@ -1,9 +1,9 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Tambah Pengguna')
 @section('page-title', 'Tambah Pengguna')
-@section('avatar-color', 'bg-green-600')
 @section('content')
+
     <div class="max-w-2xl mx-auto">
         <div class="mb-4">
             <a href="{{ route('users.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700">

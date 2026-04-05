@@ -1,9 +1,9 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Audit Trail')
 @section('page-title', 'Audit Trail')
-@section('avatar-color', 'bg-green-600')
 @section('content')
+
     <div class="mb-4">
         <h2 class="text-xl font-bold text-gray-800">Audit Trail</h2>
         <p class="text-sm text-gray-500 mt-0.5">Riwayat aktivitas penting seperti login dan manajemen akun.</p>

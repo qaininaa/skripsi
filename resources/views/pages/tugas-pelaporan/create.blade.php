@@ -1,8 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Tambah Tugas Pelaporan')
 @section('page-title', 'Tambah Tugas Pelaporan')
-@section('avatar-color', 'bg-green-600')
 @section('content')
 <div class="max-w-2xl mx-auto">
 

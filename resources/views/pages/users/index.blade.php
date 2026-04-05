@@ -2,10 +2,6 @@
 
 @section('title', 'Manajemen Pengguna')
 @section('page-title', 'Manajemen Pengguna')
-@section('avatar-color', 'bg-green-600')
-
-{{-- ===================== SIDEBAR ===================== --}}
-{{-- ===================== CONTENT ===================== --}}
 @section('content')
 
     @if (session('success'))

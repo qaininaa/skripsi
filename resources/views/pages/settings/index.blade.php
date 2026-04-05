@@ -1,8 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Pengaturan Sistem')
 @section('page-title', 'Pengaturan Sistem')
-@section('avatar-color', 'bg-green-600')
 
 @section('content')
 

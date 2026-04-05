@@ -1,8 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Tugas Pelaporan')
 @section('page-title', 'Tugas Pelaporan')
-@section('avatar-color', 'bg-green-600')
 @section('content')
 
     @if (session('success'))

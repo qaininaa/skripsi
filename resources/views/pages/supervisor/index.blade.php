@@ -1,8 +1,7 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Dashboard Supervisor')
 @section('page-title', 'Dashboard')
-@section('avatar-color', 'bg-green-600')
 @section('content')
 
 {{-- Welcome Banner --}}
