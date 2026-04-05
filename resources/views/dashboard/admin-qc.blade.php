@@ -1,11 +1,6 @@
-@extends('layouts.main-content')
+@extends('layouts.app')
 
-@section('title', 'Admin QC')
-@section('page-title', 'Dashboard Quality Control')
-@section('avatar-color', 'bg-green-600')
-
-{{-- ===================== SIDEBAR ===================== --}}
-{{-- ===================== CONTENT ===================== --}}
+@section('title', 'Dashboard Admin QC')
 @section('content')
 
 <x-welcome-banner />

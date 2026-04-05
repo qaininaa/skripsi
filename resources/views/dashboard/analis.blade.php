@@ -1,8 +1,6 @@
-@extends('layouts.main-content')
+@extends('layouts.app')
 
-@section('title', 'Dashboard Analis')
-@section('page-title', 'Dashboard')
-@section('avatar-color', 'bg-green-600')
+@section('title', 'Dashboard Analyst')
 @section('content')
 
 <x-welcome-banner />

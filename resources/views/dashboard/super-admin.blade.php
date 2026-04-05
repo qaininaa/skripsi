@@ -1,11 +1,6 @@
-@extends('layouts.main-content')
+@extends('layouts.app')
 
-@section('title', 'Super Admin')
-@section('page-title', 'Dashboard Super Admin')
-@section('avatar-color', 'bg-green-600')
-
-{{-- ===================== SIDEBAR ===================== --}}
-{{-- ===================== CONTENT ===================== --}}
+@section('title', 'Dashboard Super Admin')
 @section('content')
 
 <x-welcome-banner />
