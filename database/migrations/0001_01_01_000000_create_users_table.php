@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('username')->unique();
-            $table->enum('role', ['Super', 'Admin', 'Supervisor', 'Analyst', 'Manager']);
+            $table->enum('role', ['super', 'admin', 'analis', 'supervisor', 'manajer']);
             $table->string('password');
             $table->timestamp('last_password_changed_at')->nullable();
             $table->rememberToken();

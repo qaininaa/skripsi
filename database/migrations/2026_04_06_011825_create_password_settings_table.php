@@ -8,15 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('report_types', function (Blueprint $table) {
-            $table->json('incubators')->nullable()->after('medium_groups');
+        Schema::create('password_settings', function (Blueprint $table) {
+            $table->id();
+            $table->string('key')->unique();
+            $table->string('value');
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::table('report_types', function (Blueprint $table) {
-            $table->dropColumn('incubators');
-        });
+        Schema::dropIfExists('password_settings');
     }
 };

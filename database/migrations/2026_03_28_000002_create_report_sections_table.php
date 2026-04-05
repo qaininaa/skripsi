@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('slug');
             $table->string('measurement_unit', 50)->default('cfu');
             $table->string('measurement_type', 50)->default('exposure');
-            $table->unsignedTinyInteger('max_exposures')->default(1);
+            $table->unsignedTinyInteger('max_exposure')->default(1);
             $table->unsignedTinyInteger('order')->default(0);
             $table->timestamps();
         });

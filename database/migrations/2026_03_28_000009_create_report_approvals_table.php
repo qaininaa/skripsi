@@ -11,12 +11,11 @@ return new class extends Migration
         Schema::create('report_approvals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('report_id')->constrained()->cascadeOnDelete();
-            $table->unsignedTinyInteger('step');            // 1=analis, 2=supervisor, 3=qc-manager
-            $table->string('role_label', 50);               // Analis, Supervisor, QC Manager
+            $table->unsignedTinyInteger('step');
+            $table->string('role_label', 50);
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('signed_at')->nullable();
-            $table->string('signature_path')->nullable();
-            $table->string('status', 20)->default('pending'); // pending, approved, rejected
+            $table->string('status', 20)->default('pending');
             $table->text('notes')->nullable();
             $table->foreignId('returned_to_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
