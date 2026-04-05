@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.main-content')
 
 @section('title', 'Super Admin')
 @section('page-title', 'Dashboard Super Admin')
@@ -8,21 +8,7 @@
 {{-- ===================== CONTENT ===================== --}}
 @section('content')
 
-{{-- Welcome Banner --}}
-<div class="mb-6 bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl p-6 text-white shadow-sm">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold">Selamat Datang, {{ Auth::user()->name }}! 👋</h2>
-            <p class="mt-1 text-green-100 text-sm">Berikut ringkasan aktivitas sistem hari ini.</p>
-            <p class="mt-2 text-green-200 text-xs">{{ now()->format('l, d F Y') }}</p>
-        </div>
-        <div class="hidden md:flex h-20 w-20 rounded-2xl bg-white bg-opacity-10 items-center justify-center flex-shrink-0">
-            <svg class="w-11 h-11 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-        </div>
-    </div>
-</div>
+<x-welcome-banner />
 
 {{-- Stats Grid --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">

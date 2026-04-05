@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.main-content')
 
 @section('title', 'Admin QC')
 @section('page-title', 'Dashboard Quality Control')
@@ -8,21 +8,7 @@
 {{-- ===================== CONTENT ===================== --}}
 @section('content')
 
-{{-- Welcome Banner --}}
-<div class="mb-6 bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-lg">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold">Selamat Datang, {{ Auth::user()->name }}! 👷</h2>
-            <p class="mt-1 text-emerald-200 text-sm">Panel Quality Control — kelola inspeksi dan laporan produk.</p>
-            <p class="mt-2 text-emerald-300 text-xs">{{ now()->format('l, d F Y') }}</p>
-        </div>
-        <div class="hidden md:flex h-20 w-20 rounded-2xl bg-white bg-opacity-10 items-center justify-center flex-shrink-0">
-            <svg class="w-11 h-11 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-        </div>
-    </div>
-</div>
+<x-welcome-banner />
 
 {{-- Stats Grid --}}
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
