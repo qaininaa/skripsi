@@ -1,19 +1,19 @@
 @php
     $roleText = match(auth()->user()->role) {
-        'super admin' => 'Panel Super Admin — kelola pengguna, jenis laporan, dan pengaturan sistem.',
-        'admin-qc' => 'Panel Admin QC — buat dan kelola tugas pelaporan untuk analis.',
-        'supervisor' => 'Panel Supervisor — review dan setujui laporan dari analis lab.',
-        'manajer' => 'Panel Manajer — pantau laporan dan hasil quality control.',
-        default => 'Panel Analis Lab. Mikrobiologi — lihat dan kerjakan laporan pemantauan ruangan.',
+        'super admin' => 'Panel Super Admin - kelola pengguna, jenis laporan, dan pengaturan sistem.',
+        'admin-qc' => 'Panel Admin QC - buat dan kelola tugas pelaporan untuk analis.',
+        'supervisor' => 'Panel Supervisor - review dan setujui laporan dari analis lab.',
+        'manajer' => 'Panel Manajer - pantau laporan dan hasil quality control.',
+        default => 'Panel Analis Lab. Mikrobiologi - lihat dan kerjakan laporan pemantauan ruangan.',
     };
 @endphp
 
-<div class="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
+<div class="mb-6 bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-lg">
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-2xl font-bold">Selamat Datang, {{ auth()->user()->name }}!</h2>
-            <p class="mt-1 text-blue-200 text-sm">{{ $roleText }}</p>
-            <p class="mt-2 text-blue-300 text-xs">{{ now()->isoFormat('dddd, D MMMM Y') }}</p>
+            <p class="mt-1 text-emerald-200 text-sm">{{ $roleText }}</p>
+            <p class="mt-2 text-emerald-300 text-xs">{{ now()->isoFormat('dddd, D MMMM Y') }}</p>
         </div>
         <div class="hidden md:flex h-20 w-20 rounded-2xl bg-white bg-opacity-10 items-center justify-center flex-shrink-0">
             <svg class="w-11 h-11 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
