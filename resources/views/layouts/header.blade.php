@@ -11,13 +11,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <h1 class="text-lg font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h1>
+            <h1 class="text-lg font-semibold text-gray-800">Dashboard</h1>
         </div>
 
         {{-- User info + Logout --}}
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="h-9 w-9 rounded-full @yield('avatar-color', 'bg-gray-500') flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                <div class="h-9 w-9 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
                 <div class="hidden md:block">
