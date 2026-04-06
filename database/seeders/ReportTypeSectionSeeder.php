@@ -32,7 +32,7 @@ class ReportTypeSectionSeeder extends Seeder
             'updated_at' => $now,
         ]);
 
-        DB::table('report_sections')->insert([
+        DB::table('sections')->insert([
             [
                 'report_type_id'   => $annex18,
                 'name'             => 'Settle Plate',
@@ -99,7 +99,7 @@ class ReportTypeSectionSeeder extends Seeder
             'updated_at' => $now,
         ]);
 
-        DB::table('report_sections')->insert([
+        DB::table('sections')->insert([
             [
                 'report_type_id'   => $annex24,
                 'name'             => 'Settle Plate',
@@ -155,7 +155,7 @@ class ReportTypeSectionSeeder extends Seeder
             'updated_at' => $now,
         ]);
 
-        DB::table('report_sections')->insert([
+        DB::table('sections')->insert([
             [
                 'report_type_id'   => $annex3,
                 'name'             => 'Settle Plate',
@@ -211,7 +211,7 @@ class ReportTypeSectionSeeder extends Seeder
             'updated_at' => $now,
         ]);
 
-        DB::table('report_sections')->insert([
+        DB::table('sections')->insert([
             [
                 'report_type_id'   => $annex4,
                 'name'             => 'Settle Plate',
