@@ -14,9 +14,19 @@ class UserManagementController extends Controller
     /**
      * Display a listing of the users.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $users = User::latest()->paginate(10);
+        $search = $request->input('search');
+        $role   = $request->input('role');
+
+        $users = User::when($search, fn($q) => $q->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
+            }))
+            ->when($role, fn($q) => $q->where('role', $role))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('pages.users.index', compact('users'));
     }

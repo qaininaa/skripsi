@@ -54,7 +54,8 @@
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm transition-colors">
             Filter
         </button>
-        <button type="button" onclick="window.location.href='{{ route('tugas-pelaporan.index') }}'" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 shadow-sm bg-white text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
+        <button type="button" onclick="window.location.href='{{ route('tugas-pelaporan.index') }}'" 
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 shadow-sm bg-white text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
              Reset
         </button>
     </form>
