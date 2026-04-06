@@ -40,14 +40,6 @@
             @csrf
             @method('PUT')
 
-            {{-- Tanggal --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal <span class="text-red-500">*</span></label>
-                <input type="date" name="report_date"
-                       value="{{ old('report_date', $tugasPelaporan->report_date->format('Y-m-d')) }}"
-                       class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
-            </div>
-
             {{-- Nama Produk --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk <span class="text-red-500">*</span></label>

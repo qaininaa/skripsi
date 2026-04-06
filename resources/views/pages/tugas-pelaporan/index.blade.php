@@ -42,42 +42,44 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Shift 1</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Shift 2</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dibuat Oleh</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @forelse ($tugas as $item)
                         <tr class="hover:bg-gray-50 align-top">
-                            <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
-                                {{ $item->report_date->format('d M Y') }}
+                            {{-- Tanggal --}}
+                            <td class="px-4 py-3 text-sm text-gray-800">
+                                {{ $item->created_at ?? '-' }}
                             </td>
-
                             {{-- Nama Produk --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
-                                {{ $item->product_name ?? '—' }}
+                                {{ $item->product_name ?? '-' }}
                             </td>
 
                             {{-- Batch Produk --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
-                                {{ $item->batch_number ?? '—' }}
+                                {{ $item->batch_number ?? '-' }}
                             </td>
 
                             {{-- Alat Instrumen --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
-                                {{ ucwords(str_replace('_', ' ', $item->reportType->instrument ?? '—')) }}
+                                {{ ucwords(str_replace('_', ' ', $item->reportType->instrument ?? '-')) }}
                             </td>
 
                             {{-- Shift 1 --}}
                             <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
-                                {{ $item->shift1Analis->name ?? '—' }}
+                                {{ $item->shift1Analis->name ?? '-' }}
                             </td>
 
                             {{-- Shift 2 --}}
                             <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
-                                {{ $item->shift2Analis->name ?? '—' }}
+                                {{ $item->shift2Analis->name ?? '-' }}
                             </td>
 
                             <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ $item->createdBy->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-xs whitespace-nowrap {{ $item->status == 'completed' ? 'text-green-600' : 'text-orange-600' }}">{{ $item->status ?? '-' }}</td>
 
                             {{-- Tombol edit & hapus --}}
                             <td class="px-4 py-3 text-right whitespace-nowrap">
@@ -92,7 +94,7 @@
 
                                 <form action="{{ route('tugas-pelaporan.destroy', $item) }}" method="POST"
                                       class="inline-block ml-1"
-                                      onsubmit="return confirm('Hapus tugas pelaporan tanggal {{ $item->report_date->format('d M Y') }}?')">
+                                      onsubmit="return confirm('Hapus tugas pelaporan {{ $item->product_name }}?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
@@ -108,7 +110,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-10 text-center text-sm text-gray-500">
+                            <td colspan="7" class="px-4 py-10 text-center text-sm text-gray-500">
                                 Belum ada tugas pelaporan. <a href="{{ route('tugas-pelaporan.create') }}" class="text-emerald-600 hover:underline">Tambah sekarang</a>.
                             </td>
                         </tr>

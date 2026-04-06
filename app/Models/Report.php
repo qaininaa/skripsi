@@ -7,15 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Report extends Model
 {
     protected $fillable = [
-        'report_type_id', 'report_date', 'product_name', 'batch_number',
+        'report_type_id', 'product_name', 'batch_number',
         'shift1_analyst_id', 'shift2_analyst_id',
-        'status', 'header_data', 'created_by',
+        'status', 'created_by',
     ];
 
-    protected $casts = [
-        'report_date' => 'date',
-        'header_data' => 'array',
-    ];
+    protected $casts = [];
 
     public function reportType()
     {

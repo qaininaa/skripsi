@@ -22,7 +22,7 @@ class TugasPelaporanController extends Controller
     public function create()
     {
         $analis      = User::where('role', 'analis')->orderBy('name')->get();
-        $reportTypes = ReportType::where('is_active', true)->orderBy('annex_number')->get();
+        $reportTypes = ReportType::orderBy('annex_number')->get();
 
         // Instrument list selalu tetap 4, meski belum semua punya jenis laporan
         $instruments = ['air_sampler', 'settle_plate', 'contact_plate', 'swab'];
@@ -39,7 +39,6 @@ class TugasPelaporanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'report_date'          => ['required', 'date'],
             'product_name'         => ['required', 'string', 'max:255'],
             'batch_number'         => ['required', 'string', 'max:255'],
             'shift1_analyst_id'    => ['required', 'exists:users,id'],
@@ -49,7 +48,6 @@ class TugasPelaporanController extends Controller
 
         Report::create([
             'report_type_id'   => $request->report_type_id,
-            'report_date'      => $request->report_date,
             'product_name'     => $request->product_name,
             'batch_number'     => $request->batch_number,
             'shift1_analyst_id' => $request->shift1_analyst_id,
@@ -64,7 +62,7 @@ class TugasPelaporanController extends Controller
     public function edit(Report $tugasPelaporan)
     {
         $analis      = User::where('role', 'analis')->orderBy('name')->get();
-        $reportTypes = ReportType::where('is_active', true)->orderBy('annex_number')->get();
+        $reportTypes = ReportType::orderBy('annex_number')->get();
 
         $instruments = ['air_sampler', 'settle_plate', 'contact_plate', 'swab'];
         $instrumentMap = $reportTypes->groupBy('instrument')
@@ -82,7 +80,6 @@ class TugasPelaporanController extends Controller
     public function update(Request $request, Report $tugasPelaporan)
     {
         $request->validate([
-            'report_date'        => ['required', 'date'],
             'product_name'       => ['required', 'string', 'max:255'],
             'batch_number'       => ['required', 'string', 'max:255'],
             'shift1_analyst_id'  => ['required', 'exists:users,id'],
@@ -92,7 +89,6 @@ class TugasPelaporanController extends Controller
 
         $tugasPelaporan->update([
             'report_type_id'    => $request->report_type_id,
-            'report_date'       => $request->report_date,
             'product_name'      => $request->product_name,
             'batch_number'      => $request->batch_number,
             'shift1_analyst_id' => $request->shift1_analyst_id,
