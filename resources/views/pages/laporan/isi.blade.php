@@ -7,7 +7,7 @@
 <form method="POST" action="{{ route('laporan.save', $report) }}" id="laporan-form">
 @csrf
 
-@include('dashboard.laporan.partials.action-bar')
+@include('pages.laporan.partials.action-bar')
 
 @if (session('success'))
 <div class="mb-5 px-4 py-3 bg-green-50 border border-green-100 rounded-xl text-sm text-green-700 flex items-center gap-2">
@@ -36,37 +36,37 @@
 @endif
 
 {{-- ── 1. Pemantauan Ruang ─────────────────────────────── --}}
-@include('dashboard.laporan.partials.section-info')
+@include('pages.laporan.partials.section-info')
 
 @php $hd = $report->header_data ?? []; @endphp
 
 @if ($needsAirSampler)
-@include('dashboard.laporan.partials.section-alat')
+@include('pages.laporan.partials.section-alat')
 @endif
 
 @if (!empty($report->reportType->medium_groups ?? []))
-@include('dashboard.laporan.partials.section-medium')
+@include('pages.laporan.partials.section-medium')
 @endif
 
 @if ($needsInkubator)
-@include('dashboard.laporan.partials.section-inkubator')
+@include('pages.laporan.partials.section-inkubator')
 @endif
 
 {{-- ── 4+. Tabel Pengukuran per Seksi ─────────────────── --}}
-@foreach ($report->reportType->sections as $section)@include('dashboard.laporan.partials.section-tabel')
+@foreach ($report->reportType->sections as $section)@include('pages.laporan.partials.section-tabel')
 @endforeach
 
-@include('dashboard.laporan.partials.section-catatan')
+@include('pages.laporan.partials.section-catatan')
 
-@include('dashboard.laporan.partials.section-ttd')
+@include('pages.laporan.partials.section-ttd')
 
-@include('dashboard.laporan.partials.bottom-bar')
+@include('pages.laporan.partials.bottom-bar')
 
 </form>
-@include('dashboard.laporan.partials.modals')
+@include('pages.laporan.partials.modals')
 
 @endsection
 
 @push('scripts')
-@include('dashboard.laporan.partials.scripts')
+@include('pages.laporan.partials.scripts')
 @endpush

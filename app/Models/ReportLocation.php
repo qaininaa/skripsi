@@ -6,19 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReportLocation extends Model
 {
+    protected $table = 'locations';
+
     protected $fillable = [
-        'report_section_id', 's_no', 'room_name', 'class', 'room_number',
-        'location_number', 'alert_limit_bacteria', 'action_limit_bacteria',
-        'alert_limit_fungi', 'action_limit_fungi',
+        'id_room', 'frequency_id', 'location_number', 'measurement_type',
+        'alert_limit_bacteria', 'alert_limit_fungi',
+        'alert_action_bacteria', 'alert_action_fungi',
     ];
 
-    public function section()
+    public function room()
     {
-        return $this->belongsTo(ReportSection::class, 'report_section_id');
-    }
-
-    public function entries()
-    {
-        return $this->hasMany(ReportEntry::class);
+        return $this->belongsTo(Room::class, 'id_room');
     }
 }

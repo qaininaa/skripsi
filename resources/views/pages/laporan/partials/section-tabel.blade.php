@@ -4,10 +4,10 @@
     $isSettlePlate = $section->measurement_type === 'settle_plate';
     $isSwab        = $section->measurement_type === 'swab';
     $hasJam        = $section->measurement_type === 'air_sampler';
-    $maxCols       = $section->max_exposures;
+    $maxCols       = $section->max_exposure;
     $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
     $secNum        = $loop->index + 5;
-    $savedAsgn      = ($report->header_data['shift_assignments'] ?? [])[$section->id] ?? [];
+    $savedAsgn     = ($hd['shift_assignments'][$section->id] ?? []);
     $secAssignments = [];
     for ($c = 1; $c <= $maxCols; $c++) {
         $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
@@ -234,23 +234,23 @@
                 @foreach ($section->locations as $loc)
                 @php
                     $locEntries = collect();
-                    for ($p = 1; $p <= $section->max_exposures; $p++) {
+                    for ($p = 1; $p <= $section->max_exposure; $p++) {
                         for ($s = 1; $s <= 2; $s++) {
-                            if (isset($entryMap[$loc->id][$p][$s])) {
-                                $locEntries->push($entryMap[$loc->id][$p][$s]);
+                            if (isset($entryMap[$loc->pivot->id][$p][$s])) {
+                                $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
                             }
                         }
                     }
                     $maxB   = $locEntries->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
                     $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                    $hasTMS = ($loc->action_limit_bacteria && $maxB >= $loc->action_limit_bacteria)
-                           || ($loc->action_limit_fungi && $maxF >= $loc->action_limit_fungi);
+                    $hasTMS = ($loc->alert_action_bacteria && $maxB >= $loc->alert_action_bacteria)
+                           || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                     $hasAlt = !$hasTMS && (
                                 ($loc->alert_limit_bacteria && $maxB >= $loc->alert_limit_bacteria)
                              || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                     $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
 
-                    $classBadge = match($loc->class) {
+                    $classBadge = match($loc->room->class) {
                         'A' => 'bg-purple-100 text-purple-700',
                         'B' => 'bg-blue-100 text-blue-700',
                         'C' => 'bg-amber-100 text-amber-700',
@@ -258,14 +258,14 @@
                     };
                 @endphp
                 <tr class="hover:bg-blue-50/20 transition-colors">
-                    <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loc->s_no }}</td>
-                    <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room_name }}</td>
+                    <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loop->iteration }}</td>
+                    <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room->room_name }}</td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
                         <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">
-                            {{ $loc->class }}
+                            {{ $loc->room->class }}
                         </span>
                     </td>
-                    <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap font-mono text-[11px]">{{ $loc->room_number }}</td>
+                    <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap font-mono text-[11px]">{{ $loc->room->room_number }}</td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
                         @if (str_starts_with($loc->location_number, '*)'))
                             <span class="font-mono text-[11px] text-gray-400 italic">{{ $loc->location_number }}</span>
@@ -275,15 +275,15 @@
                     </td>
                     @if (!$isShiftBased)
                     @php
-                        $msEntry = $entryMap[$loc->id][0][$myShift] ?? null;
+                        $msEntry = $entryMap[$loc->pivot->id][0][$myShift] ?? null;
                         $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
                             ? ($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0) : null;
                     @endphp
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($isEditable)
-                            <input type="number" min="0" name="entries[{{ $loc->id }}][0][cfu_bacteria]"
+                            <input type="number" min="0" name="entries[{{ $loc->pivot->id }}][0][cfu_bacteria]"
                                    value="{{ $msEntry?->cfu_bacteria }}"
-                                   data-loc="{{ $loc->id }}" data-col="0" data-type="b" data-section-id="{{ $section->id }}"
+                                   data-loc="{{ $loc->pivot->id }}" data-col="0" data-type="b" data-section-id="{{ $section->id }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @else
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -293,9 +293,9 @@
                     </td>
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($isEditable)
-                            <input type="number" min="0" name="entries[{{ $loc->id }}][0][cfu_fungi]"
+                            <input type="number" min="0" name="entries[{{ $loc->pivot->id }}][0][cfu_fungi]"
                                    value="{{ $msEntry?->cfu_fungi }}"
-                                   data-loc="{{ $loc->id }}" data-col="0" data-type="f"
+                                   data-loc="{{ $loc->pivot->id }}" data-col="0" data-type="f"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @else
                             <span class="text-[11px] {{ $msEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -304,7 +304,7 @@
                         @endif
                     </td>
                     <td class="px-1 py-2 border-r border-gray-100 text-center bg-gray-50/40">
-                        <span id="t-{{ $loc->id }}-0"
+                        <span id="t-{{ $loc->pivot->id }}-0"
                               class="text-[11px] font-semibold {{ $msTVal !== null ? 'text-gray-700' : 'text-gray-300' }}">
                             {{ $msTVal ?? '—' }}
                         </span>
@@ -316,14 +316,14 @@
                     @php
                         $colAsgn = $secAssignments[$col] ?? 1;
                         if ($isShiftBased) {
-                            $existEntry = $entryMap[$loc->id][1][$colAsgn] ?? null;
+                            $existEntry = $entryMap[$loc->pivot->id][1][$colAsgn] ?? null;
                             $editable   = $isEditable && ($colAsgn == $myShift);
                         } else {
-                            $existEntry = $entryMap[$loc->id][$col][$colAsgn] ?? null;
+                            $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
                             $editable   = $isEditable && ($colAsgn == $myShift);
                         }
-                        $iName = "entries[{$loc->id}][{$col}]";
-                        $rowKey = "{$loc->id}-{$col}";
+                        $iName = "entries[{$loc->pivot->id}][{$col}]";
+                        $rowKey = "{$loc->pivot->id}-{$col}";
                     @endphp
 
                     @if ($hasJam)
@@ -343,7 +343,7 @@
                         @if ($editable)
                             <input type="number" min="0" name="{{ $iName }}[cfu_bacteria]"
                                    value="{{ $existEntry?->cfu_bacteria }}"
-                                   data-loc="{{ $loc->id }}" data-col="{{ $col }}" data-type="b" data-section-id="{{ $section->id }}"
+                                   data-loc="{{ $loc->pivot->id }}" data-col="{{ $col }}" data-type="b" data-section-id="{{ $section->id }}"
                                    @if (str_starts_with($loc->location_number, '*)')) data-optional="true" @endif
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
@@ -358,7 +358,7 @@
                         @if ($editable)
                             <input type="number" min="0" name="{{ $iName }}[cfu_fungi]"
                                    value="{{ $existEntry?->cfu_fungi }}"
-                                   data-loc="{{ $loc->id }}" data-col="{{ $col }}" data-type="f" data-section-id="{{ $section->id }}"
+                                   data-loc="{{ $loc->pivot->id }}" data-col="{{ $col }}" data-type="f" data-section-id="{{ $section->id }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @else
@@ -392,21 +392,21 @@
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                        <span class="text-[11px] font-medium {{ $loc->action_limit_bacteria !== null ? 'text-red-600' : 'text-gray-300' }}">
-                            {{ $loc->action_limit_bacteria !== null ? ($loc->action_limit_bacteria == 1 ? '<1' : $loc->action_limit_bacteria) : '—' }}
+                        <span class="text-[11px] font-medium {{ $loc->alert_action_bacteria !== null ? 'text-red-600' : 'text-gray-300' }}">
+                            {{ $loc->alert_action_bacteria !== null ? ($loc->alert_action_bacteria == 1 ? '<1' : $loc->alert_action_bacteria) : '—' }}
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                        <span class="text-[11px] font-medium {{ $loc->action_limit_fungi !== null ? 'text-red-600' : 'text-gray-300' }}">
-                            {{ $loc->action_limit_fungi !== null ? ($loc->action_limit_fungi == 1 ? '<1' : $loc->action_limit_fungi) : '—' }}
+                        <span class="text-[11px] font-medium {{ $loc->alert_action_fungi !== null ? 'text-red-600' : 'text-gray-300' }}">
+                            {{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : '—' }}
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center"
-                        id="konklusi-{{ $loc->id }}"
+                        id="konklusi-{{ $loc->pivot->id }}"
                         data-alert-b="{{ $loc->alert_limit_bacteria ?? '' }}"
                         data-alert-f="{{ $loc->alert_limit_fungi ?? '' }}"
-                        data-action-b="{{ $loc->action_limit_bacteria ?? '' }}"
-                        data-action-f="{{ $loc->action_limit_fungi ?? '' }}">
+                        data-action-b="{{ $loc->alert_action_bacteria ?? '' }}"
+                        data-action-f="{{ $loc->alert_action_fungi ?? '' }}">
                         @if ($konklusi === 'TMS')
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
                         @elseif ($konklusi === 'Alert')

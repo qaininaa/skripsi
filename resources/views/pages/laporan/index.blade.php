@@ -7,14 +7,13 @@
 
 @php
     $tabs = [
-        'all'         => ['label' => 'Semua',              'color' => 'gray'],
-        'pending'     => ['label' => 'Menunggu',           'color' => 'gray'],
-        'in_progress' => ['label' => 'Dikerjakan',         'color' => 'yellow'],
-        'handed_over' => ['label' => 'Diteruskan ke Shift 2', 'color' => 'amber'],
-        'submitted'   => ['label' => 'Dikirim',            'color' => 'blue'],
-        'returned'    => ['label' => 'Dikembalikan',       'color' => 'orange'],
-        'approved'    => ['label' => 'Disetujui',          'color' => 'green'],
-        'rejected'    => ['label' => 'Ditolak',            'color' => 'red'],
+        'all'         => ['label' => 'Semua',         'color' => 'gray'],
+        'pending'     => ['label' => 'Menunggu',      'color' => 'gray'],
+        'in_progress' => ['label' => 'Dikerjakan',   'color' => 'yellow'],
+        'submitted'   => ['label' => 'Dikirim',      'color' => 'blue'],
+        'returned'    => ['label' => 'Dikembalikan', 'color' => 'orange'],
+        'approved'    => ['label' => 'Disetujui',    'color' => 'green'],
+        'rejected'    => ['label' => 'Ditolak',      'color' => 'red'],
     ];
 
     $total = $counts->sum();
@@ -85,7 +84,7 @@
                         @foreach ($items as $item)
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-5 py-3.5 text-gray-700 whitespace-nowrap font-medium">
-                                    {{ $item->report_date->isoFormat('D MMM Y') }}
+                                    {{ $item->created_at->isoFormat('D MMM Y') }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
                                     {{ $item->product_name }}
@@ -104,17 +103,14 @@
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
                                     @php
-                                        $handedOver = !empty(($item->header_data ?? [])['shift1_handed_over']);
-                                        $badge = match(true) {
-                                            $item->status === 'in_progress' && $myShift === 1 && $handedOver
-                                                => ['bg-amber-100 text-amber-700', 'Diteruskan ke Shift 2'],
-                                            $item->status === 'pending'      => ['bg-gray-100 text-gray-600',   'Menunggu'],
-                                            $item->status === 'in_progress'  => ['bg-yellow-100 text-yellow-700','Dikerjakan'],
-                                            $item->status === 'submitted'    => ['bg-blue-100 text-blue-700',   'Dikirim'],
-                                            $item->status === 'returned'     => ['bg-orange-100 text-orange-700','Dikembalikan'],
-                                            $item->status === 'approved'     => ['bg-green-100 text-green-700', 'Disetujui'],
-                                            $item->status === 'rejected'     => ['bg-red-100 text-red-700',     'Ditolak'],
-                                            default                          => ['bg-gray-100 text-gray-600',   $item->status],
+                                        $badge = match($item->status) {
+                                            'pending'     => ['bg-gray-100 text-gray-600',    'Menunggu'],
+                                            'in_progress' => ['bg-yellow-100 text-yellow-700', 'Dikerjakan'],
+                                            'submitted'   => ['bg-blue-100 text-blue-700',    'Dikirim'],
+                                            'returned'    => ['bg-orange-100 text-orange-700', 'Dikembalikan'],
+                                            'approved'    => ['bg-green-100 text-green-700',   'Disetujui'],
+                                            'rejected'    => ['bg-red-100 text-red-700',       'Ditolak'],
+                                            default       => ['bg-gray-100 text-gray-600',     $item->status],
                                         };
                                     @endphp
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badge[0] }}">
@@ -123,7 +119,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
                                     @if (in_array($item->status, ['submitted', 'approved', 'rejected']))
-                                        {{-- Siapapun bisa lihat laporan yang sudah selesai --}}
                                         <a href="{{ route('laporan.isi', $item) }}"
                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-medium hover:bg-gray-100 transition-colors border border-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,58 +142,29 @@
                                                 </p>
                                             @endif
                                         </div>
-                                    @elseif ($myShift === 1)
-                                        {{-- Shift 1: tombol aktif sesuai status --}}
-                                        @if ($item->status === 'pending')
-                                            <a href="{{ route('laporan.isi', $item) }}"
-                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Mulai
-                                            </a>
-                                        @elseif ($handedOver)
-                                            <a href="{{ route('laporan.isi', $item) }}"
-                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-medium hover:bg-gray-100 transition-colors border border-gray-100">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                                Lihat
-                                            </a>
-                                        @else
-                                            <a href="{{ route('laporan.isi', $item) }}"
-                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500 text-white text-xs font-medium hover:bg-yellow-600 transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                                Lanjutkan
-                                            </a>
-                                        @endif
+                                    @elseif ($item->status === 'pending' && $myShift === 2)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 text-xs font-medium cursor-not-allowed border border-gray-200">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Menunggu Shift 1
+                                        </span>
+                                    @elseif ($item->status === 'pending')
+                                        <a href="{{ route('laporan.isi', $item) }}"
+                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Mulai
+                                        </a>
                                     @else
-                                        {{-- Shift 2: cek status & estafet --}}
-                                        @if ($item->status === 'pending')
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 text-xs font-medium cursor-not-allowed border border-gray-200">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Menunggu Shift 1
-                                            </span>
-                                        @elseif ($item->status === 'in_progress' && !$handedOver)
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-500 text-xs font-medium cursor-not-allowed border border-amber-200">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                                </svg>
-                                                Menunggu Estafet
-                                            </span>
-                                        @else
-                                            <a href="{{ route('laporan.isi', $item) }}"
-                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500 text-white text-xs font-medium hover:bg-yellow-600 transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                                Mulai
-                                            </a>
-                                        @endif
+                                        <a href="{{ route('laporan.isi', $item) }}"
+                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500 text-white text-xs font-medium hover:bg-yellow-600 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Lanjutkan
+                                        </a>
                                     @endif
                                 </td>
                             </tr>

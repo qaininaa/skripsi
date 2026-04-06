@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReportSection extends Model
 {
+    protected $table = 'sections';
+
     protected $fillable = [
         'report_type_id', 'name', 'slug', 'measurement_unit',
-        'measurement_type', 'max_exposures', 'order',
+        'measurement_type', 'max_exposure', 'order',
     ];
 
     public function reportType()
@@ -18,6 +20,9 @@ class ReportSection extends Model
 
     public function locations()
     {
-        return $this->hasMany(ReportLocation::class)->orderBy('s_no');
+        return $this->belongsToMany(ReportLocation::class, 'report_section', 'id_section', 'id_location')
+                    ->withPivot('id')
+                    ->withTimestamps()
+                    ->orderBy('report_section.id');
     }
 }

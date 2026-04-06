@@ -9,10 +9,12 @@ class Report extends Model
     protected $fillable = [
         'report_type_id', 'product_name', 'batch_number',
         'shift1_analyst_id', 'shift2_analyst_id',
-        'status', 'created_by',
+        'status', 'created_by', 'header_data',
     ];
 
-    protected $casts = [];
+    protected $casts = [
+        'header_data' => 'array',
+    ];
 
     public function reportType()
     {

@@ -19,40 +19,22 @@ class AnalisLaporanController extends Controller
         $mine = fn($q) => $q->where('shift1_analyst_id', $userId)
                              ->orWhere('shift2_analyst_id', $userId);
 
-        // Hitung count di PHP agar bisa pisahkan status virtual "handed_over"
-        $allForCount = Report::where($mine)->get(['status', 'header_data', 'shift1_analyst_id']);
-
-        $handedOverCount = $allForCount->filter(fn($r) =>
-            $r->status === 'in_progress' &&
-            $r->shift1_analyst_id === $userId &&
-            !empty(($r->header_data ?? [])['shift1_handed_over'])
-        )->count();
-
-        $rawCounts = $allForCount->groupBy('status')->map->count();
+        $rawCounts = Report::where($mine)->get(['status'])->groupBy('status')->map->count();
 
         $counts = collect([
             'pending'     => $rawCounts['pending']     ?? 0,
-            'in_progress' => max(0, ($rawCounts['in_progress'] ?? 0) - $handedOverCount),
-            'handed_over' => $handedOverCount,
+            'in_progress' => $rawCounts['in_progress'] ?? 0,
             'submitted'   => $rawCounts['submitted']   ?? 0,
             'returned'    => $rawCounts['returned']    ?? 0,
             'approved'    => $rawCounts['approved']    ?? 0,
             'rejected'    => $rawCounts['rejected']    ?? 0,
         ]);
 
-        // Build main query
         $query = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals'])
             ->where($mine)
             ->orderByDesc('created_at');
 
-        if ($status === 'handed_over') {
-            $query->where('status', 'in_progress')
-                  ->where('shift1_analyst_id', $userId)
-                  ->whereRaw("COALESCE(JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')), 'false') = 'true'");
-        } elseif ($status === 'in_progress') {
-            $query->where('status', 'in_progress')
-                  ->whereRaw("NOT (shift1_analyst_id = ? AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(header_data, '$.shift1_handed_over')), 'false') = 'true')", [$userId]);
-        } elseif ($status !== 'all') {
+        if ($status !== 'all') {
             $query->where('status', $status);
         }
 
@@ -82,12 +64,12 @@ class AnalisLaporanController extends Controller
             $report->update(['status' => 'in_progress']);
         }
 
-        $report->load(['reportType.sections.locations', 'entries', 'shift1Analis', 'shift2Analis']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis']);
 
-        // entryMap[$loc_id][$period_number][$shift] = entry
+        // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
         foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_location_id][$entry->period_number][$entry->shift] = $entry;
+            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
@@ -190,13 +172,13 @@ class AnalisLaporanController extends Controller
             $report->update(['header_data' => $hd]);
         }
 
-        // Build location→measurement_type and location→section_id maps
-        $locationSectionType = [];
-        $locationSectionId   = [];
+        // Build pivot_row → measurement_type and pivot_row → section_id maps
+        $pivotSectionType = [];
+        $pivotSectionId   = [];
         foreach ($report->reportType->sections()->with('locations')->get() as $section) {
             foreach ($section->locations as $location) {
-                $locationSectionType[$location->id] = $section->measurement_type;
-                $locationSectionId[$location->id]   = $section->id;
+                $pivotSectionType[$location->pivot->id] = $section->measurement_type;
+                $pivotSectionId[$location->pivot->id]   = $section->id;
             }
         }
 
@@ -204,14 +186,14 @@ class AnalisLaporanController extends Controller
         $exposureTimes = $request->input('exposure_times', []);
 
         // Upsert entries
-        foreach ($request->input('entries', []) as $locationId => $cols) {
-            $sectionType = $locationSectionType[(int) $locationId] ?? null;
+        foreach ($request->input('entries', []) as $pivotId => $cols) {
+            $sectionType = $pivotSectionType[(int) $pivotId] ?? null;
             if (! $sectionType) {
                 continue;
             }
 
             $isShiftBased = in_array($sectionType, ['air_sampler', 'contact_plate', 'swab']);
-            $sectionId    = $locationSectionId[(int) $locationId] ?? null;
+            $sectionId    = $pivotSectionId[(int) $pivotId] ?? null;
 
             foreach ($cols as $colIdx => $data) {
                 if ($isShiftBased) {
@@ -236,7 +218,7 @@ class AnalisLaporanController extends Controller
                 ReportEntry::updateOrCreate(
                     [
                         'report_id'          => $report->id,
-                        'report_location_id' => (int) $locationId,
+                        'report_section_id'  => (int) $pivotId,
                         'period_number'      => $periodNumber,
                         'shift'              => $shift,
                     ],

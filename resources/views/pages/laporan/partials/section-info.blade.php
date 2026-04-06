@@ -7,7 +7,7 @@
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Pemantauan Ruang</label>
             <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                {{ $report->report_date->isoFormat('D MMMM Y') }}
+                {{ $report->created_at->isoFormat('D MMMM Y') }}
             </div>
         </div>
         <div>
