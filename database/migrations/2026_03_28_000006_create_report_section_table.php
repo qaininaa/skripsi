@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('report_section', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_section')->constrained('report_sections')->cascadeOnDelete();
+            $table->foreignId('id_section')->constrained('sections')->cascadeOnDelete();
             $table->foreignId('id_location')->constrained('locations')->cascadeOnDelete();
             $table->timestamps();
 
