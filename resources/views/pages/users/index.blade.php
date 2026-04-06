@@ -28,12 +28,12 @@
     @endif
 
     {{-- Header + Tombol Tambah --}}
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h2 class="text-xl font-bold text-gray-800">Daftar Pengguna</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Kelola akun Super Admin dan Admin QC.</p>
+            <p class="text-sm text-gray-500 mt-0.5">Kelola akun pengguna aplikasi.</p>
         </div>
-        <a href="{{ route('users.create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+        <a href="{{ route('users.create') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-green-800 transition-colors shadow-sm sm:whitespace-nowrap">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
             </svg>
