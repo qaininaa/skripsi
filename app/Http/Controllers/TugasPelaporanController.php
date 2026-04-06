@@ -10,11 +10,20 @@ use Illuminate\Support\Facades\Auth;
 
 class TugasPelaporanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query  = $request->input('search');
+        $status = $request->input('status');
+
         $tugas = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'createdBy'])
+            ->when($query, fn($q) => $q->where(function ($q) use ($query) {
+                $q->where('product_name', 'like', "%{$query}%")
+                  ->orWhere('batch_number',  'like', "%{$query}%");
+            }))
+            ->when($status, fn($q) => $q->where('status', $status))
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return view('pages.tugas-pelaporan.index', compact('tugas'));
     }

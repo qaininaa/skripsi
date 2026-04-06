@@ -30,6 +30,35 @@
         </a>
     </div>
 
+    {{-- Filter & Pencarian --}}
+    <form method="GET" action="{{ route('tugas-pelaporan.index') }}" class="mb-4 flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
+                </svg>
+            </div>
+            <input type="text" name="search" value="{{ request('search') }}"
+                   placeholder="Cari nama produk atau nomor batch..."
+                   class="block w-full rounded-lg border-gray-300 pl-9 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+        </div>
+        <select name="status"
+                class="rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+            <option value="">Semua Status</option>
+            <option value="pending"   {{ request('status') === 'pending'   ? 'selected' : '' }}>Pending</option>
+            <option value="ongoing"   {{ request('status') === 'ongoing'   ? 'selected' : '' }}>Ongoing</option>
+            <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+        </select>
+        <button type="submit"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm transition-colors">
+            Filter
+        </button>
+        <button type="button" onclick="window.location.href='{{ route('tugas-pelaporan.index') }}'" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 shadow-sm bg-white text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
+             Reset
+        </button>
+    </form>
+
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
