@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('analyst_id')->constrained('users')->cascadeOnDelete();
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
-            $table->unsignedSmallInteger('cfu_bacteria')->nullable();
-            $table->unsignedSmallInteger('cfu_fungi')->nullable();
+            $table->decimal('cfu_bacteria', 8, 2)->nullable();
+            $table->decimal('cfu_fungi', 8, 2)->nullable();
             $table->timestamps();
 
             $table->unique(['report_id', 'report_section_id', 'period_number', 'shift'], 'entry_unique');

@@ -16,6 +16,10 @@ return new class extends Migration
             $table->string('measurement_unit', 50)->default('cfu');
             $table->string('measurement_type', 50)->default('exposure');
             $table->unsignedTinyInteger('max_exposure')->default(1);
+            $table->string('column_label', 50)->default('Exposure');
+            $table->string('time_slot_type', 20)->default('none');
+            $table->boolean('has_shared_time')->default(false);
+            $table->boolean('has_shift_toggle')->default(true);
             $table->unsignedTinyInteger('order')->default(0);
             $table->timestamps();
         });
