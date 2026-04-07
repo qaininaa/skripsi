@@ -76,9 +76,10 @@ class ReportTypeManagementController extends Controller
 
     public function show(ReportType $reportType): View
     {
-        $reportType->load(['sections.locations']);
+        $reportType->load(['sections.locations.room']);
+        $locations = ReportLocation::with('room')->orderBy('id_room')->orderBy('location_number')->get();
 
-        return view('pages.report-types.show', compact('reportType'));
+        return view('pages.report-types.show', compact('reportType', 'locations'));
     }
 
     public function edit(ReportType $reportType): View
@@ -220,20 +221,12 @@ class ReportTypeManagementController extends Controller
     public function storeLocation(Request $request, ReportType $reportType, ReportSection $section): RedirectResponse
     {
         $validated = $request->validate([
-            'room_name'              => ['required', 'string', 'max:255'],
-            's_no'                   => ['required', 'integer', 'min:1'],
-            'class'                  => ['required', 'string', 'max:20'],
-            'room_number'            => ['nullable', 'string', 'max:50'],
-            'location_number'        => ['nullable', 'string', 'max:50'],
-            'alert_limit_bacteria'   => ['nullable', 'integer', 'min:0'],
-            'action_limit_bacteria'  => ['nullable', 'integer', 'min:0'],
-            'alert_limit_fungi'      => ['nullable', 'integer', 'min:0'],
-            'action_limit_fungi'     => ['nullable', 'integer', 'min:0'],
+            'location_id' => ['required', 'exists:locations,id'],
         ]);
 
-        $validated['report_section_id'] = $section->id;
-
-        ReportLocation::create($validated);
+        if (!$section->locations()->where('id_location', $validated['location_id'])->exists()) {
+            $section->locations()->attach($validated['location_id']);
+        }
 
         return redirect()
             ->route('report-types.show', $reportType)
@@ -242,7 +235,7 @@ class ReportTypeManagementController extends Controller
 
     public function destroyLocation(ReportType $reportType, ReportSection $section, ReportLocation $location): RedirectResponse
     {
-        $location->delete();
+        $section->locations()->detach($location->id);
 
         return redirect()
             ->route('report-types.show', $reportType)

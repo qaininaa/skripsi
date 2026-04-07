@@ -56,7 +56,7 @@
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
-            Sudah diteruskan ke Shift 2 — Mode Lihat
+            Sudah diteruskan ke Shift 2 - Mode Lihat
         </span>
         @else
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium

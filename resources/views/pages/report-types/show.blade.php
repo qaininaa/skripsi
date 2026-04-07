@@ -2,7 +2,6 @@
 
 @section('title', 'Detail Jenis Laporan')
 @section('page-title', $reportType->annex_number)
-@section('avatar-color', 'bg-green-600')
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6">
 
@@ -113,10 +112,6 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Nama Seksi</label>
                         <input type="text" name="name" placeholder="cth: Settle Plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Slug</label>
-                        <input type="text" name="slug" placeholder="cth: settle_plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur</label>
@@ -275,51 +270,21 @@
                     <div x-show="showLocForm" x-cloak class="mb-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
                         <form action="{{ route('report-types.sections.locations.store', [$reportType, $section]) }}" method="POST" class="space-y-3">
                             @csrf
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">S.No</label>
-                                    <input type="number" name="s_no" min="1" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                </div>
-                                <div class="col-span-2 md:col-span-1">
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">Nama Ruangan</label>
-                                    <input type="text" name="room_name" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">Kelas</label>
-                                    <select name="class" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                        <option value="A">A</option>
-                                        <option value="B">B</option>
-                                        <option value="C">C</option>
-                                        <option value="D">D</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">No. Ruangan</label>
-                                    <input type="text" name="room_number" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">No. Lokasi</label>
-                                    <input type="text" name="location_number" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">Alert Bakteri</label>
-                                    <input type="number" name="alert_limit_bacteria" min="0" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">Action Bakteri</label>
-                                    <input type="number" name="action_limit_bacteria" min="0" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">Alert Fungi</label>
-                                    <input type="number" name="alert_limit_fungi" min="0" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">Action Fungi</label>
-                                    <input type="number" name="action_limit_fungi" min="0" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-0.5">Pilih Lokasi</label>
+                                <select name="location_id" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                    <option value="">-- Pilih Lokasi --</option>
+                                    @foreach ($locations as $loc)
+                                        @unless ($section->locations->contains($loc->id))
+                                        <option value="{{ $loc->id }}">
+                                            [{{ $loc->location_number ?? '-' }}] {{ $loc->room->room_name ?? '-' }} (Kelas {{ $loc->room->class ?? '-' }})
+                                        </option>
+                                        @endunless
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="flex justify-end gap-2">
-                                <button type="button" @click="showLocForm = false" class="px-3 py-1 rounded border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-100">Batal</button>
+                                <button type="button" @click="showLocForm = false" class="px-3 py-1 rounded border border-gray-200 text-xs font-medium bg-white text-gray-600 hover:bg-gray-100">Batal</button>
                                 <button type="submit" class="px-3 py-1 rounded bg-green-700 text-white text-xs font-medium hover:bg-indigo-700">Simpan</button>
                             </div>
                         </form>
@@ -330,11 +295,11 @@
                         <table class="w-full text-xs">
                             <thead>
                                 <tr class="bg-gray-50">
-                                    <th class="text-left px-2 py-1.5 font-semibold text-gray-500">S.No</th>
                                     <th class="text-left px-2 py-1.5 font-semibold text-gray-500">Ruangan</th>
                                     <th class="text-center px-2 py-1.5 font-semibold text-gray-500">Kelas</th>
                                     <th class="text-left px-2 py-1.5 font-semibold text-gray-500">No. Ruangan</th>
                                     <th class="text-left px-2 py-1.5 font-semibold text-gray-500">No. Lokasi</th>
+                                    <th class="text-left px-2 py-1.5 font-semibold text-gray-500">Tipe</th>
                                     <th class="text-center px-2 py-1.5 font-semibold text-gray-500">Alert B</th>
                                     <th class="text-center px-2 py-1.5 font-semibold text-gray-500">Action B</th>
                                     <th class="text-center px-2 py-1.5 font-semibold text-gray-500">Alert F</th>
@@ -343,19 +308,20 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
-                                @foreach ($section->locations->sortBy('s_no') as $loc)
+                                @foreach ($section->locations as $loc)
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-2 py-1.5 text-gray-600">{{ $loc->s_no }}</td>
-                                    <td class="px-2 py-1.5 text-gray-800 font-medium">{{ $loc->room_name }}</td>
+                                    <td class="px-2 py-1.5 text-gray-800 font-medium">{{ $loc->room->room_name ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center">
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold {{ $loc->class === 'A' ? 'bg-purple-100 text-purple-700' : ($loc->class === 'B' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600') }}">{{ $loc->class }}</span>
+                                        @php $cls = $loc->room->class ?? null; @endphp
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold {{ $cls === 'A' ? 'bg-purple-100 text-purple-700' : ($cls === 'B' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600') }}">{{ $cls ?? '-' }}</span>
                                     </td>
-                                    <td class="px-2 py-1.5 text-gray-600 font-mono">{{ $loc->room_number ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-gray-600 font-mono">{{ $loc->room->room_number ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-gray-600 font-mono">{{ $loc->location_number ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-gray-600">{{ $loc->measurement_type ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_bacteria ?? '-' }}</td>
-                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->action_limit_bacteria ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_bacteria ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_fungi ?? '-' }}</td>
-                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->action_limit_fungi ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_fungi ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-right">
                                         <form action="{{ route('report-types.sections.locations.destroy', [$reportType, $section, $loc]) }}" method="POST" onsubmit="return confirm('Hapus lokasi ini?')" class="inline">
                                             @csrf
