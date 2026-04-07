@@ -78,6 +78,16 @@ class AnalisLaporanController extends Controller
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         $shift1HandedOver = !empty(($report->header_data ?? [])['shift1_handed_over']);
+
+        // Edge case: shift 1 sudah handed over tapi shift 2 tidak ada (mis. dihapus admin)
+        // → reset flag agar shift 1 bisa melanjutkan
+        if ($shift1HandedOver && is_null($report->shift2_analyst_id)) {
+            $hd = $report->header_data ?? [];
+            unset($hd['shift1_handed_over']);
+            $report->update(['header_data' => $hd]);
+            $shift1HandedOver = false;
+        }
+
         $isEditable       = $report->status === 'in_progress'
                             && ($myShift === 1 ? !$shift1HandedOver : $shift1HandedOver);
 

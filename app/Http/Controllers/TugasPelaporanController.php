@@ -104,6 +104,16 @@ class TugasPelaporanController extends Controller
             'shift2_analyst_id' => $request->shift2_analyst_id,
         ]);
 
+        // Jika shift 2 dihapus sementara shift 1 sudah melakukan estafet,
+        // reset flag handed_over agar shift 1 bisa melanjutkan pengisian.
+        if (is_null($request->shift2_analyst_id)) {
+            $hd = $tugasPelaporan->header_data ?? [];
+            if (!empty($hd['shift1_handed_over'])) {
+                unset($hd['shift1_handed_over']);
+                $tugasPelaporan->update(['header_data' => $hd]);
+            }
+        }
+
         return redirect()->route('tugas-pelaporan.index')
             ->with('success', 'Tugas pelaporan berhasil diperbarui.');
     }
