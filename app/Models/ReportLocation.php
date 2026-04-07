@@ -18,4 +18,9 @@ class ReportLocation extends Model
     {
         return $this->belongsTo(Room::class, 'id_room');
     }
+
+    public function frequency()
+    {
+        return $this->belongsTo(Frequency::class, 'frequency_id');
+    }
 }

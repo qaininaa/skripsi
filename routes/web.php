@@ -7,7 +7,9 @@ use App\Http\Controllers\ReportTypeManagementController;
 use App\Http\Controllers\TugasPelaporanController;
 use App\Http\Controllers\AnalisLaporanController;
 use App\Http\Controllers\SupervisorLaporanController;
+use App\Http\Controllers\LokasiController;
 use App\Http\Controllers\PasswordSettingController;
+use App\Http\Controllers\RuanganController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -60,6 +62,10 @@ Route::middleware(['auth', 'password.check', 'role:super'])
         // Lokasi dalam seksi
         Route::post('report-types/{reportType}/sections/{section}/locations', [ReportTypeManagementController::class, 'storeLocation'])->name('report-types.sections.locations.store');
         Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportTypeManagementController::class, 'destroyLocation'])->name('report-types.sections.locations.destroy');
+
+         // Data Master
+        Route::resource('master/ruangan', RuanganController::class)->names('master.ruangan');
+        Route::resource('master/lokasi', LokasiController::class)->names('master.lokasi');
     });
 
 // Tugas Pelaporan (hanya Admin QC)
