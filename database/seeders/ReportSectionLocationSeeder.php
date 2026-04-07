@@ -20,7 +20,7 @@ class ReportSectionLocationSeeder extends Seeder
         // Ambil semua section beserta report_type code-nya
         $sections = DB::table('sections')
             ->join('report_types', 'sections.report_type_id', '=', 'report_types.id')
-            ->select('report_sections.id', 'report_sections.measurement_type', 'report_types.code as rt_code')
+            ->select('sections.id', 'sections.measurement_type', 'report_types.code as rt_code')
             ->get();
 
         // Kelompokkan: sectionByTypeAndAnnex['HVAC-6.1.1-B-FL2']['settle_plate'] = section_id
