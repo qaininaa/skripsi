@@ -77,7 +77,7 @@
                         @foreach ($reports as $report)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-5 py-3.5 text-gray-700 whitespace-nowrap">
-                                    {{ \Carbon\Carbon::parse($report->report_date)->isoFormat('D MMM Y') }}
+                                    {{ $report->created_at->isoFormat('D MMM Y') }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
                                     {{ $report->product_name }}

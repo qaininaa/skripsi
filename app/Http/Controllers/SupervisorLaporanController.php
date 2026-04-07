@@ -52,12 +52,12 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations', 'entries', 'shift1Analis', 'shift2Analis', 'approvals']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals']);
 
-        // Build same entryMap as analis controller
+        // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
         foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_location_id][$entry->period_number][$entry->shift] = $entry;
+            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
@@ -133,11 +133,12 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations', 'entries', 'shift1Analis', 'shift2Analis']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis']);
 
+        // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
         foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_location_id][$entry->period_number][$entry->shift] = $entry;
+            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();

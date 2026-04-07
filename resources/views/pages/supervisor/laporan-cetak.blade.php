@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ $report->reportType->annex_number }} — {{ $report->report_date->format('Y-m-d') }}</title>
+<title>{{ $report->reportType->annex_number }} — {{ $report->created_at->format('Y-m-d') }}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:#d1d5db}
@@ -183,11 +183,16 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
      ══════════════════════════════════════════════════════ --}}
 @foreach ($report->reportType->sections as $section)
 @php
-    $isShiftBased  = in_array($section->measurement_type, ['air_sampler', 'contact_plate', 'swab']);
-    $isSettlePlate = $section->measurement_type === 'settle_plate';
-    $isSwab        = $section->measurement_type === 'swab';
-    $hasJam        = $section->measurement_type === 'air_sampler';
-    $maxCols       = $section->max_exposures;
+    // Config-driven flags (matching analis view)
+    $hasSharedTime  = (bool) $section->has_shared_time;
+    $hasJam         = $section->time_slot_type === 'single';
+    $isPerLocation  = $section->time_slot_type === 'per_location';
+    $isDualAB       = $section->time_slot_type === 'dual_ab';
+    $isSwabTime     = $section->time_slot_type === 'swab';
+    $hasShiftToggle = (bool) $section->has_shift_toggle;
+    $colLabel       = $section->column_label ?? 'Exposure';
+
+    $maxCols       = $section->max_exposure;
     $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
     $savedAsgn     = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
     $secAssignments = [];
@@ -195,7 +200,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
     }
     $secNote  = $hd['section_notes'][$section->id] ?? [];
-    $totalCols = 5 + (!$isShiftBased ? 3 : 0) + $maxCols * ($hasJam ? 4 : 3) + 4 + 1;
+    $subColsPerExp = $isPerLocation ? 4 : 3;
+    $totalCols = 5 + ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp + 4 + 1;
 @endphp
 <div class="doc-page landscape">
     {{-- Page header --}}
@@ -218,7 +224,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                 <th class="vt" rowspan="3" style="width:25px">Class</th>
                 <th class="vt" rowspan="3">Room Number</th>
                 <th class="vt" rowspan="3">Location Number</th>
-                <th colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($hasJam ? 4 : 3) }}">
+                <th colspan="{{ ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp }}">
                     {{ $section->measurement_unit }}
                 </th>
                 <th colspan="2" rowspan="2">Alert<br>Limit</th>
@@ -226,14 +232,13 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                 <th rowspan="3" style="width:46px">Kesim-<br>pulan</th>
             </tr>
 
-            {{-- Row 2: Machine set-up / Exposure / Shift labels --}}
+            {{-- Row 2: Machine set-up / Column labels --}}
             <tr>
-                {{-- SETTLE PLATE: Machine set-up + Exposures --}}
-                @if (!$isShiftBased)
+                @if ($hasSharedTime)
                 @php
                     $msJamMulai = null; $msJamSelesai = null;
                     foreach ($section->locations as $loc2) {
-                        $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
+                        $e0 = $entryMap[$loc2->pivot->id][0][1] ?? $entryMap[$loc2->pivot->id][0][2] ?? null;
                         if ($e0 && ($e0->start_time || $e0->end_time)) {
                             $msJamMulai = $e0->start_time; $msJamSelesai = $e0->end_time; break;
                         }
@@ -251,15 +256,13 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
 
                 @for ($col = 1; $col <= $maxCols; $col++)
                 @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
-
-                @if ($isShiftBased)
-                {{-- AIR SAMPLER / CONTACT PLATE / SWAB --}}
-                <th colspan="{{ $hasJam ? 4 : 3 }}" style="font-size:7pt;line-height:1.3;vertical-align:top;padding:3px 2px">
-                    <div style="font-weight:700">Shift (S{{ $colAsgn }})</div>
-                    @if ($hasJam)
-                    <div style="font-weight:400;margin-top:1px">Pemantauan {{ $romanNums[$col - 1] ?? $col }}</div>
+                <th colspan="{{ $subColsPerExp }}" style="font-size:7pt;line-height:1.35;vertical-align:top;padding:3px 2px">
+                    <div style="font-weight:700">{{ $colLabel }} {{ $maxCols > 1 ? ($romanNums[$col - 1] ?? $col) : '' }}</div>
+                    @if ($hasShiftToggle)
+                    <div style="font-weight:400;font-size:6.5pt">(S{{ $colAsgn }})</div>
                     @endif
-                    @if ($isSwab)
+
+                    @if ($isSwabTime)
                     @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
                     <div style="font-weight:400;margin-top:2px">
                         JAM<br>Mulai Swab:<br>
@@ -273,44 +276,13 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                         {{ $swabLabel }}: {{ ($st['selesai'] ?? '') ?: '__:__' }}<br>
                         @endforeach
                     </div>
-                    @elseif (!$hasJam)
-                    {{-- Contact plate --}}
-                    @php
-                        $cpJamMulai = null; $cpJamSelesai = null;
-                        foreach ($section->locations as $loc2) {
-                            $e2 = $entryMap[$loc2->id][1][$colAsgn] ?? null;
-                            if ($e2 && ($e2->start_time || $e2->end_time)) {
-                                $cpJamMulai = $e2->start_time; $cpJamSelesai = $e2->end_time; break;
-                            }
-                        }
-                    @endphp
-                    <div style="font-weight:400;margin-top:2px">
-                        JAM<br>Mulai Contact Plate:<br>{{ $cpJamMulai ?: '__:__' }}<br><br>
-                        Selesai Pemantauan:<br>{{ $cpJamSelesai ?: '__:__' }}
-                    </div>
                     @endif
-                </th>
 
-                @else
-                {{-- SETTLE PLATE exposures --}}
-                @php
-                    if ($isSettlePlate) {
+                    @if ($isDualAB)
+                    @php
                         $stA = $hd['settle_times'][$section->id][$col]['a'] ?? [];
                         $stB = $hd['settle_times'][$section->id][$col]['b'] ?? [];
-                    } else {
-                        $expJamMulai = null; $expJamSelesai = null;
-                        foreach ($section->locations as $loc2) {
-                            $e2 = $entryMap[$loc2->id][$col][1] ?? $entryMap[$loc2->id][$col][2] ?? null;
-                            if ($e2 && ($e2->start_time || $e2->end_time)) {
-                                $expJamMulai = $e2->start_time; $expJamSelesai = $e2->end_time; break;
-                            }
-                        }
-                    }
-                @endphp
-                <th colspan="3" style="font-size:7pt;line-height:1.35;vertical-align:top;padding:3px 2px">
-                    <div style="font-weight:700">Exposure {{ $romanNums[$col - 1] ?? $col }}</div>
-                    <div style="font-weight:400;font-size:6.5pt">(S{{ $colAsgn }})</div>
-                    @if ($isSettlePlate)
+                    @endphp
                     <div style="font-weight:400;margin-top:2px">
                         JAM<br>Mulai Sebar Petri:<br>
                         A: {{ ($stA['start_time'] ?? '') ?: '__:__' }}<br>
@@ -320,18 +292,29 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                         B: {{ ($stB['end_time'] ?? '') ?: '__:__' }}
                     </div>
                     @endif
+
+                    @if ($hasJam)
+                    @php
+                        $expJam = $hd['exposure_times'][$section->id][$col] ?? [];
+                        $expJamMulai   = $expJam['start_time'] ?? null;
+                        $expJamSelesai = $expJam['end_time'] ?? null;
+                    @endphp
+                    <div style="font-weight:400;margin-top:2px">
+                        Mulai: {{ $expJamMulai ?: '__:__' }}<br>
+                        Selesai: {{ $expJamSelesai ?: '__:__' }}
+                    </div>
+                    @endif
                 </th>
-                @endif
                 @endfor
             </tr>
 
             {{-- Row 3: B / F / T sub-headers --}}
             <tr>
-                @if (!$isShiftBased)
+                @if ($hasSharedTime)
                 <th>B</th><th>F</th><th>T</th>
                 @endif
                 @for ($col = 1; $col <= $maxCols; $col++)
-                @if ($isShiftBased && $hasJam)
+                @if ($isPerLocation)
                 <th style="white-space:nowrap">Jam</th>
                 @endif
                 <th>B</th><th>F</th><th>T</th>
@@ -344,7 +327,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
             <tr>
                 <td colspan="{{ $totalCols }}" style="border-left:none;border-right:none;font-size:7pt;font-weight:700;padding:3px 0">
                     FREQUENCY : EVERY OPERATIONAL AND DAILY (SETIAP OPERASIONAL DAN HARIAN)
-                    @if ($isSettlePlate)
+                    @if ($isDualAB)
                     <br><span style="font-weight:400;font-style:italic">* settle plate was exposed continuously for maximum every 4 hours (grade B) for aseptic filtration product only.</span>
                     @endif
                 </td>
@@ -355,33 +338,33 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
             @foreach ($section->locations as $loc)
             @php
                 $locEntries = collect();
-                for ($p = 1; $p <= $section->max_exposures; $p++) {
+                for ($p = 1; $p <= $section->max_exposure; $p++) {
                     for ($s = 1; $s <= 2; $s++) {
-                        if (isset($entryMap[$loc->id][$p][$s])) $locEntries->push($entryMap[$loc->id][$p][$s]);
+                        if (isset($entryMap[$loc->pivot->id][$p][$s])) $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
                     }
                 }
                 $maxB   = $locEntries->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
                 $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                $hasTMS = ($loc->action_limit_bacteria && $maxB >= $loc->action_limit_bacteria)
-                       || ($loc->action_limit_fungi && $maxF >= $loc->action_limit_fungi);
+                $hasTMS = ($loc->alert_action_bacteria && $maxB >= $loc->alert_action_bacteria)
+                       || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                 $hasAlt = !$hasTMS && (
                             ($loc->alert_limit_bacteria && $maxB >= $loc->alert_limit_bacteria)
                          || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                 $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
             @endphp
             <tr>
-                <td class="tc">{{ $loc->s_no }}</td>
-                <td class="tl">{{ $loc->room_name }}</td>
-                <td class="tc">{{ $loc->class }}</td>
-                <td class="tc" style="font-family:monospace;font-size:7.5pt">{{ $loc->room_number }}</td>
+                <td class="tc">{{ $loop->iteration }}</td>
+                <td class="tl">{{ $loc->room->room_name }}</td>
+                <td class="tc">{{ $loc->room->class }}</td>
+                <td class="tc" style="font-family:monospace;font-size:7.5pt">{{ $loc->room->room_number }}</td>
                 <td class="tc" style="font-family:monospace;font-size:7.5pt;{{ str_starts_with($loc->location_number, '*)') ? 'font-style:italic;' : '' }}">{{ $loc->location_number }}</td>
 
-                {{-- Machine set-up (settle plate only) --}}
-                @if (!$isShiftBased)
+                {{-- Machine set-up --}}
+                @if ($hasSharedTime)
                 @php
-                    $msEntry = $entryMap[$loc->id][0][1] ?? $entryMap[$loc->id][0][2] ?? null;
+                    $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
                     $msTVal  = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
-                        ? ($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0) : null;
+                        ? round(($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0), 10) : null;
                 @endphp
                 <td class="tc">{{ $msEntry?->cfu_bacteria ?? '' }}</td>
                 <td class="tc">{{ $msEntry?->cfu_fungi ?? '' }}</td>
@@ -392,13 +375,13 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                 @for ($col = 1; $col <= $maxCols; $col++)
                 @php
                     $colAsgn    = $secAssignments[$col] ?? 1;
-                    $existEntry = $isShiftBased
-                        ? ($entryMap[$loc->id][1][$colAsgn] ?? null)
-                        : ($entryMap[$loc->id][$col][$colAsgn] ?? null);
+                    $existEntry = $hasSharedTime
+                        ? ($entryMap[$loc->pivot->id][1][$colAsgn] ?? null)
+                        : ($entryMap[$loc->pivot->id][$col][$colAsgn] ?? null);
                     $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
-                        ? ($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0) : null;
+                        ? round(($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0), 10) : null;
                 @endphp
-                @if ($hasJam)
+                @if ($isPerLocation)
                 <td class="tc" style="font-size:7.5pt">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '' }}</td>
                 @endif
                 <td class="tc">{{ $existEntry?->cfu_bacteria ?? '' }}</td>
@@ -410,8 +393,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                 <td class="tc">{{ $loc->alert_limit_bacteria !== null ? $loc->alert_limit_bacteria : 'NA' }}</td>
                 <td class="tc">{{ $loc->alert_limit_fungi !== null ? $loc->alert_limit_fungi : 'NA' }}</td>
                 {{-- Action Limit --}}
-                <td class="tc">{{ $loc->action_limit_bacteria !== null ? ($loc->action_limit_bacteria == 1 ? '<1' : $loc->action_limit_bacteria) : 'NA' }}</td>
-                <td class="tc">{{ $loc->action_limit_fungi !== null ? ($loc->action_limit_fungi == 1 ? '<1' : $loc->action_limit_fungi) : 'NA' }}</td>
+                <td class="tc">{{ $loc->alert_action_bacteria !== null ? ($loc->alert_action_bacteria == 1 ? '<1' : $loc->alert_action_bacteria) : 'NA' }}</td>
+                <td class="tc">{{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : 'NA' }}</td>
                 {{-- Kesimpulan --}}
                 <td class="tc fw">
                     @if ($konklusi === 'TMS') TMS
@@ -427,7 +410,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
 
     {{-- Keterangan --}}
     <div style="font-size:7.5pt;margin:3px 0">
-        @if ($isSwab)
+        @if ($section->measurement_type === 'swab')
         *) diisi jika dibutuhkan<br>
         @endif
         Keterangan:<br>

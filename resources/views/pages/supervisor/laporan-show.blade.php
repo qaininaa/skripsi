@@ -237,12 +237,16 @@
     {{-- ── Tabel Pengukuran per Seksi ────────────────────── --}}
     @foreach ($report->reportType->sections as $section)
     @php
-        $isShiftBased  = in_array($section->measurement_type, ['air_sampler', 'contact_plate', 'swab']);
-        $isSettlePlate = $section->measurement_type === 'settle_plate';
-        $isSwab        = $section->measurement_type === 'swab';
-        $hasJam        = $section->measurement_type === 'air_sampler';
-        $isPerLocation = $section->time_slot_type === 'per_location';
-        $maxCols       = $section->max_exposures;
+        // Config-driven flags (matching analis view)
+        $hasSharedTime  = (bool) $section->has_shared_time;
+        $hasJam         = $section->time_slot_type === 'single';
+        $isPerLocation  = $section->time_slot_type === 'per_location';
+        $isDualAB       = $section->time_slot_type === 'dual_ab';
+        $isSwabTime     = $section->time_slot_type === 'swab';
+        $hasShiftToggle = (bool) $section->has_shift_toggle;
+        $colLabel       = $section->column_label ?? 'Exposure';
+
+        $maxCols       = $section->max_exposure;
         $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
         $secNum        = $loop->index + 5;
         $savedAsgn     = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
@@ -251,6 +255,9 @@
             $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
         }
         $secNote = $hd['section_notes'][$section->id] ?? [];
+
+        // Sub-columns per exposure: B + F + T = 3, +1 JAM if per_location
+        $subColsPerExp = $isPerLocation ? 4 : 3;
     @endphp
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
@@ -264,7 +271,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + (!$isShiftBased ? 130 : 0) + ($maxCols * ($isShiftBased ? ($hasJam ? 220 : ($isSwab ? 220 : 160)) : ($isPerLocation ? 220 : 130))) }}px">
+            <table class="w-full text-xs border-collapse">
                 <thead>
                     {{-- Row 1: group headers --}}
                     <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
@@ -274,7 +281,7 @@
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No. Ruangan</th>
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No.<br>Lokasi</th>
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100"
-                            colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($isShiftBased ? ($hasJam ? 4 : 3) : ($isPerLocation ? 4 : 3)) }}">
+                            colspan="{{ ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp }}">
                             {{ $section->measurement_unit }}
                         </th>
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Alert</th>
@@ -283,11 +290,11 @@
                     </tr>
                     {{-- Row 2: period/shift labels --}}
                     <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
-                        @if (!$isShiftBased)
+                        @if ($hasSharedTime)
                         @php
                             $msJamMulai = null; $msJamSelesai = null;
                             foreach ($section->locations as $loc2) {
-                                $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
+                                $e0 = $entryMap[$loc2->pivot->id][0][1] ?? $entryMap[$loc2->pivot->id][0][2] ?? null;
                                 if ($e0 && ($e0->start_time || $e0->end_time)) {
                                     $msJamMulai   = $e0->start_time;
                                     $msJamSelesai = $e0->end_time;
@@ -304,11 +311,12 @@
                         @endif
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
-                        @if ($isShiftBased)
                         <th class="px-2 py-1.5 text-center font-semibold border-r border-emerald-100 whitespace-nowrap"
-                            colspan="{{ $hasJam ? 4 : 3 }}">
-                            Shift
-                            @if ($isSwab)
+                            colspan="{{ $subColsPerExp }}">
+                            {{ $colLabel }} {{ $maxCols > 1 ? ($romanNums[$col - 1] ?? $col) : '' }}
+
+                            {{-- Swab time slots --}}
+                            @if ($isSwabTime)
                             @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
@@ -317,60 +325,50 @@
                                 @endforeach
                             </div>
                             @endif
-                            <div class="flex justify-center mt-1.5">
-                                <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
-                                    {{ $colAsgn == 1 ? 'S1' : 'S2' }}
-                                </span>
-                            </div>
-                        </th>
-                        @else
-                        @php
-                            $expJamMulai = null; $expJamSelesai = null;
-                            if (!$isSettlePlate) {
-                                foreach ($section->locations as $loc2) {
-                                    $e2 = $entryMap[$loc2->id][$col][1] ?? $entryMap[$loc2->id][$col][2] ?? null;
-                                    if ($e2 && ($e2->start_time || $e2->end_time)) {
-                                        $expJamMulai   = $e2->start_time;
-                                        $expJamSelesai = $e2->end_time;
-                                        break;
-                                    }
-                                }
-                            }
-                        @endphp
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100" colspan="{{ $isPerLocation ? 4 : 3 }}">
-                            <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">
-                                Exposure {{ $romanNums[$col - 1] ?? $col }}
-                            </div>
-                            @if ($isSettlePlate)
+
+                            {{-- Dual A/B settle times --}}
+                            @if ($isDualAB)
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
                                 @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
                                 <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
-                            @elseif (!$isPerLocation)
-                            <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
-                                {{ $expJamMulai ? $expJamMulai . ' – ' . ($expJamSelesai ?? '—') : '—' }}
+                            @endif
+
+                            {{-- Single time slot (Mulai/Selesai in header) --}}
+                            @if ($hasJam)
+                            @php
+                                $expJam = $hd['exposure_times'][$section->id][$col] ?? [];
+                                $expJamMulai   = $expJam['start_time'] ?? null;
+                                $expJamSelesai = $expJam['end_time'] ?? null;
+                            @endphp
+                            <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
+                                <div>Mulai: {{ $expJamMulai ?: '—' }}</div>
+                                <div>Selesai: {{ $expJamSelesai ?: '—' }}</div>
                             </div>
                             @endif
+
+                            {{-- Shift assignment badge --}}
+                            @if ($hasShiftToggle)
                             <div class="flex justify-center mt-1.5">
                                 <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
                                     {{ $colAsgn == 1 ? 'S1' : 'S2' }}
                                 </span>
                             </div>
+                            @endif
                         </th>
-                        @endif
                         @endfor
                     </tr>
                     {{-- Row 3: sub-column headers --}}
                     <tr class="bg-emerald-50/60 text-gray-500 border-b border-gray-200">
-                        @if (!$isShiftBased)
+                        @if ($hasSharedTime)
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
                         @endif
                         @for ($col = 1; $col <= $maxCols; $col++)
-                        @if (($isShiftBased && $hasJam) || $isPerLocation)
+                        @if ($isPerLocation)
                             <th class="px-1.5 py-1.5 text-center font-medium border-r border-emerald-100 whitespace-nowrap">JAM</th>
                         @endif
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
@@ -387,23 +385,23 @@
                     @foreach ($section->locations as $loc)
                     @php
                         $locEntries = collect();
-                        for ($p = 1; $p <= $section->max_exposures; $p++) {
+                        for ($p = 1; $p <= $section->max_exposure; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
-                                if (isset($entryMap[$loc->id][$p][$s])) {
-                                    $locEntries->push($entryMap[$loc->id][$p][$s]);
+                                if (isset($entryMap[$loc->pivot->id][$p][$s])) {
+                                    $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
                                 }
                             }
                         }
                         $maxB   = $locEntries->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
                         $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                        $hasTMS = ($loc->action_limit_bacteria && $maxB >= $loc->action_limit_bacteria)
-                               || ($loc->action_limit_fungi && $maxF >= $loc->action_limit_fungi);
+                        $hasTMS = ($loc->alert_action_bacteria && $maxB >= $loc->alert_action_bacteria)
+                               || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                         $hasAlt = !$hasTMS && (
                                     ($loc->alert_limit_bacteria && $maxB >= $loc->alert_limit_bacteria)
                                  || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                         $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
 
-                        $classBadge = match($loc->class) {
+                        $classBadge = match($loc->room->class) {
                             'A' => 'bg-purple-100 text-purple-700',
                             'B' => 'bg-blue-100 text-blue-700',
                             'C' => 'bg-amber-100 text-amber-700',
@@ -411,12 +409,12 @@
                         };
                     @endphp
                     <tr class="hover:bg-emerald-50/20 transition-colors">
-                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loc->s_no }}</td>
-                        <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room_name }}</td>
+                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loop->iteration }}</td>
+                        <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room->room_name }}</td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                            <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">{{ $loc->class }}</span>
+                            <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">{{ $loc->room->class }}</span>
                         </td>
-                        <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap text-[11px]">{{ $loc->room_number }}</td>
+                        <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap text-[11px]">{{ $loc->room->room_number }}</td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             @if (str_starts_with($loc->location_number, '*)'))
                                 <span class="text-[11px] text-gray-400 italic">{{ $loc->location_number }}</span>
@@ -425,11 +423,12 @@
                             @endif
                         </td>
 
-                        @if (!$isShiftBased)
+                        {{-- Machine Set-up (hasSharedTime) --}}
+                        @if ($hasSharedTime)
                         @php
-                            $msEntry = $entryMap[$loc->id][0][1] ?? $entryMap[$loc->id][0][2] ?? null;
+                            $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
                             $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
-                                ? ($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0) : null;
+                                ? round(($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0), 10) : null;
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -448,18 +447,21 @@
                         </td>
                         @endif
 
+                        {{-- Data columns per exposure --}}
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
                             $colAsgn = $secAssignments[$col] ?? 1;
-                            $existEntry = $isShiftBased
-                                ? ($entryMap[$loc->id][1][$colAsgn] ?? null)
-                                : ($entryMap[$loc->id][$col][$colAsgn] ?? null);
+                            if ($hasSharedTime) {
+                                $existEntry = $entryMap[$loc->pivot->id][1][$colAsgn] ?? null;
+                            } else {
+                                $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
+                            }
                             $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
-                                ? ($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0)
+                                ? round(($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0), 10)
                                 : null;
                         @endphp
 
-                        @if ($hasJam || $isPerLocation)
+                        @if ($isPerLocation)
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-gray-{{ $existEntry?->start_time ? '600' : '300' }} text-[11px]">
                                 {{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '-' }}
@@ -497,13 +499,13 @@
                         </td>
                         {{-- Action Limit --}}
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                            <span class="text-[11px] font-medium {{ $loc->action_limit_bacteria !== null ? 'text-red-600' : 'text-gray-300' }}">
-                                {{ $loc->action_limit_bacteria !== null ? ($loc->action_limit_bacteria == 1 ? '<1' : $loc->action_limit_bacteria) : '—' }}
+                            <span class="text-[11px] font-medium {{ $loc->alert_action_bacteria !== null ? 'text-red-600' : 'text-gray-300' }}">
+                                {{ $loc->alert_action_bacteria !== null ? ($loc->alert_action_bacteria == 1 ? '<1' : $loc->alert_action_bacteria) : '—' }}
                             </span>
                         </td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                            <span class="text-[11px] font-medium {{ $loc->action_limit_fungi !== null ? 'text-red-600' : 'text-gray-300' }}">
-                                {{ $loc->action_limit_fungi !== null ? ($loc->action_limit_fungi == 1 ? '<1' : $loc->action_limit_fungi) : '—' }}
+                            <span class="text-[11px] font-medium {{ $loc->alert_action_fungi !== null ? 'text-red-600' : 'text-gray-300' }}">
+                                {{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : '—' }}
                             </span>
                         </td>
                         {{-- Kesimpulan --}}
