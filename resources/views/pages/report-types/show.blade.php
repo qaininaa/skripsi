@@ -45,7 +45,7 @@
         <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
             <div>
                 <dt class="text-gray-500">Kode</dt>
-                <dd class="font-medium text-gray-800 font-mono">{{ $reportType->code }}</dd>
+                <dd class="font-medium text-gray-800">{{ $reportType->code }}</dd>
             </div>
             <div>
                 <dt class="text-gray-500">Annex</dt>
@@ -315,8 +315,8 @@
                                         @php $cls = $loc->room->class ?? null; @endphp
                                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold {{ $cls === 'A' ? 'bg-purple-100 text-purple-700' : ($cls === 'B' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600') }}">{{ $cls ?? '-' }}</span>
                                     </td>
-                                    <td class="px-2 py-1.5 text-gray-600 font-mono">{{ $loc->room->room_number ?? '-' }}</td>
-                                    <td class="px-2 py-1.5 text-gray-600 font-mono">{{ $loc->location_number ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-gray-600">{{ $loc->room->room_number ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-gray-600">{{ $loc->location_number ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-gray-600">{{ $loc->measurement_type ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_bacteria ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_bacteria ?? '-' }}</td>

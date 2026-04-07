@@ -52,7 +52,7 @@
                             {{ $rt->annex_number }}
                         </span>
                     </td>
-                    <td class="px-5 py-3.5 text-sm font-mono text-gray-600">{{ $rt->code }}</td>
+                    <td class="px-5 py-3.5 text-sm text-gray-600">{{ $rt->code }}</td>
                     <td class="px-5 py-3.5 text-sm text-gray-800 max-w-xs truncate">{{ $rt->name }}</td>
                     <td class="px-5 py-3.5 text-center text-sm text-gray-600">{{ $rt->sections_count }}</td>
                     <td class="px-5 py-3.5 text-right">

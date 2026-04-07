@@ -252,12 +252,12 @@
                             {{ $loc->room->class }}
                         </span>
                     </td>
-                    <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap font-mono text-[11px]">{{ $loc->room->room_number }}</td>
+                    <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap text-[11px]">{{ $loc->room->room_number }}</td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
                         @if (str_starts_with($loc->location_number, '*)'))
-                            <span class="font-mono text-[11px] text-gray-400 italic">{{ $loc->location_number }}</span>
+                            <span class="text-[11px] text-gray-400 italic">{{ $loc->location_number }}</span>
                         @else
-                            <span class="font-mono text-[11px] text-gray-500">{{ $loc->location_number }}</span>
+                            <span class="text-[11px] text-gray-500">{{ $loc->location_number }}</span>
                         @endif
                     </td>
                     @if ($hasSharedTime)

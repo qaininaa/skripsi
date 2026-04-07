@@ -23,7 +23,7 @@
                 <span class="text-base font-normal text-gray-600">{{ $report->reportType->name ?? '—' }}</span>
             </h2>
             <p class="text-sm text-gray-500 mt-0.5">
-                {{ $report->product_name }} · Batch <span class="font-mono">{{ $report->batch_number }}</span>
+                {{ $report->product_name }} · Batch <span>{{ $report->batch_number }}</span>
                 · {{ $report->report_date->isoFormat('D MMM Y') }}
             </p>
         </div>
@@ -415,12 +415,12 @@
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">{{ $loc->class }}</span>
                         </td>
-                        <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap font-mono text-[11px]">{{ $loc->room_number }}</td>
+                        <td class="px-2 py-2.5 text-center text-gray-500 border-r border-gray-100 whitespace-nowrap text-[11px]">{{ $loc->room_number }}</td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             @if (str_starts_with($loc->location_number, '*)'))
-                                <span class="font-mono text-[11px] text-gray-400 italic">{{ $loc->location_number }}</span>
+                                <span class="text-[11px] text-gray-400 italic">{{ $loc->location_number }}</span>
                             @else
-                                <span class="font-mono text-[11px] text-gray-500">{{ $loc->location_number }}</span>
+                                <span class="text-[11px] text-gray-500">{{ $loc->location_number }}</span>
                             @endif
                         </td>
 

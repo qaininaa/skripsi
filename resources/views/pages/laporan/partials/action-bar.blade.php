@@ -16,7 +16,7 @@
                 <span class="text-sm font-normal text-gray-600">{{ $report->reportType->name }}</span>
             </h2>
             <p class="text-xs text-gray-500 mt-0.5">
-                {{ $report->product_name }} · Batch <span class="font-mono">{{ $report->batch_number }}</span>
+                {{ $report->product_name }} · Batch <span>{{ $report->batch_number }}</span>
                 · {{ $report->created_at->isoFormat('D MMM Y') }}
             </p>
         </div>
