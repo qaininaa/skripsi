@@ -69,10 +69,13 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         <span style="color:#ccc">|</span>
         <span style="font-size:12px;font-weight:700">{{ $report->reportType->annex_number }} — {{ $report->reportType->name }}</span>
     </div>
+
+    @if(auth()->user()->role === 'manajer')
     <button onclick="window.print()"
             style="background:#222;color:#fff;border:none;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:600;cursor:pointer;font-family:Verdana">
         Cetak / Download PDF
     </button>
+    @endif
 </div>
 
 {{-- ══════════════════════════════════════════════════════
