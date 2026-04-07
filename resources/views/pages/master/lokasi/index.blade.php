@@ -76,9 +76,9 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No. Lokasi</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipe Pengukuran</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Frekuensi</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Bakt.</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Jmr.</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Bakteri</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Fungi</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -86,29 +86,19 @@
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-4 py-3.5 text-gray-400 text-xs">{{ $locations->firstItem() + $loop->index }}</td>
                             <td class="px-4 py-3.5">
-                                <p class="font-medium text-gray-800">{{ $loc->room->room_name ?? '—' }}</p>
+                                <p class="font-medium text-gray-800">{{ $loc->room->room_name ?? '-' }}</p>
                                 <p class="text-xs text-gray-400">{{ $loc->room->room_number ?? '' }} &middot; Kelas {{ $loc->room->class ?? '' }}</p>
                             </td>
-                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->location_number ?? '—' }}</td>
-                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->measurement_type ?? '—' }}</td>
-                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->frequency->name ?? '—' }}</td>
-                            <td class="px-4 py-3.5 text-center">
-                                @if($loc->alert_limit_bacteria !== null || $loc->alert_action_bacteria !== null)
-                                    <span class="text-xs text-gray-600">
-                                        L: {{ $loc->alert_limit_bacteria ?? '—' }} / A: {{ $loc->alert_action_bacteria ?? '—' }}
-                                    </span>
-                                @else
-                                    <span class="text-gray-300">—</span>
-                                @endif
+                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->location_number ?? '-' }}</td>
+                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->measurement_type ? ucfirst(str_replace('_', ' ', $loc->measurement_type)) : '-' }}</td>
+                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->frequency->name ?? '-' }}</td>
+                            <td class="px-4 py-3.5">
+                                <p class="text-xs text-gray-600">Alert limit: {{ $loc->alert_limit_bacteria ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">Action limit: {{ $loc->alert_action_bacteria ?? '-' }}</p>
                             </td>
-                            <td class="px-4 py-3.5 text-center">
-                                @if($loc->alert_limit_fungi !== null || $loc->alert_action_fungi !== null)
-                                    <span class="text-xs text-gray-600">
-                                        L: {{ $loc->alert_limit_fungi ?? '—' }} / A: {{ $loc->alert_action_fungi ?? '—' }}
-                                    </span>
-                                @else
-                                    <span class="text-gray-300">—</span>
-                                @endif
+                            <td class="px-4 py-3.5">
+                                <p class="text-xs text-gray-600">Alert limit: {{ $loc->alert_limit_fungi ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">Action limit: {{ $loc->alert_action_fungi ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-2">
