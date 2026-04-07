@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Frequency;
 use App\Models\ReportLocation;
 use App\Models\ReportSection;
 use App\Models\ReportType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ReportTypeManagementController extends Controller
@@ -23,7 +25,8 @@ class ReportTypeManagementController extends Controller
 
     public function create(): View
     {
-        return view('pages.report-types.create');
+        $frequencies = Frequency::orderBy('name')->pluck('name');
+        return view('pages.report-types.create', compact('frequencies'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -34,20 +37,14 @@ class ReportTypeManagementController extends Controller
             'annex_number' => ['required', 'string', 'max:50'],
             'instrument'   => ['required', 'string', 'max:50'],
             'frequency'    => ['nullable', 'string', 'max:50'],
-            'description'  => ['nullable', 'string'],
-            'is_active'    => ['boolean'],
             // Medium groups
-            'medium_keys'   => ['nullable', 'array'],
-            'medium_keys.*' => ['required', 'string', 'max:100'],
             'medium_labels'   => ['nullable', 'array'],
-            'medium_labels.*' => ['required', 'string', 'max:255'],
+            'medium_labels.*' => ['nullable', 'string', 'max:255'],
             // Incubators
-            'incubator_keys'      => ['nullable', 'array'],
-            'incubator_keys.*'    => ['required', 'string', 'max:100'],
             'incubator_labels'    => ['nullable', 'array'],
-            'incubator_labels.*'  => ['required', 'string', 'max:255'],
+            'incubator_labels.*'  => ['nullable', 'string', 'max:255'],
             'incubator_min_days'  => ['nullable', 'array'],
-            'incubator_min_days.*' => ['required', 'integer', 'min:1'],
+            'incubator_min_days.*' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $mediumGroups = $this->buildMediumGroups($request);
@@ -59,8 +56,7 @@ class ReportTypeManagementController extends Controller
             'annex_number'  => $validated['annex_number'],
             'instrument'    => $validated['instrument'],
             'frequency'     => $validated['frequency'] ?? null,
-            'description'   => $validated['description'] ?? null,
-            'is_active'     => $request->boolean('is_active', true),
+            'is_active'     => true,
             'medium_groups' => $mediumGroups ?: null,
             'incubators'    => $incubators ?: null,
         ]);
@@ -87,7 +83,8 @@ class ReportTypeManagementController extends Controller
 
     public function edit(ReportType $reportType): View
     {
-        return view('pages.report-types.edit', compact('reportType'));
+        $frequencies = Frequency::orderBy('name')->pluck('name');
+        return view('pages.report-types.edit', compact('reportType', 'frequencies'));
     }
 
     public function update(Request $request, ReportType $reportType): RedirectResponse
@@ -98,16 +95,10 @@ class ReportTypeManagementController extends Controller
             'annex_number' => ['required', 'string', 'max:50'],
             'instrument'   => ['required', 'string', 'max:50'],
             'frequency'    => ['nullable', 'string', 'max:50'],
-            'description'  => ['nullable', 'string'],
-            'is_active'    => ['boolean'],
-            'medium_keys'   => ['nullable', 'array'],
-            'medium_keys.*' => ['required', 'string', 'max:100'],
             'medium_labels'   => ['nullable', 'array'],
-            'medium_labels.*' => ['required', 'string', 'max:255'],
-            'incubator_keys'      => ['nullable', 'array'],
-            'incubator_keys.*'    => ['required', 'string', 'max:100'],
+            'medium_labels.*' => ['nullable', 'string', 'max:255'],
             'incubator_labels'    => ['nullable', 'array'],
-            'incubator_labels.*'  => ['required', 'string', 'max:255'],
+            'incubator_labels.*'  => ['nullable', 'string', 'max:255'],
             'incubator_min_days'  => ['nullable', 'array'],
             'incubator_min_days.*' => ['required', 'integer', 'min:1'],
         ]);
@@ -121,8 +112,6 @@ class ReportTypeManagementController extends Controller
             'annex_number'  => $validated['annex_number'],
             'instrument'    => $validated['instrument'],
             'frequency'     => $validated['frequency'] ?? null,
-            'description'   => $validated['description'] ?? null,
-            'is_active'     => $request->boolean('is_active', true),
             'medium_groups' => $mediumGroups ?: null,
             'incubators'    => $incubators ?: null,
         ]);
@@ -172,12 +161,18 @@ class ReportTypeManagementController extends Controller
             'slug'             => ['required', 'string', 'max:100'],
             'measurement_unit' => ['required', 'string', 'max:50'],
             'measurement_type' => ['required', 'string', 'max:50'],
-            'max_exposures'    => ['required', 'integer', 'min:1', 'max:20'],
+            'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
+            'column_label'     => ['required', 'string', 'max:50'],
+            'time_slot_type'   => ['required', 'string', 'in:none,single,dual_ab,swab'],
+            'has_shared_time'  => ['boolean'],
+            'has_shift_toggle' => ['boolean'],
         ]);
 
         $maxOrder = $reportType->sections()->max('order') ?? 0;
         $validated['report_type_id'] = $reportType->id;
         $validated['order'] = $maxOrder + 1;
+        $validated['has_shared_time'] = $request->boolean('has_shared_time');
+        $validated['has_shift_toggle'] = $request->boolean('has_shift_toggle');
 
         ReportSection::create($validated);
 
@@ -193,9 +188,16 @@ class ReportTypeManagementController extends Controller
             'slug'             => ['required', 'string', 'max:100'],
             'measurement_unit' => ['required', 'string', 'max:50'],
             'measurement_type' => ['required', 'string', 'max:50'],
-            'max_exposures'    => ['required', 'integer', 'min:1', 'max:20'],
+            'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
+            'column_label'     => ['required', 'string', 'max:50'],
+            'time_slot_type'   => ['required', 'string', 'in:none,single,dual_ab,swab'],
+            'has_shared_time'  => ['boolean'],
+            'has_shift_toggle' => ['boolean'],
             'order'            => ['required', 'integer', 'min:0'],
         ]);
+
+        $validated['has_shared_time'] = $request->boolean('has_shared_time');
+        $validated['has_shift_toggle'] = $request->boolean('has_shift_toggle');
 
         $section->update($validated);
 
@@ -251,12 +253,12 @@ class ReportTypeManagementController extends Controller
 
     private function buildMediumGroups(Request $request): array
     {
-        $keys = $request->input('medium_keys', []);
         $labels = $request->input('medium_labels', []);
         $result = [];
-        foreach ($keys as $i => $key) {
-            if (!empty($key) && !empty($labels[$i] ?? '')) {
-                $result[$key] = $labels[$i];
+        foreach ($labels as $label) {
+            $label = trim($label);
+            if ($label !== '') {
+                $result[Str::snake($label)] = $label;
             }
         }
         return $result;
@@ -264,15 +266,15 @@ class ReportTypeManagementController extends Controller
 
     private function buildIncubators(Request $request): array
     {
-        $keys = $request->input('incubator_keys', []);
-        $labels = $request->input('incubator_labels', []);
+        $labels  = $request->input('incubator_labels', []);
         $minDays = $request->input('incubator_min_days', []);
-        $result = [];
-        foreach ($keys as $i => $key) {
-            if (!empty($key) && !empty($labels[$i] ?? '')) {
-                $result[$key] = [
-                    'label'    => $labels[$i],
-                    'min_days' => (int) ($minDays[$i] ?? 1),
+        $result  = [];
+        foreach ($labels as $i => $label) {
+            $label = trim($label);
+            if ($label !== '') {
+                $result[Str::snake($label)] = [
+                    'label'    => $label,
+                    'min_days' => (int) ($minDays[$i] ?? 3),
                 ];
             }
         }

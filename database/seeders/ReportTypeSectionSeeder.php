@@ -246,5 +246,21 @@ class ReportTypeSectionSeeder extends Seeder
                 'updated_at'       => $now,
             ],
         ]);
+
+        // ---------------------------------------------------------------
+        // Populate config columns based on measurement_type
+        // ---------------------------------------------------------------
+        $configMap = [
+            'settle_plate'  => ['column_label' => 'Exposure', 'time_slot_type' => 'dual_ab',  'has_shared_time' => true,  'has_shift_toggle' => true],
+            'air_sampler'   => ['column_label' => 'Shift',    'time_slot_type' => 'single',   'has_shared_time' => false, 'has_shift_toggle' => true],
+            'contact_plate' => ['column_label' => 'Shift',    'time_slot_type' => 'none',     'has_shared_time' => false, 'has_shift_toggle' => true],
+            'swab'          => ['column_label' => 'Shift',    'time_slot_type' => 'swab',     'has_shared_time' => false, 'has_shift_toggle' => true],
+        ];
+
+        foreach ($configMap as $type => $cfg) {
+            DB::table('sections')
+                ->where('measurement_type', $type)
+                ->update($cfg);
+        }
     }
 }

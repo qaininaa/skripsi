@@ -16,7 +16,7 @@
                            @if(!$isEditable) readonly @endif
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
                 </div>
-                @if ($medKey !== 'medium_swab')
+                @if (!str_contains(strtolower($medLabel), 'swab'))
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
                     <input type="text" name="header_data[{{ $medKey }}][nomor_gpt]" value="{{ $med['nomor_gpt'] ?? '' }}"
@@ -25,7 +25,7 @@
                 </div>
                 @endif
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medKey === 'medium_swab' ? 'Swab Kit' : 'Medium' }}</label>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medLabel }}</label>
                     <input type="date" name="header_data[{{ $medKey }}][expiry_date]" value="{{ $med['expiry_date'] ?? '' }}"
                            @if(!$isEditable) readonly @endif
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">

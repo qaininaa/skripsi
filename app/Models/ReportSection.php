@@ -10,8 +10,18 @@ class ReportSection extends Model
 
     protected $fillable = [
         'report_type_id', 'name', 'slug', 'measurement_unit',
-        'measurement_type', 'max_exposure', 'order',
+        'measurement_type', 'max_exposure', 'column_label',
+        'time_slot_type', 'has_shared_time', 'has_shift_toggle',
+        'order',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'has_shared_time'  => 'boolean',
+            'has_shift_toggle' => 'boolean',
+        ];
+    }
 
     public function reportType()
     {

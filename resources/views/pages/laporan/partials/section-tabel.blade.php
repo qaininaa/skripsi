@@ -1,9 +1,13 @@
 {{-- ── Tabel Pengukuran per Seksi (dipakai di dalam @foreach sections) ── --}}
 @php
-    $isShiftBased  = in_array($section->measurement_type, ['air_sampler', 'contact_plate', 'swab']);
-    $isSettlePlate = $section->measurement_type === 'settle_plate';
-    $isSwab        = $section->measurement_type === 'swab';
-    $hasJam        = $section->measurement_type === 'air_sampler';
+    // Config-driven flags dari tabel sections
+    $hasSharedTime  = (bool) $section->has_shared_time;
+    $hasJam         = $section->time_slot_type === 'single';
+    $isDualAB       = $section->time_slot_type === 'dual_ab';
+    $isSwabTime     = $section->time_slot_type === 'swab';
+    $hasShiftToggle = (bool) $section->has_shift_toggle;
+    $colLabel       = $section->column_label ?? 'Exposure';
+
     $maxCols       = $section->max_exposure;
     $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
     $secNum        = $loop->index + 5;
@@ -12,6 +16,9 @@
     for ($c = 1; $c <= $maxCols; $c++) {
         $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
     }
+
+    // Hitung sub-kolom per exposure: B + F + T = 3, plus JAM jika single-time
+    $subColsPerExp = $hasJam ? 4 : 3;
 @endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4 overflow-hidden">
     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
@@ -25,7 +32,7 @@
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + (!$isShiftBased ? 130 : 0) + ($maxCols * ($isShiftBased ? ($hasJam ? 220 : ($isSwab ? 220 : 160)) : 130)) }}px">
+        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + ($hasSharedTime ? 130 : 0) + ($maxCols * ($hasJam ? 220 : ($isSwabTime ? 220 : ($isDualAB ? 130 : 160)))) }}px">
             <thead>
                 {{-- Row 1: group headers --}}
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
@@ -35,7 +42,7 @@
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Room Number</th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Location<br>Number</th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100"
-                    colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($isShiftBased ? ($hasJam ? 4 : 3) : 3) }}">
+                    colspan="{{ ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp }}">
                         {{ $section->measurement_unit }}
                     </th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Alert<br>Limit</th>
@@ -44,7 +51,7 @@
                 </tr>
                 {{-- Row 2: period/shift labels --}}
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
-                    @if (!$isShiftBased)
+                    @if ($hasSharedTime)
                     @php
                         $msJamMulai = null; $msJamSelesai = null;
                         foreach ($section->locations as $loc2) {
@@ -76,12 +83,13 @@
                     </th>
                     @endif
                     @for ($col = 1; $col <= $maxCols; $col++)
-                    @if ($isShiftBased)
-                    @php $colAsgn = $secAssignments[$col] ?? $col; @endphp
+                    @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
                     <th class="px-2 py-1.5 text-center font-semibold border-r border-sky-100 whitespace-nowrap"
-                        colspan="{{ $hasJam ? 4 : 3 }}">
-                        Shift
-                        @if ($isSwab)
+                        colspan="{{ $subColsPerExp }}">
+                        {{ $colLabel }} {{ $maxCols > 1 ? ($romanNums[$col - 1] ?? $col) : '' }}
+
+                        {{-- Swab time slots (S1, S1-2, S1-3) --}}
+                        @if ($isSwabTime)
                         @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
                         @if ($isEditable)
                         <div class="space-y-0.5 mt-1">
@@ -108,43 +116,9 @@
                         </div>
                         @endif
                         @endif
-                        <input type="hidden" name="shift_assignment[{{ $section->id }}][{{ $col }}]" id="sa-{{ $section->id }}-{{ $col }}" value="{{ $colAsgn }}">
-                        @if ($isEditable && $myShift === 1 && !$shift1HandedOver)
-                        <div class="flex justify-center gap-1 mt-1.5">
-                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 1)" id="sa-btn-{{ $section->id }}-{{ $col }}-1"
-                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 1 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S1</button>
-                            @if ($report->shift2Analis)
-                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 2)" id="sa-btn-{{ $section->id }}-{{ $col }}-2"
-                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 2 ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S2</button>
-                            @endif
-                        </div>
-                        @else
-                        <div class="flex justify-center mt-1.5">
-                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700' }}">{{ $colAsgn == 1 ? 'S1' : 'S2' }}</span>
-                        </div>
-                        @endif
-                    </th>
-                    @else
-                    @php
-                        if ($isSettlePlate) {
-                            $expJamMulai = null; $expJamSelesai = null;
-                        } else {
-                            $expJamMulai = null; $expJamSelesai = null;
-                            foreach ($section->locations as $loc2) {
-                                $e2 = $entryMap[$loc2->id][$col][$myShift] ?? null;
-                                if ($e2 && ($e2->start_time || $e2->end_time)) {
-                                    $expJamMulai   = $e2->start_time;
-                                    $expJamSelesai = $e2->end_time;
-                                    break;
-                                }
-                            }
-                        }
-                    @endphp
-                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100" colspan="3">
-                        <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">
-                            Exposure {{ $romanNums[$col - 1] ?? $col }}
-                        </div>
-                        @if ($isSettlePlate)
+
+                        {{-- Dual A/B time slots (settle plate) --}}
+                        @if ($isDualAB)
                             @if ($isEditable)
                             <div class="space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
@@ -169,7 +143,21 @@
                                 @endforeach
                             </div>
                             @endif
-                        @else
+                        @endif
+
+                        {{-- Single time slot (air sampler exposure) --}}
+                        @if ($section->time_slot_type === 'single' && !$hasJam)
+                        @php
+                            $expJamMulai = null; $expJamSelesai = null;
+                            foreach ($section->locations as $loc2) {
+                                $e2 = $entryMap[$loc2->id][$col][$myShift] ?? null;
+                                if ($e2 && ($e2->start_time || $e2->end_time)) {
+                                    $expJamMulai   = $e2->start_time;
+                                    $expJamSelesai = $e2->end_time;
+                                    break;
+                                }
+                            }
+                        @endphp
                         @if ($isEditable)
                         <div class="flex justify-center items-center gap-1">
                             <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][start_time]"
@@ -186,8 +174,9 @@
                         </div>
                         @endif
                         @endif
+
                         {{-- Shift assignment toggle --}}
-                        @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
+                        @if ($hasShiftToggle)
                         <input type="hidden" name="shift_assignment[{{ $section->id }}][{{ $col }}]" id="sa-{{ $section->id }}-{{ $col }}" value="{{ $colAsgn }}">
                         @if ($isEditable && $myShift === 1 && !$shift1HandedOver)
                         <div class="flex justify-center gap-1 mt-1.5">
@@ -203,22 +192,20 @@
                             <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700' }}">{{ $colAsgn == 1 ? 'S1' : 'S2' }}</span>
                         </div>
                         @endif
+                        @endif
                     </th>
-                    @endif
                     @endfor
                 </tr>
                 {{-- Row 3: sub-column headers --}}
                 <tr class="bg-sky-50/60 text-gray-500 border-b border-gray-200">
-                    @if (!$isShiftBased)
+                    @if ($hasSharedTime)
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
                     @endif
                     @for ($col = 1; $col <= $maxCols; $col++)
-                    @if ($isShiftBased)
-                        @if ($hasJam)
+                    @if ($hasJam)
                         <th class="px-1.5 py-1.5 text-center font-medium border-r border-sky-100 whitespace-nowrap">JAM</th>
-                        @endif
                     @endif
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
@@ -273,7 +260,7 @@
                             <span class="font-mono text-[11px] text-gray-500">{{ $loc->location_number }}</span>
                         @endif
                     </td>
-                    @if (!$isShiftBased)
+                    @if ($hasSharedTime)
                     @php
                         $msEntry = $entryMap[$loc->pivot->id][0][$myShift] ?? null;
                         $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
@@ -315,7 +302,7 @@
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @php
                         $colAsgn = $secAssignments[$col] ?? 1;
-                        if ($isShiftBased) {
+                        if (!$hasSharedTime) {
                             $existEntry = $entryMap[$loc->pivot->id][1][$colAsgn] ?? null;
                             $editable   = $isEditable && ($colAsgn == $myShift);
                         } else {
@@ -424,7 +411,7 @@
     </div>
 
     <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-gray-400">
-        @if ($section->measurement_type === 'swab')
+        @if ($isSwabTime)
         <p class="mb-1"><span class="text-gray-500">*)</span> diisi jika dibutuhkan</p>
         @endif
         <strong class="text-gray-500">Keterangan:</strong>

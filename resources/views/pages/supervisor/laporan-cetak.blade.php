@@ -115,7 +115,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         @foreach ($mediumGroups as $medKey => $medLabel)
         @php $med = $hd[$medKey] ?? []; @endphp
         <tr><td style="width:45%">Nomor Batch {{ $medLabel }}</td><td>{{ $med['nomor_batch'] ?? '' }}</td></tr>
-        @if ($medKey !== 'medium_swab')
+        @if (!str_contains(strtolower($medLabel), 'swab'))
         <tr><td>Nomor GPT {{ $medLabel }}</td><td>{{ $med['nomor_gpt'] ?? '' }}</td></tr>
         @endif
         <tr><td>Tanggal ED {{ $medLabel }}</td><td>{{ $med['expiry_date'] ?? '' }}</td></tr>

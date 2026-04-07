@@ -39,7 +39,6 @@
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Kode</th>
                     <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Nama</th>
                     <th class="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Seksi</th>
-                    <th class="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Status</th>
                     <th class="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">Aksi</th>
                 </tr>
             </thead>
@@ -54,13 +53,6 @@
                     <td class="px-5 py-3.5 text-sm font-mono text-gray-600">{{ $rt->code }}</td>
                     <td class="px-5 py-3.5 text-sm text-gray-800 max-w-xs truncate">{{ $rt->name }}</td>
                     <td class="px-5 py-3.5 text-center text-sm text-gray-600">{{ $rt->sections_count }}</td>
-                    <td class="px-5 py-3.5 text-center">
-                        @if ($rt->is_active)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Aktif</span>
-                        @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Nonaktif</span>
-                        @endif
-                    </td>
                     <td class="px-5 py-3.5 text-right">
                         <div class="flex items-center justify-end gap-2">
                             <a href="{{ route('report-types.show', $rt) }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Detail</a>

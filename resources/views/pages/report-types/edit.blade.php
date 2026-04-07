@@ -60,38 +60,41 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Frekuensi</label>
-                    <input type="text" name="frequency" value="{{ old('frequency', $reportType->frequency) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <select name="frequency" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">— Pilih frekuensi —</option>
+                        @foreach ($frequencies as $freq)
+                        <option value="{{ $freq }}" {{ old('frequency', $reportType->frequency) === $freq ? 'selected' : '' }}>{{ $freq }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-                <textarea name="description" rows="2" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description', $reportType->description) }}</textarea>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <input type="hidden" name="is_active" value="0">
-                <input type="checkbox" name="is_active" value="1" id="is_active" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" {{ old('is_active', $reportType->is_active) ? 'checked' : '' }}>
-                <label for="is_active" class="text-sm text-gray-700">Aktif</label>
-            </div>
 
             {{-- Medium Groups --}}
             <div class="border-t border-gray-100 pt-5">
                 <div class="flex items-center justify-between mb-3">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Medium Groups</h3>
-                        <p class="text-xs text-gray-500">Daftar medium yang tersedia (Medium TSP, Swab Kit, dll).</p>
+                        <p class="text-xs text-gray-500">Daftar medium yang digunakan (Medium TSP, Swab Kit, dll).</p>
                     </div>
                     <button type="button" @click="addMedium()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
                         Tambah Medium
                     </button>
                 </div>
+                <datalist id="medium-suggestions">
+                    <option value="Medium TSP 60mm">
+                    <option value="Medium TSP 65mm">
+                    <option value="Medium TSP 90mm">
+                    <option value="Swab Kit">
+                </datalist>
                 <div class="space-y-2">
                     <template x-for="(m, idx) in mediums" :key="idx">
                         <div class="flex items-center gap-2">
-                            <input type="text" :name="'medium_keys[' + idx + ']'" x-model="m.key" placeholder="Key" class="flex-1 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <input type="text" :name="'medium_labels[' + idx + ']'" x-model="m.label" placeholder="Label" class="flex-1 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <input type="text" :name="'medium_labels[' + idx + ']'" x-model="m.label"
+                                   list="medium-suggestions"
+                                   placeholder="cth: Medium TSP 60mm"
+                                   class="flex-1 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <button type="button" @click="mediums.splice(idx, 1)" class="p-2 text-red-400 hover:text-red-600">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
@@ -106,19 +109,31 @@
                 <div class="flex items-center justify-between mb-3">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Inkubator</h3>
-                        <p class="text-xs text-gray-500">Konfigurasi suhu inkubasi dan durasi minimum (hari).</p>
+                        <p class="text-xs text-gray-500">Pilih suhu inkubasi — durasi min. terisi otomatis.</p>
                     </div>
                     <button type="button" @click="addIncubator()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
                         Tambah Inkubator
                     </button>
                 </div>
+                <datalist id="incubator-suggestions">
+                    <option value="20-25°C">
+                    <option value="30-35°C">
+                </datalist>
                 <div class="space-y-2">
                     <template x-for="(inc, idx) in incubators" :key="idx">
                         <div class="flex items-center gap-2">
-                            <input type="text" :name="'incubator_keys[' + idx + ']'" x-model="inc.key" placeholder="Key (cth: 20_25)" class="w-1/4 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <input type="text" :name="'incubator_labels[' + idx + ']'" x-model="inc.label" placeholder="Label (cth: 20-25°C)" class="flex-1 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <input type="number" :name="'incubator_min_days[' + idx + ']'" x-model="inc.min_days" placeholder="Hari" min="1" class="w-20 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <input type="text" :name="'incubator_labels[' + idx + ']'" x-model="inc.label"
+                                   list="incubator-suggestions"
+                                   @change="inc.min_days = incPresets[inc.label] ?? inc.min_days"
+                                   placeholder="cth: 20-25°C"
+                                   class="flex-1 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <div class="flex items-center gap-1">
+                                <input type="number" :name="'incubator_min_days[' + idx + ']'" x-model="inc.min_days"
+                                       min="1" placeholder="Hari"
+                                       class="w-16 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <span class="text-xs text-gray-500 whitespace-nowrap">hari min.</span>
+                            </div>
                             <button type="button" @click="incubators.splice(idx, 1)" class="p-2 text-red-400 hover:text-red-600">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
@@ -136,16 +151,21 @@
     </div>
 </div>
 
+@php
+    $mediumsJson    = json_encode(collect($reportType->medium_groups ?? [])->map(fn($label, $key) => ['key' => $key, 'label' => $label])->values());
+    $incubatorsJson = json_encode(collect($reportType->incubators ?? [])->map(fn($val, $key) => ['key' => $key, 'label' => $val['label'] ?? '', 'min_days' => $val['min_days'] ?? 3])->values());
+@endphp
 <script>
 function reportTypeForm() {
     return {
-        mediums: @json(collect($reportType->medium_groups ?? [])->map(fn($label, $key) => ['key' => $key, 'label' => $label])->values()),
-        incubators: @json(collect($reportType->incubators ?? [])->map(fn($val, $key) => ['key' => $key, 'label' => $val['label'] ?? '', 'min_days' => $val['min_days'] ?? 3])->values()),
+        mediums: {!! $mediumsJson !!},
+        incubators: {!! $incubatorsJson !!},
+        incPresets: { '20-25°C': 5, '30-35°C': 3 },
         addMedium() {
-            this.mediums.push({ key: '', label: '' });
+            this.mediums.push({ label: '' });
         },
         addIncubator() {
-            this.incubators.push({ key: '', label: '', min_days: 3 });
+            this.incubators.push({ label: '', min_days: 3 });
         },
     }
 }

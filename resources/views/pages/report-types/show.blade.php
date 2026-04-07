@@ -64,22 +64,6 @@
                 <dt class="text-gray-500">Frekuensi</dt>
                 <dd class="font-medium text-gray-800">{{ $reportType->frequency ?? '-' }}</dd>
             </div>
-            <div>
-                <dt class="text-gray-500">Status</dt>
-                <dd>
-                    @if ($reportType->is_active)
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Aktif</span>
-                    @else
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Nonaktif</span>
-                    @endif
-                </dd>
-            </div>
-            @if ($reportType->description)
-            <div class="md:col-span-2">
-                <dt class="text-gray-500">Deskripsi</dt>
-                <dd class="text-gray-800">{{ $reportType->description }}</dd>
-            </div>
-            @endif
         </dl>
 
         {{-- Medium Groups --}}
@@ -89,7 +73,7 @@
             <div class="flex flex-wrap gap-2">
                 @foreach ($reportType->medium_groups as $key => $label)
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                    {{ $label }} <span class="ml-1.5 text-blue-400 font-mono text-[10px]">({{ $key }})</span>
+                    {{ $label }}</span>
                 </span>
                 @endforeach
             </div>
@@ -103,7 +87,7 @@
             <div class="flex flex-wrap gap-2">
                 @foreach ($reportType->incubators as $key => $inc)
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                    {{ $inc['label'] }} — min {{ $inc['min_days'] }} hari
+                    {{ $inc['label'] }} - min {{ $inc['min_days'] }} hari
                 </span>
                 @endforeach
             </div>
@@ -125,43 +109,60 @@
         <div x-show="showAddSection" x-cloak class="mb-5 p-4 rounded-lg bg-gray-50 border border-gray-200">
             <form action="{{ route('report-types.sections.store', $reportType) }}" method="POST" class="space-y-3">
                 @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Nama Seksi</label>
-                        <input type="text" name="name" placeholder="cth: Settle Plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        <input type="text" name="name" placeholder="cth: Settle Plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Slug</label>
-                        <select name="slug" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                            <option value="">Pilih tipe</option>
-                            <option value="settle_plate">settle_plate</option>
-                            <option value="air_sampler">air_sampler</option>
-                            <option value="contact_plate">contact_plate</option>
-                            <option value="swab">swab</option>
-                        </select>
+                        <input type="text" name="slug" placeholder="cth: settle_plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur</label>
-                        <input type="text" name="measurement_unit" placeholder="cth: CFU/4hours/plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        <input type="text" name="measurement_unit" placeholder="cth: CFU/4hours/plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Tipe Pengukuran</label>
-                        <select name="measurement_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        <select name="measurement_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             <option value="">Pilih</option>
-                            <option value="settle_plate">settle_plate</option>
-                            <option value="active_air">active_air</option>
-                            <option value="contact_plate">contact_plate</option>
-                            <option value="swab">swab</option>
+                            <option value="settle_plate">Settle Plate</option>
+                            <option value="air_sampler">Air Sampler</option>
+                            <option value="contact_plate">Contact Plate</option>
+                            <option value="swab">Swab</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Max Exposures</label>
-                        <input type="number" name="max_exposures" value="4" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom</label>
+                        <input type="number" name="max_exposure" value="1" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
+                        <input type="text" name="column_label" value="Exposure" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom</label>
+                        <select name="time_slot_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                            <option value="none">Tidak ada</option>
+                            <option value="single">1 slot (Mulai–Selesai)</option>
+                            <option value="dual_ab">2 slot (A &amp; B)</option>
+                            <option value="swab">3 slot (S1, S1-2, S1-3)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end gap-4 md:col-span-2 lg:col-span-2">
+                        <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                            <input type="checkbox" name="has_shared_time" value="1" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                            <span>Machine Set-up (waktu bersama)</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                            <input type="checkbox" name="has_shift_toggle" value="1" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                            <span>Shift Toggle (S1/S2)</span>
+                        </label>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="showAddSection = false" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-100">Batal</button>
-                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-indigo-700">Simpan Seksi</button>
+                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-green-800">Simpan Seksi</button>
                 </div>
             </form>
         </div>
@@ -173,10 +174,18 @@
                 {{-- Section Header --}}
                 <div class="bg-gray-50 px-4 py-3 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold">{{ $section->order }}</span>
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 text-green-700 text-xs font-bold">{{ $section->order }}</span>
                         <div>
                             <h4 class="text-sm font-semibold text-gray-800">{{ $section->name }}</h4>
-                            <p class="text-xs text-gray-500">{{ $section->slug }} · {{ $section->measurement_unit }} · Max {{ $section->max_exposures }} exp.</p>
+                            <p class="text-xs text-gray-500">
+                                {{ $section->slug }} · {{ $section->measurement_unit }} ·
+                                {{ $section->max_exposure }}x {{ $section->column_label }}
+                                @if ($section->time_slot_type !== 'none')
+                                    · Waktu: {{ ['single' => '1 slot', 'dual_ab' => 'A/B', 'swab' => 'S1/S1-2/S1-3'][$section->time_slot_type] ?? $section->time_slot_type }}
+                                @endif
+                                @if ($section->has_shared_time) · Machine Set-up @endif
+                                @if ($section->has_shift_toggle) · Shift Toggle @endif
+                            </p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -197,42 +206,60 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Nama</label>
-                                <input type="text" name="name" value="{{ $section->name }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <input type="text" name="name" value="{{ $section->name }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Slug</label>
-                                <select name="slug" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="settle_plate" {{ $section->slug === 'settle_plate' ? 'selected' : '' }}>settle_plate</option>
-                                    <option value="air_sampler" {{ $section->slug === 'air_sampler' ? 'selected' : '' }}>air_sampler</option>
-                                    <option value="contact_plate" {{ $section->slug === 'contact_plate' ? 'selected' : '' }}>contact_plate</option>
-                                    <option value="swab" {{ $section->slug === 'swab' ? 'selected' : '' }}>swab</option>
-                                </select>
+                                <input type="text" name="slug" value="{{ $section->slug }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur</label>
-                                <input type="text" name="measurement_unit" value="{{ $section->measurement_unit }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <input type="text" name="measurement_unit" value="{{ $section->measurement_unit }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Tipe Pengukuran</label>
-                                <select name="measurement_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="settle_plate" {{ $section->measurement_type === 'settle_plate' ? 'selected' : '' }}>settle_plate</option>
-                                    <option value="active_air" {{ $section->measurement_type === 'active_air' ? 'selected' : '' }}>active_air</option>
-                                    <option value="contact_plate" {{ $section->measurement_type === 'contact_plate' ? 'selected' : '' }}>contact_plate</option>
-                                    <option value="swab" {{ $section->measurement_type === 'swab' ? 'selected' : '' }}>swab</option>
+                                <select name="measurement_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                                    <option value="settle_plate" {{ $section->measurement_type === 'settle_plate' ? 'selected' : '' }}>Settle Plate</option>
+                                    <option value="air_sampler" {{ $section->measurement_type === 'air_sampler' ? 'selected' : '' }}>Air Sampler</option>
+                                    <option value="contact_plate" {{ $section->measurement_type === 'contact_plate' ? 'selected' : '' }}>Contact Plate</option>
+                                    <option value="swab" {{ $section->measurement_type === 'swab' ? 'selected' : '' }}>Swab</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Max Exposures</label>
-                                <input type="number" name="max_exposures" value="{{ $section->max_exposures }}" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom</label>
+                                <input type="number" name="max_exposure" value="{{ $section->max_exposure }}" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
+                                <input type="text" name="column_label" value="{{ $section->column_label }}" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom</label>
+                                <select name="time_slot_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                                    <option value="none" {{ $section->time_slot_type === 'none' ? 'selected' : '' }}>Tidak ada</option>
+                                    <option value="single" {{ $section->time_slot_type === 'single' ? 'selected' : '' }}>1 slot (Mulai–Selesai)</option>
+                                    <option value="dual_ab" {{ $section->time_slot_type === 'dual_ab' ? 'selected' : '' }}>2 slot (A &amp; B)</option>
+                                    <option value="swab" {{ $section->time_slot_type === 'swab' ? 'selected' : '' }}>3 slot (S1, S1-2, S1-3)</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Urutan</label>
-                                <input type="number" name="order" value="{{ $section->order }}" min="0" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <input type="number" name="order" value="{{ $section->order }}" min="0" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                            </div>
+                            <div class="flex items-end gap-4">
+                                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="has_shared_time" value="1" {{ $section->has_shared_time ? 'checked' : '' }} class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                    <span>Machine Set-up</span>
+                                </label>
+                                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="has_shift_toggle" value="1" {{ $section->has_shift_toggle ? 'checked' : '' }} class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                    <span>Shift Toggle</span>
+                                </label>
                             </div>
                         </div>
                         <div class="flex justify-end gap-2">
                             <button type="button" @click="editSection = false" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-100">Batal</button>
-                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-indigo-700">Simpan</button>
+                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-green-800">Simpan</button>
                         </div>
                     </form>
                 </div>
