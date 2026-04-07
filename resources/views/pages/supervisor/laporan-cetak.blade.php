@@ -214,9 +214,6 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         <hr class="doc-title-line">
     </div>
 
-    {{-- Unit title --}}
-    <div style="text-align:center;font-weight:700;font-size:8pt;margin-bottom:3px">{{ $section->measurement_unit }}</div>
-
     {{-- ── Data table ───────────────────────────────── --}}
     <table class="dt">
         <thead>
@@ -438,12 +435,13 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
     <div style="margin-top:8px">
         <span class="fw">KESIMPULAN</span>
         &ensp;: &ensp;
-        <span style="{{ $secKesp === 'MS' ? 'font-weight:700;text-decoration:underline;' : '' }}">MEMENUHI SPESIFIKASI</span>
-        &ensp;/&ensp;
-        <span style="{{ $secKesp === 'TMS' ? 'font-weight:700;text-decoration:underline;' : '' }}">TIDAK MEMENUHI SPESIFIKASI</span>*
-    </div>
-    <div style="font-size:8pt;margin-top:3px">
-        * <u>lingkari</u> sesuai dengan pengamatan
+        @if ($secKesp === 'MS')
+            <span class="fw">MEMENUHI SPESIFIKASI</span>
+        @elseif ($secKesp === 'TMS')
+            <span class="fw">TIDAK MEMENUHI SPESIFIKASI</span>
+        @else
+            <span>-</span>
+        @endif
     </div>
 
     {{-- Tanda Tangan --}}
