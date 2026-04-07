@@ -185,7 +185,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" @click="editSection = !editSection" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Edit</button>
-                        <form action="{{ route('report-types.sections.destroy', [$reportType, $section]) }}" method="POST" onsubmit="return confirm('Hapus seksi ini beserta semua lokasinya?')">
+                        <form action="{{ route('report-types.sections.destroy', [$reportType, $section]) }}" method="POST" onsubmit="return confirm('Hapus seksi ini beserta semua lokasinya?')" class="inline-flex items-center">
                             @csrf
                             @method('DELETE')
                             <button class="text-xs text-red-500 hover:text-red-700 font-medium">Hapus</button>
