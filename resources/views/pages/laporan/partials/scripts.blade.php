@@ -150,7 +150,8 @@ document.addEventListener('input', function (e) {
     const tSpan = document.getElementById(`t-${loc}-${col}`);
     if (tSpan) {
         const hasValue = (bInput?.value !== '' || fInput?.value !== '');
-        tSpan.textContent  = hasValue ? (b + f) : '—';
+        const tVal = b + f;
+        tSpan.textContent  = hasValue ? (Number.isInteger(tVal) ? tVal : parseFloat(tVal.toPrecision(10))) : '-';
         tSpan.className    = `text-[11px] font-semibold ${hasValue ? 'text-gray-700' : 'text-gray-300'}`;
     }
 
@@ -177,8 +178,32 @@ document.addEventListener('input', function (e) {
             else             { label = 'MS';    cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700'; }
         }
         konklusiCell.innerHTML = `<span class="${cls}">${label}</span>`;
+
+        // Recalculate section conclusion
+        const sectionId = e.target.dataset.sectionId;
+        if (sectionId) recalcSectionKonklusi(sectionId);
     }
 });
+
+function recalcSectionKonklusi(sectionId) {
+    const el = document.getElementById(`section-konklusi-${sectionId}`);
+    if (!el) return;
+    let hasTMS = false, hasAny = false;
+    document.querySelectorAll(`.konklusi-cell[data-section-id="${sectionId}"]`).forEach(cell => {
+        const span = cell.querySelector('span');
+        if (!span) return;
+        const txt = span.textContent.trim();
+        if (txt === 'TMS' || txt === 'Alert' || txt === 'MS') hasAny = true;
+        if (txt === 'TMS') hasTMS = true;
+    });
+    if (!hasAny) {
+        el.innerHTML = '<span class="text-xs text-gray-400 italic">Belum ada data</span>';
+    } else if (hasTMS) {
+        el.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-200">Tidak Memenuhi Spesifikasi <span class="font-bold">(TMS)</span></span>';
+    } else {
+        el.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Memenuhi Spesifikasi <span class="font-bold">(MS)</span></span>';
+    }
+}
 
 // Deselectable analis radio (click same button again to clear)
 function toggleAnalis(inkKey, field, value, btn) {

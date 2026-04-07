@@ -241,6 +241,7 @@
         $isSettlePlate = $section->measurement_type === 'settle_plate';
         $isSwab        = $section->measurement_type === 'swab';
         $hasJam        = $section->measurement_type === 'air_sampler';
+        $isPerLocation = $section->time_slot_type === 'per_location';
         $maxCols       = $section->max_exposures;
         $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
         $secNum        = $loop->index + 5;
@@ -263,21 +264,21 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + (!$isShiftBased ? 130 : 0) + ($maxCols * ($isShiftBased ? ($hasJam ? 220 : ($isSwab ? 220 : 160)) : 130)) }}px">
+            <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + (!$isShiftBased ? 130 : 0) + ($maxCols * ($isShiftBased ? ($hasJam ? 220 : ($isSwab ? 220 : 160)) : ($isPerLocation ? 220 : 130))) }}px">
                 <thead>
                     {{-- Row 1: group headers --}}
                     <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No.</th>
-                        <th class="px-3 py-2 text-left font-semibold border-r border-emerald-100" rowspan="3">Room Name</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">Class</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">Room Number</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">Location<br>Number</th>
+                        <th class="px-3 py-2 text-left font-semibold border-r border-emerald-100" rowspan="3">Nama Ruangan</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">Kelas</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No. Ruangan</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No.<br>Lokasi</th>
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100"
-                            colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($isShiftBased ? ($hasJam ? 4 : 3) : 3) }}">
+                            colspan="{{ (!$isShiftBased ? 3 : 0) + $maxCols * ($isShiftBased ? ($hasJam ? 4 : 3) : ($isPerLocation ? 4 : 3)) }}">
                             {{ $section->measurement_unit }}
                         </th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Alert<br>Limit</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Action<br>Limit</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Alert</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Tindakan</th>
                         <th class="px-2 py-2 text-center font-semibold whitespace-nowrap" rowspan="3">Kesimpulan</th>
                     </tr>
                     {{-- Row 2: period/shift labels --}}
@@ -336,7 +337,7 @@
                                 }
                             }
                         @endphp
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100" colspan="3">
+                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100" colspan="{{ $isPerLocation ? 4 : 3 }}">
                             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">
                                 Exposure {{ $romanNums[$col - 1] ?? $col }}
                             </div>
@@ -347,7 +348,7 @@
                                 <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
-                            @else
+                            @elseif (!$isPerLocation)
                             <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
                                 {{ $expJamMulai ? $expJamMulai . ' – ' . ($expJamSelesai ?? '—') : '—' }}
                             </div>
@@ -369,7 +370,7 @@
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
                         @endif
                         @for ($col = 1; $col <= $maxCols; $col++)
-                        @if ($isShiftBased && $hasJam)
+                        @if (($isShiftBased && $hasJam) || $isPerLocation)
                             <th class="px-1.5 py-1.5 text-center font-medium border-r border-emerald-100 whitespace-nowrap">JAM</th>
                         @endif
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
@@ -458,7 +459,7 @@
                                 : null;
                         @endphp
 
-                        @if ($hasJam)
+                        @if ($hasJam || $isPerLocation)
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-gray-{{ $existEntry?->start_time ? '600' : '300' }} text-[11px]">
                                 {{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '-' }}
@@ -556,34 +557,6 @@
         </div>
     </div>
     @endforeach
-
-    {{-- ── Catatan & Kesimpulan Akhir ────────────────────── --}}
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
-        <div class="px-5 py-3.5 border-b border-gray-100">
-            <h3 class="font-semibold text-sm text-gray-700">Catatan & Kesimpulan Akhir</h3>
-        </div>
-        <div class="p-5 space-y-4">
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700 min-h-[60px]">
-                    {{ $hd['notes'] ?? '—' }}
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-2">Kesimpulan Akhir</label>
-                @php $kg = $hd['global_conclusion'] ?? ''; @endphp
-                <div class="px-4 py-2.5 rounded-lg border border-gray-100 bg-gray-50 inline-block text-sm">
-                    @if ($kg === 'MS')
-                        <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
-                    @elseif ($kg === 'TMS')
-                        <span class="text-red-700 font-semibold">Tidak Memenuhi Spesifikasi (TMS)</span>
-                    @else
-                        <span class="text-gray-400">Belum ditentukan</span>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
 
     {{-- ── Tanda Tangan & Verifikasi ──────────────────────── --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm">

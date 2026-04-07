@@ -164,7 +164,7 @@ class ReportTypeManagementController extends Controller
             'measurement_type' => ['required', 'string', 'max:50'],
             'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
             'column_label'     => ['required', 'string', 'max:50'],
-            'time_slot_type'   => ['required', 'string', 'in:none,single,dual_ab,swab'],
+            'time_slot_type'   => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
             'has_shared_time'  => ['boolean'],
             'has_shift_toggle' => ['boolean'],
         ]);
@@ -191,7 +191,7 @@ class ReportTypeManagementController extends Controller
             'measurement_type' => ['required', 'string', 'max:50'],
             'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
             'column_label'     => ['required', 'string', 'max:50'],
-            'time_slot_type'   => ['required', 'string', 'in:none,single,dual_ab,swab'],
+            'time_slot_type'   => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
             'has_shared_time'  => ['boolean'],
             'has_shift_toggle' => ['boolean'],
             'order'            => ['required', 'integer', 'min:0'],

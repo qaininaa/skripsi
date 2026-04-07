@@ -140,6 +140,7 @@
                         <select name="time_slot_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             <option value="none">Tidak ada</option>
                             <option value="single">1 slot (Mulai–Selesai)</option>
+                            <option value="per_location">Per Lokasi (1 slot/lokasi)</option>
                             <option value="dual_ab">2 slot (A &amp; B)</option>
                             <option value="swab">3 slot (S1, S1-2, S1-3)</option>
                         </select>
@@ -173,10 +174,10 @@
                         <div>
                             <h4 class="text-sm font-semibold text-gray-800">{{ $section->name }}</h4>
                             <p class="text-xs text-gray-500">
-                                {{ $section->slug }} · {{ $section->measurement_unit }} ·
+                                {{ $section->measurement_unit }} ·
                                 {{ $section->max_exposure }}x {{ $section->column_label }}
                                 @if ($section->time_slot_type !== 'none')
-                                    · Waktu: {{ ['single' => '1 slot', 'dual_ab' => 'A/B', 'swab' => 'S1/S1-2/S1-3'][$section->time_slot_type] ?? $section->time_slot_type }}
+                                    · Waktu: {{ ['single' => '1 slot', 'per_location' => 'Per Lokasi', 'dual_ab' => 'A/B', 'swab' => 'S1/S1-2/S1-3'][$section->time_slot_type] ?? $section->time_slot_type }}
                                 @endif
                                 @if ($section->has_shared_time) · Machine Set-up @endif
                                 @if ($section->has_shift_toggle) · Shift Toggle @endif
@@ -233,6 +234,7 @@
                                 <select name="time_slot_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                                     <option value="none" {{ $section->time_slot_type === 'none' ? 'selected' : '' }}>Tidak ada</option>
                                     <option value="single" {{ $section->time_slot_type === 'single' ? 'selected' : '' }}>1 slot (Mulai–Selesai)</option>
+                                    <option value="per_location" {{ $section->time_slot_type === 'per_location' ? 'selected' : '' }}>Per Lokasi (1 slot/lokasi)</option>
                                     <option value="dual_ab" {{ $section->time_slot_type === 'dual_ab' ? 'selected' : '' }}>2 slot (A &amp; B)</option>
                                     <option value="swab" {{ $section->time_slot_type === 'swab' ? 'selected' : '' }}>3 slot (S1, S1-2, S1-3)</option>
                                 </select>

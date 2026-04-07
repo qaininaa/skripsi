@@ -168,22 +168,25 @@ class AnalisLaporanController extends Controller
         if (!empty($swabTimes)) {
             $hd['swab_times'] = array_replace_recursive($hd['swab_times'] ?? [], $swabTimes);
         }
-        if ($request->has('header_data') || !empty($shiftAssignment) || !empty($settleTimes) || !empty($swabTimes)) {
+        $exposureTimes = $request->input('exposure_times', []);
+        if (!empty($exposureTimes)) {
+            $hd['exposure_times'] = array_replace_recursive($hd['exposure_times'] ?? [], $exposureTimes);
+        }
+        if ($request->has('header_data') || !empty($shiftAssignment) || !empty($settleTimes) || !empty($swabTimes) || !empty($exposureTimes)) {
             $report->update(['header_data' => $hd]);
         }
 
         // Build pivot_row → measurement_type and pivot_row → section_id maps
-        $pivotSectionType = [];
-        $pivotSectionId   = [];
+        $pivotSectionType     = [];
+        $pivotSectionId       = [];
+        $pivotSectionTimeSlot = [];
         foreach ($report->reportType->sections()->with('locations')->get() as $section) {
             foreach ($section->locations as $location) {
-                $pivotSectionType[$location->pivot->id] = $section->measurement_type;
-                $pivotSectionId[$location->pivot->id]   = $section->id;
+                $pivotSectionType[$location->pivot->id]     = $section->measurement_type;
+                $pivotSectionId[$location->pivot->id]       = $section->id;
+                $pivotSectionTimeSlot[$location->pivot->id] = $section->time_slot_type;
             }
         }
-
-        // Exposure-level times (start_time/end_time) for settle_plate sections
-        $exposureTimes = $request->input('exposure_times', []);
 
         // Upsert entries
         foreach ($request->input('entries', []) as $pivotId => $cols) {
@@ -193,6 +196,7 @@ class AnalisLaporanController extends Controller
             }
 
             $isShiftBased = in_array($sectionType, ['air_sampler', 'contact_plate', 'swab']);
+            $timeSlotType = $pivotSectionTimeSlot[(int) $pivotId] ?? 'none';
             $sectionId    = $pivotSectionId[(int) $pivotId] ?? null;
 
             foreach ($cols as $colIdx => $data) {
@@ -224,16 +228,16 @@ class AnalisLaporanController extends Controller
                     ],
                     [
                         'analyst_id'   => Auth::id(),
-                        'start_time'   => $isShiftBased
+                        'start_time'   => ($isShiftBased || $timeSlotType === 'per_location')
                             ? ($data['start_time'] ?? null ?: null)
                             : ($exposureTimes[$sectionId][$colIdx]['start_time'] ?? null ?: null),
-                        'end_time'     => $isShiftBased
+                        'end_time'     => ($isShiftBased || $timeSlotType === 'per_location')
                             ? null
                             : ($exposureTimes[$sectionId][$colIdx]['end_time'] ?? null ?: null),
                         'cfu_bacteria' => isset($data['cfu_bacteria']) && $data['cfu_bacteria'] !== ''
-                            ? (int) $data['cfu_bacteria'] : null,
+                            ? (float) $data['cfu_bacteria'] : null,
                         'cfu_fungi'    => isset($data['cfu_fungi']) && $data['cfu_fungi'] !== ''
-                            ? (int) $data['cfu_fungi'] : null,
+                            ? (float) $data['cfu_fungi'] : null,
                     ]
                 );
             }
