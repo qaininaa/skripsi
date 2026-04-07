@@ -188,7 +188,7 @@ document.addEventListener('input', function (e) {
 function recalcSectionKonklusi(sectionId) {
     const el = document.getElementById(`section-konklusi-${sectionId}`);
     if (!el) return;
-    let hasTMS = false, hasAny = false;
+    let hasTMS = false, hasAny = false, newVal = '';
     document.querySelectorAll(`.konklusi-cell[data-section-id="${sectionId}"]`).forEach(cell => {
         const span = cell.querySelector('span');
         if (!span) return;
@@ -198,11 +198,16 @@ function recalcSectionKonklusi(sectionId) {
     });
     if (!hasAny) {
         el.innerHTML = '<span class="text-xs text-gray-400 italic">Belum ada data</span>';
+        newVal = '';
     } else if (hasTMS) {
         el.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-200">Tidak Memenuhi Spesifikasi <span class="font-bold">(TMS)</span></span>';
+        newVal = 'TMS';
     } else {
         el.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Memenuhi Spesifikasi <span class="font-bold">(MS)</span></span>';
+        newVal = 'MS';
     }
+    const hiddenInput = document.getElementById(`section-konklusi-input-${sectionId}`);
+    if (hiddenInput) hiddenInput.value = newVal;
 }
 
 // Deselectable analis radio (click same button again to clear)

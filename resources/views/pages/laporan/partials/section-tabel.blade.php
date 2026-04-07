@@ -465,6 +465,10 @@
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1.5">Kesimpulan</label>
+            <input type="hidden"
+                   name="header_data[section_notes][{{ $section->id }}][conclusion]"
+                   id="section-konklusi-input-{{ $section->id }}"
+                   value="{{ $sectionConclusion ?? '' }}">
             <div id="section-konklusi-{{ $section->id }}">
                 @if ($sectionConclusion === 'TMS')
                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
