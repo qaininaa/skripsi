@@ -64,9 +64,9 @@
             @elseif ($report->status === 'approved') bg-green-50 text-green-700
             @else bg-gray-100 text-gray-500 @endif">
             @php
-                $statusLabel = ['submitted' => 'Dikirim', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$report->status] ?? $report->status;
+                $statusLabel = ['in_progress' => 'Sedang Dikerjakan', 'submitted' => 'Dikirim', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'pending' => 'Menunggu'][$report->status] ?? $report->status;
             @endphp
-            {{ $statusLabel }} — Mode Lihat
+            {{ $statusLabel }} - Mode Lihat
         </span>
         @endif
     @endif
