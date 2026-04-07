@@ -123,13 +123,13 @@
                             <td class="px-6 py-3.5 text-sm text-gray-400">{{ $user->created_at?->format('d M Y') ?? '—' }}</td>
                             <td class="px-6 py-3.5">
                                 <div class="flex justify-end items-center gap-2">
-                                    <a href="{{ route('users.edit', $user) }}" class="inline-flex items-center px-3 py-1.5 rounded-md border border-indigo-200 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors">
+                                    <a href="{{ route('users.edit', $user) }}" class="btn-action-edit">
                                         Edit
                                     </a>
                                     <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-md border border-red-200 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors">
+                                        <button type="submit" class="btn-action-delete">
                                             Hapus
                                         </button>
                                     </form>

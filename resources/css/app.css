@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+@layer base {
+    body {
+        font-family: 'Figtree', sans-serif;
+    }
+}
+
+@layer components {
+    .btn-action {
+        @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors;
+    }
+    .btn-action-detail {
+        @apply btn-action text-indigo-700 bg-indigo-50 hover:bg-indigo-100;
+    }
+    .btn-action-edit {
+        @apply btn-action text-gray-700 bg-gray-100 hover:bg-gray-200;
+    }
+    .btn-action-delete {
+        @apply btn-action text-red-700 bg-red-50 hover:bg-red-100;
+    }
+}
