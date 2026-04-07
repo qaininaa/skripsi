@@ -89,7 +89,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
     {{-- ── 1. Pemantauan Ruang ──────────────────────── --}}
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">1. Pemantauan Ruang</td></tr>
-        <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->report_date->isoFormat('D MMMM Y') }}</td></tr>
+        <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->created_at->isoFormat('D MMMM Y') }}</td></tr>
         <tr><td>Nama Analis</td><td>{{ $report->shift1Analis->name }}{{ $report->shift2Analis ? ' / ' . $report->shift2Analis->name : '' }}</td></tr>
         <tr><td>Nama Produk</td><td>{{ $report->product_name }}</td></tr>
         <tr><td>Nomor Batch Produk</td><td>{{ $report->batch_number ?: '' }}</td></tr>

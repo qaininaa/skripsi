@@ -24,7 +24,7 @@
             </h2>
             <p class="text-sm text-gray-500 mt-0.5">
                 {{ $report->product_name }} · Batch <span>{{ $report->batch_number }}</span>
-                · {{ $report->report_date->isoFormat('D MMM Y') }}
+                ·  {{ $report->created_at->isoFormat('D MMM Y') }}
             </p>
         </div>
         </div>
@@ -68,7 +68,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Pemantauan Ruang</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    {{ $report->report_date->isoFormat('D MMMM Y') }}
+                    {{ $report->created_at->isoFormat('D MMMM Y') }}
                 </div>
             </div>
             <div>
