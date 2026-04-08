@@ -19,7 +19,7 @@
   {{-- Right Side: Login Form --}}
   <div class="flex flex-1 flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-24">
     <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-      <img src="https://www.ethica.co.id/wp-content/uploads/2021/12/Ethica_logo.png" alt="Ethica Industri Farmasi" class="mx-auto w-60 h-auto" />
+      <!-- <img src="https://www.ethica.co.id/wp-content/uploads/2021/12/Ethica_logo.png" alt="Ethica Industri Farmasi" class="mx-auto w-60 h-auto" /> -->
       <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">Masuk ke Akun Anda</h2>
     </div>
 
