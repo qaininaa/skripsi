@@ -12,12 +12,14 @@ class RuanganController extends Controller
     public function index(Request $request): View
     {
         $search = $request->input('search');
+        $class  = $request->input('class');
 
         $rooms = Room::when($search, fn($q) => $q->where(function ($q) use ($search) {
                 $q->where('room_name', 'like', "%{$search}%")
                   ->orWhere('room_number', 'like', "%{$search}%")
                   ->orWhere('class', 'like', "%{$search}%");
             }))
+            ->when($class, fn($q) => $q->where('class', $class))
             ->withCount('locations')
             ->latest()
             ->paginate(15)

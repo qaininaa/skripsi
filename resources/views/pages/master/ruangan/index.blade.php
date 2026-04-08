@@ -42,19 +42,24 @@
                 </svg>
             </div>
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="Cari nama, nomor, atau kelas ruangan..."
+                   placeholder="Cari nama atau nomor ruangan..."
                    class="block w-full rounded-lg border-gray-300 pl-9 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
         </div>
+        <select name="class" class="rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500 pr-8">
+            <option value="">Semua Kelas</option>
+            <option value="A" {{ request('class') === 'A' ? 'selected' : '' }}>Kelas A</option>
+            <option value="B" {{ request('class') === 'B' ? 'selected' : '' }}>Kelas B</option>
+            <option value="C" {{ request('class') === 'C' ? 'selected' : '' }}>Kelas C</option>
+            <option value="D" {{ request('class') === 'D' ? 'selected' : '' }}>Kelas D</option>
+        </select>
         <button type="submit"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 shadow-sm transition-colors">
             Cari
         </button>
-        @if(request('search'))
         <a href="{{ route('master.ruangan.index') }}"
            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 shadow-sm bg-white text-gray-700 text-sm font-medium hover:bg-gray-100 transition-colors">
             Reset
         </a>
-        @endif
     </form>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -77,7 +82,15 @@
                             <td class="px-6 py-3.5 font-medium text-gray-800">{{ $room->room_name }}</td>
                             <td class="px-6 py-3.5 text-gray-600">{{ $room->room_number }}</td>
                             <td class="px-6 py-3.5">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                @php
+                                    $classBadge = match($room->class) {
+                                        'A' => 'bg-purple-100 text-purple-700',
+                                        'B' => 'bg-blue-100 text-blue-700',
+                                        'C' => 'bg-amber-100 text-amber-700',
+                                        default => 'bg-gray-100 text-gray-600',
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $classBadge }}">
                                     {{ $room->class }}
                                 </span>
                             </td>
