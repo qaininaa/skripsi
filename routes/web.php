@@ -119,8 +119,8 @@ Route::middleware(['auth', 'password.check', 'role:manajer'])
         Route::post('manajer/laporan/{report}/return', [ManajerLaporanController::class, 'returnReport'])->name('manajer.laporan.return');
     });
 
-// Arsip Laporan (analis, admin, manajer)
-Route::middleware(['auth', 'password.check', 'role:analis,admin,manajer'])
+// Arsip Laporan (analis, admin, supervisor, manajer)
+Route::middleware(['auth', 'password.check', 'role:analis,admin,supervisor,manajer'])
     ->prefix('dashboard/arsip-laporan')
     ->group(function () {
         Route::get('/', [ArsipLaporanController::class, 'index'])->name('arsip-laporan.index');
