@@ -6,6 +6,7 @@ use App\Models\Report;
 use App\Models\ReportApproval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class SupervisorLaporanController extends Controller
 {
@@ -73,6 +74,18 @@ class SupervisorLaporanController extends Controller
 
     public function approve(Request $request, Report $report)
     {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        if ($user->username !== $request->username || !Hash::check($request->password, $user->password)) {
+            return back()
+                ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
+                ->withInput($request->except('password'));
+        }
+
         $userId = Auth::id();
         $approval = ReportApproval::where('report_id', $report->id)
             ->where('step', 2)
@@ -93,6 +106,18 @@ class SupervisorLaporanController extends Controller
 
     public function returnReport(Request $request, Report $report)
     {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        if ($user->username !== $request->username || !Hash::check($request->password, $user->password)) {
+            return back()
+                ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
+                ->withInput($request->except('password'));
+        }
+
         $userId = Auth::id();
         $approval = ReportApproval::where('report_id', $report->id)
             ->where('step', 2)

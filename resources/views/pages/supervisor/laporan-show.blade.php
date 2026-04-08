@@ -591,6 +591,13 @@
     @if ($approval->isPending())
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
         <h3 class="text-sm font-semibold text-gray-700 mb-4">Tindakan</h3>
+
+        @if ($errors->has('auth_error'))
+        <div class="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+            {{ $errors->first('auth_error') }}
+        </div>
+        @endif
+
         <div class="flex flex-col gap-3">
 
             {{-- Approve --}}
@@ -606,16 +613,13 @@
                         <p class="text-xs text-emerald-600">Laporan akan ditandai sebagai disetujui</p>
                     </div>
                 </div>
-                <form method="POST" action="{{ route('supervisor.laporan.approve', $report->id) }}">
-                    @csrf
-                    <button type="submit"
-                        class="px-5 py-2.5 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 active:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Setujui Laporan
-                    </button>
-                </form>
+                <button type="button" onclick="openConfirmModal('approve')"
+                    class="px-5 py-2.5 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 active:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Setujui Laporan
+                </button>
             </div>
 
             {{-- Return --}}
@@ -631,29 +635,26 @@
                         <p class="text-xs text-orange-600">Kirim kembali ke analis untuk diperbaiki</p>
                     </div>
                 </div>
-                <form method="POST" action="{{ route('supervisor.laporan.return', $report->id) }}" class="flex flex-col gap-2">
-                    @csrf
-                    <div class="flex gap-2">
-                        <select name="returned_to_user_id"
-                            class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
-                            <option value="">-- Pilih Analis Tujuan --</option>
-                            <option value="{{ $report->shift1_analyst_id }}">{{ $report->shift1Analis->name }} (Shift 1)</option>
-                            @if ($report->shift2Analis)
-                            <option value="{{ $report->shift2_analyst_id }}">{{ $report->shift2Analis->name }} (Shift 2)</option>
-                            @endif
-                        </select>
-                        <textarea name="notes" placeholder="Catatan / alasan pengembalian (opsional)"
-                            class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm resize-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none"
-                            rows="1"></textarea>
-                        <button type="submit"
-                            class="px-5 py-2.5 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 active:bg-orange-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                            </svg>
-                            Kembalikan
-                        </button>
-                    </div>
-                </form>
+                <div class="flex gap-2">
+                    <select id="return-analis-select"
+                        class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
+                        <option value="">-- Pilih Analis Tujuan --</option>
+                        <option value="{{ $report->shift1_analyst_id }}">{{ $report->shift1Analis->name }} (Shift 1)</option>
+                        @if ($report->shift2Analis)
+                        <option value="{{ $report->shift2_analyst_id }}">{{ $report->shift2Analis->name }} (Shift 2)</option>
+                        @endif
+                    </select>
+                    <textarea id="return-notes-input" placeholder="Catatan / alasan pengembalian (opsional)"
+                        class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm resize-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none"
+                        rows="1"></textarea>
+                    <button type="button" onclick="openConfirmModal('return')"
+                        class="px-5 py-2.5 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 active:bg-orange-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Kembalikan
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -661,4 +662,117 @@
     @endif
 
 </div>
+
+{{-- ── Modal Konfirmasi Kredensial ──────────────────────────────── --}}
+<div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    {{-- Backdrop --}}
+    <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
+
+    {{-- Panel --}}
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        {{-- Icon + Title --}}
+        <div id="modal-icon-approve" class="hidden flex items-center gap-3 mb-5">
+            <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-base font-semibold text-gray-800">Konfirmasi Persetujuan</p>
+                <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk menyetujui laporan ini</p>
+            </div>
+        </div>
+        <div id="modal-icon-return" class="hidden flex items-center gap-3 mb-5">
+            <div class="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-base font-semibold text-gray-800">Konfirmasi Pengembalian</p>
+                <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk mengembalikan laporan ini</p>
+            </div>
+        </div>
+
+        {{-- Form --}}
+        <form id="confirm-form" method="POST" action="">
+            @csrf
+            <input type="hidden" name="returned_to_user_id" id="modal-returned-to-user-id" value="">
+            <input type="hidden" name="notes" id="modal-notes" value="">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Username</label>
+                    <input type="text" name="username" id="modal-username" autocomplete="username"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none"
+                        placeholder="Masukkan username Anda" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Password</label>
+                    <input type="password" name="password" id="modal-password" autocomplete="current-password"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none"
+                        placeholder="Masukkan password Anda" required>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="button" onclick="closeConfirmModal()"
+                    class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button id="modal-submit-btn" type="submit"
+                    class="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm">
+                    Konfirmasi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openConfirmModal(action) {
+    const modal = document.getElementById('confirm-modal');
+    const form  = document.getElementById('confirm-form');
+    const iconApprove = document.getElementById('modal-icon-approve');
+    const iconReturn  = document.getElementById('modal-icon-return');
+    const submitBtn   = document.getElementById('modal-submit-btn');
+
+    // Reset fields
+    document.getElementById('modal-username').value = '';
+    document.getElementById('modal-password').value = '';
+
+    if (action === 'approve') {
+        form.action = '{{ route('supervisor.laporan.approve', $report->id) }}';
+        iconApprove.classList.remove('hidden');
+        iconReturn.classList.add('hidden');
+        submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700';
+        document.getElementById('modal-returned-to-user-id').value = '';
+        document.getElementById('modal-notes').value = '';
+    } else {
+        const analisVal = document.getElementById('return-analis-select').value;
+        if (!analisVal) {
+            alert('Silakan pilih analis tujuan terlebih dahulu.');
+            return;
+        }
+        form.action = '{{ route('supervisor.laporan.return', $report->id) }}';
+        iconApprove.classList.add('hidden');
+        iconReturn.classList.remove('hidden');
+        submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700';
+        document.getElementById('modal-returned-to-user-id').value = analisVal;
+        document.getElementById('modal-notes').value = document.getElementById('return-notes-input').value;
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => document.getElementById('modal-username').focus(), 100);
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeConfirmModal();
+});
+</script>
+
 @endsection
