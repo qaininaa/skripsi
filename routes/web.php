@@ -8,6 +8,7 @@ use App\Http\Controllers\TugasPelaporanController;
 use App\Http\Controllers\AnalisLaporanController;
 use App\Http\Controllers\SupervisorLaporanController;
 use App\Http\Controllers\ManajerLaporanController;
+use App\Http\Controllers\ArsipLaporanController;
 use App\Http\Controllers\LokasiController;
 use App\Http\Controllers\PasswordSettingController;
 use App\Http\Controllers\RuanganController;
@@ -116,6 +117,14 @@ Route::middleware(['auth', 'password.check', 'role:manajer'])
         Route::get('manajer/laporan/{report}/cetak', [ManajerLaporanController::class, 'cetak'])->name('manajer.laporan.cetak');
         Route::post('manajer/laporan/{report}/approve', [ManajerLaporanController::class, 'approve'])->name('manajer.laporan.approve');
         Route::post('manajer/laporan/{report}/return', [ManajerLaporanController::class, 'returnReport'])->name('manajer.laporan.return');
+    });
+
+// Arsip Laporan (analis, admin, manajer)
+Route::middleware(['auth', 'password.check', 'role:analis,admin,manajer'])
+    ->prefix('dashboard/arsip-laporan')
+    ->group(function () {
+        Route::get('/', [ArsipLaporanController::class, 'index'])->name('arsip-laporan.index');
+        Route::get('/{report}', [ArsipLaporanController::class, 'show'])->name('arsip-laporan.show');
     });
 
 Route::middleware(['auth', 'password.check'])->group(function () {

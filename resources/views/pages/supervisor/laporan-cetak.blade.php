@@ -7,13 +7,130 @@
 <title>{{ $report->reportType->annex_number }} — {{ $report->created_at->format('Y-m-d') }}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:#d1d5db}
+body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:#d1d5db;overflow-x:hidden}
 
 /* ── Pages ─────────────────────────────── */
 .doc-page{background:#fff;margin:1rem auto 2rem;box-shadow:0 2px 14px rgba(0,0,0,.2);position:relative;padding-bottom:18mm}
-.doc-page.portrait{width:210mm;min-height:297mm;padding:12mm 15mm 18mm}
-.doc-page.landscape{width:297mm;min-height:210mm;padding:10mm 10mm 18mm}
+.doc-page.portrait{width:210mm;min-height:297mm;padding:12.7mm 2.5mm 18mm 2.5mm}
+.doc-page.landscape{width:297mm;min-height:210mm;padding:12.7mm 2.5mm 18mm 2.5mm}
 .doc-page+.doc-page{page-break-before:always}
+
+/* ── Toolbar ────────────────────────── */
+.toolbar{
+    background:#fff;
+    border-bottom:1px solid #ddd;
+    padding:10px 16px;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:8px 12px;
+    position:sticky;
+    top:0;
+    z-index:10;
+    width:100%;
+}
+
+.toolbar-title{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    min-width:0;
+    overflow:hidden;
+}
+.toolbar-title a{
+    font-size:12px;
+    color:#555;
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    flex-shrink:0;
+    white-space:nowrap;
+}
+.toolbar-title .sep{
+    color:#ccc;
+    flex-shrink:0;
+}
+.toolbar-title .title-text{
+    font-size:12px;
+    font-weight:700;
+    /* Allow wrapping; no truncation */
+    white-space:normal;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+    line-height:1.35;
+}
+
+.toolbar-zoom{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    flex-shrink:0;
+    justify-self:center;
+}
+.toolbar-zoom button{
+    background:#f3f4f6;
+    border:1px solid #d1d5db;
+    border-radius:4px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.toolbar-zoom .zoom-btn{width:36px;height:36px;font-size:20px}
+.toolbar-zoom .zoom-reset{padding:0 10px;height:36px;font-size:12px;color:#555}
+.toolbar-zoom .zoom-label{font-size:12px;font-weight:600;min-width:46px;text-align:center;color:#374151}
+
+.toolbar-print{
+    background:#222;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:9px 18px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:Verdana;
+    flex-shrink:0;
+    white-space:nowrap;
+}
+
+.toolbar-actions{display:flex;align-items:center;justify-content:flex-end;}
+
+/* ── Mobile ────────────────────────── */
+@media(max-width:640px){
+    .toolbar{
+        grid-template-columns:1fr auto;
+        grid-template-rows:auto auto;
+        padding:10px 12px;
+        gap:8px 10px;
+    }
+    /* Title spans full width on first row */
+    .toolbar-title{
+        grid-column:1 / -1;
+        grid-row:1;
+    }
+    .toolbar-title a{font-size:13px}
+    .toolbar-title .title-text{font-size:13px}
+
+    /* Zoom on second row left, print on second row right */
+    .toolbar-zoom{
+        grid-column:1;
+        grid-row:2;
+        justify-self:start;
+    }
+    .toolbar-zoom .zoom-btn{width:40px;height:40px;font-size:22px}
+    .toolbar-zoom .zoom-reset{height:40px;padding:0 12px;font-size:13px}
+    .toolbar-zoom .zoom-label{font-size:13px;min-width:50px}
+
+    .toolbar-print{
+        grid-column:2;
+        grid-row:2;
+        justify-self:end;
+        padding:10px 14px;
+        font-size:13px;
+    }
+}
 
 /* ── Tables ────────────────────────────── */
 table.dt{border-collapse:collapse;width:100%;table-layout:fixed}
@@ -22,7 +139,8 @@ table.dt th{font-size:7pt;font-weight:700;text-align:center}
 table.dt td{font-size:8pt}
 .tc{text-align:center}.tl{text-align:left}.fw{font-weight:700}
 table.dt-auto{table-layout:auto}
-table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:break-word}
+table.dt-auto th,table.dt-auto td{padding:15px 8px;white-space:normal;word-wrap:break-word}
+table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-wrap:break-word}
 
 /* ── Vertical headers ──────────────────── */
 .vt{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;padding:6px 2px !important;font-size:7pt;font-weight:700;text-align:center}
@@ -39,45 +157,79 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
 .sig-tbl td{font-size:8pt;text-align:center;vertical-align:top;padding:3px 6px}
 
 /* ── Page footer ───────────────────────── */
-.pg-footer{position:absolute;bottom:8mm;right:15mm;font-size:8pt;font-style:italic}
+.pg-footer{display:none}
+
+/* ── Zoom / scroll wrapper ─────────────── */
+/*
+   We separate the "body background" area from the zoom transform.
+   #zoom-outer  = full-width grey background, handles the scrollable area
+   #zoom-wrap   = scaled content, centered horizontally
+*/
+#zoom-outer{
+    width:100%;
+    overflow-x:auto;         /* horizontal scroll when zoomed in */
+    padding-bottom:32px;     /* bottom padding only; horizontal centering done by JS */
+}
+#zoom-wrap{
+    transform-origin:top left;
+    transition:transform .12s ease;
+    width:fit-content;
+}
 
 /* ── Print ─────────────────────────────── */
 @media print{
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
     body{background:#fff!important}
+    #zoom-outer{padding:0!important;overflow:visible!important}
+    #zoom-wrap{transform:none!important;width:100%!important;margin:0!important}
     .doc-page{box-shadow:none!important;margin:0!important;width:100%!important;min-height:auto!important}
     .no-print{display:none!important}
     .doc-page.portrait{page:portrait}
     .doc-page.landscape{page:landscape}
     thead{display:table-header-group}
 }
-@page{size:A4;margin:10mm 15mm}
-@page portrait{size:A4 portrait;margin:10mm 15mm}
-@page landscape{size:A4 landscape;margin:8mm 10mm}
+@page{
+    size:A4;
+    @bottom-right{
+        margin:0 10mm 5mm -10mm;
+        content:"Hal " counter(page) " dari " counter(pages);
+        font-size:8pt;
+        font-family:Verdana,Geneva,sans-serif;
+    }
+}
+@page portrait{size:A4 portrait;margin:12.7mm 2.5mm 12.7mm 2.5mm}
+@page landscape{size:A4 landscape;margin:12.7mm 2.5mm 12.7mm 2.5mm}
 </style>
 </head>
 <body>
 
 {{-- ── Print Toolbar (screen only) ──────────────────── --}}
-<div class="no-print" style="background:#fff;border-bottom:1px solid #ddd;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10">
-    <div style="display:flex;align-items:center;gap:10px">
-        <a href="{{ route('supervisor.laporan.show', $report) }}"
-           style="font-size:12px;color:#555;text-decoration:none;display:flex;align-items:center;gap:4px">
+<div class="no-print toolbar">
+    <div class="toolbar-title">
+        <a href="{{ $backUrl ?? route('supervisor.laporan.show', $report) }}">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             Kembali
         </a>
-        <span style="color:#ccc">|</span>
-        <span style="font-size:12px;font-weight:700">{{ $report->reportType->annex_number }} — {{ $report->reportType->name }}</span>
+        <span class="sep">|</span>
+        <span class="title-text">{{ $report->reportType->annex_number }} — {{ $report->reportType->name }}</span>
     </div>
 
-    @if(auth()->user()->role === 'manajer')
-    <button onclick="window.print()"
-            style="background:#222;color:#fff;border:none;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:600;cursor:pointer;font-family:Verdana">
-        Cetak / Download PDF
-    </button>
-    @endif
+    <div class="toolbar-zoom">
+        <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+        <span id="zoom-level" class="zoom-label">100%</span>
+        <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">+</button>
+        <button class="zoom-reset" onclick="zoomReset()" title="Reset">↺</button>
+    </div>
+
+    <div class="toolbar-actions">
+        @if(($showPrint ?? false) || auth()->user()->role === 'manajer')
+        <button class="toolbar-print" onclick="window.print()">Cetak / Download PDF</button>
+        @endif
+    </div>
 </div>
 
+<div id="zoom-outer">
+<div id="zoom-wrap">
 {{-- ══════════════════════════════════════════════════════
      PAGE 1 (Portrait): Sections 1 – 3
      ══════════════════════════════════════════════════════ --}}
@@ -142,7 +294,7 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         <hr class="doc-title-line">
     </div>
 
-    <table class="dt dt-auto">
+    <table class="dt dt-auto dt-compact">
         <tr><td colspan="4" class="sec-hdr">4. Proses Inkubasi Medium Monitoring</td></tr>
         @foreach ([
             'inkubator_20_25' => ['label' => 'Inkubator Suhu 20–25°C', 'min_days' => 3],
@@ -205,8 +357,9 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
     $secNote  = $hd['section_notes'][$section->id] ?? [];
     $subColsPerExp = $isPerLocation ? 4 : 3;
     $totalCols = 5 + ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp + 4 + 1;
+    $pageOrientation = ($hasSharedTime && $maxCols >= 4) ? 'landscape' : 'portrait';
 @endphp
-<div class="doc-page landscape">
+<div class="doc-page {{ $pageOrientation }}">
     {{-- Page header --}}
     <div class="pg-hdr">
         <div class="doc-num">{{ $report->reportType->annex_number }}</div>
@@ -248,8 +401,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                     <div style="font-weight:700">Machine set-up</div>
                     <div style="font-weight:400;margin-top:2px">
                         JAM<br>
-                        Mulai Sebar Petri:<br>{{ $msJamMulai ?: '__:__' }}<br><br>
-                        Selesai<br>Pemantauan:<br>{{ $msJamSelesai ?: '__:__' }}
+                        Mulai Sebar Petri:<br>{{ $msJamMulai ?: '-:-' }}<br><br>
+                        Selesai<br>Pemantauan:<br>{{ $msJamSelesai ?: '-:-' }}
                     </div>
                 </th>
                 @endif
@@ -258,9 +411,6 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                 @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
                 <th colspan="{{ $subColsPerExp }}" style="font-size:7pt;line-height:1.35;vertical-align:top;padding:3px 2px">
                     <div style="font-weight:700">{{ $colLabel }} {{ $maxCols > 1 ? ($romanNums[$col - 1] ?? $col) : '' }}</div>
-                    @if ($hasShiftToggle)
-                    <div style="font-weight:400;font-size:6.5pt">(S{{ $colAsgn }})</div>
-                    @endif
 
                     @if ($isSwabTime)
                     @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
@@ -268,12 +418,12 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                         JAM<br>Mulai Swab:<br>
                         @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                         @php $st = $swabColTimes[$swabKey] ?? []; @endphp
-                        {{ $swabLabel }}: {{ ($st['mulai'] ?? '') ?: '__:__' }}<br>
+                        {{ $swabLabel }}: {{ ($st['mulai'] ?? '') ?: '-:-' }}<br>
                         @endforeach
                         <br>Selesai<br>Pemantauan:<br>
                         @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                         @php $st = $swabColTimes[$swabKey] ?? []; @endphp
-                        {{ $swabLabel }}: {{ ($st['selesai'] ?? '') ?: '__:__' }}<br>
+                        {{ $swabLabel }}: {{ ($st['selesai'] ?? '') ?: '-:-' }}<br>
                         @endforeach
                     </div>
                     @endif
@@ -285,11 +435,11 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                     @endphp
                     <div style="font-weight:400;margin-top:2px">
                         JAM<br>Mulai Sebar Petri:<br>
-                        A: {{ ($stA['start_time'] ?? '') ?: '__:__' }}<br>
-                        B: {{ ($stB['start_time'] ?? '') ?: '__:__' }}<br><br>
+                        A: {{ ($stA['start_time'] ?? '') ?: '-:-' }}<br>
+                        B: {{ ($stB['start_time'] ?? '') ?: '-:-' }}<br><br>
                         Selesai<br>Pemantauan:<br>
-                        A: {{ ($stA['end_time'] ?? '') ?: '__:__' }}<br>
-                        B: {{ ($stB['end_time'] ?? '') ?: '__:__' }}
+                        A: {{ ($stA['end_time'] ?? '') ?: '-:-' }}<br>
+                        B: {{ ($stB['end_time'] ?? '') ?: '-:-' }}
                     </div>
                     @endif
 
@@ -300,8 +450,8 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                         $expJamSelesai = $expJam['end_time'] ?? null;
                     @endphp
                     <div style="font-weight:400;margin-top:2px">
-                        Mulai: {{ $expJamMulai ?: '__:__' }}<br>
-                        Selesai: {{ $expJamSelesai ?: '__:__' }}
+                        Mulai: {{ $expJamMulai ?: '-:-' }}<br>
+                        Selesai: {{ $expJamSelesai ?: '-:-' }}
                     </div>
                     @endif
                 </th>
@@ -321,16 +471,6 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
                 @endfor
                 <th>B</th><th>F</th>
                 <th>B</th><th>F</th>
-            </tr>
-
-            {{-- Frequency note row --}}
-            <tr>
-                <td colspan="{{ $totalCols }}" style="border-left:none;border-right:none;font-size:7pt;font-weight:700;padding:3px 0">
-                    FREQUENCY : EVERY OPERATIONAL AND DAILY (SETIAP OPERASIONAL DAN HARIAN)
-                    @if ($isDualAB)
-                    <br><span style="font-weight:400;font-style:italic">* settle plate was exposed continuously for maximum every 4 hours (grade B) for aseptic filtration product only.</span>
-                    @endif
-                </td>
             </tr>
         </thead>
 
@@ -461,21 +601,79 @@ table.dt-auto th,table.dt-auto td{padding:20px 8px;white-space:normal;word-wrap:
         <tr>
             <td>(Analis Lab. Mikrobiologi)</td>
             <td>(Analis Lab. Mikrobiologi)</td>
-            <td>(Staff/ Supervisor Mikrobiologi)</td>
+            <td>(Supervisor Mikrobiologi)</td>
             <td>(QC Manager)</td>
         </tr>
     </table>
     <div class="pg-footer"></div>
 </div>
 @endforeach
+</div>{{-- /zoom-wrap --}}
+</div>{{-- /zoom-outer --}}
 
 <script>
+var pageZoom = 1.0;
+var userManualZoom = false;
+
+function applyZoom() {
+    pageZoom = Math.round(Math.max(0.15, Math.min(2.0, pageZoom)) * 100) / 100;
+    var wrap  = document.getElementById('zoom-wrap');
+    var outer = document.getElementById('zoom-outer');
+    var lv    = document.getElementById('zoom-level');
+
+    // Reset transforms first so scrollHeight/Width reflect natural dimensions
+    wrap.style.transform  = 'none';
+    wrap.style.height     = '';
+    wrap.style.marginLeft = '';
+    var naturalH = wrap.scrollHeight;
+    var naturalW = wrap.scrollWidth;
+
+    // Apply scale from top-left so horizontal position is predictable
+    wrap.style.transform = 'scale(' + pageZoom + ')';
+
+    // Compensate height: CSS transform doesn't affect document flow
+    wrap.style.height = (naturalH * pageZoom) + 'px';
+
+    // Center content horizontally with at least 16px left breathing room
+    var vw      = window.innerWidth || document.documentElement.clientWidth;
+    var scaledW = naturalW * pageZoom;
+    wrap.style.marginLeft = Math.max(16, (vw - scaledW) / 2) + 'px';
+
+    if (lv) lv.textContent = Math.round(pageZoom * 100) + '%';
+}
+
+function zoomIn()    { userManualZoom = true; pageZoom = Math.min(2.0,  pageZoom + 0.1); applyZoom(); }
+function zoomOut()   { userManualZoom = true; pageZoom = Math.max(0.15, pageZoom - 0.1); applyZoom(); }
+function zoomReset() { userManualZoom = false; autoFit(); }
+
+function autoFit() {
+    // Find the widest page: landscape = 297mm, portrait = 210mm
+    var hasLandscape = document.querySelector('.doc-page.landscape') !== null;
+    var maxPageMM    = hasLandscape ? 297 : 210;
+    // 1mm ≈ 3.7795px at 96dpi
+    var maxPagePx    = maxPageMM * 3.7795;
+    // Account for #zoom-outer horizontal padding (16px * 2 = 32px)
+    var totalWidth   = maxPagePx + 32;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+
+    if (vw < totalWidth) {
+        pageZoom = Math.max(0.15, Math.floor((vw / totalWidth) * 100) / 100);
+    } else {
+        pageZoom = 1.0;
+    }
+    applyZoom();
+}
+
 document.addEventListener('DOMContentLoaded', function(){
-    var footers = document.querySelectorAll('.pg-footer');
-    var total = footers.length;
-    footers.forEach(function(f, i){
-        f.textContent = 'Hal ' + (i + 1) + ' dari ' + total;
-    });
+    autoFit();
+});
+
+var resizeTimer;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        if (!userManualZoom) autoFit();
+    }, 150);
 });
 </script>
 </body>
