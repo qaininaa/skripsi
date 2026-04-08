@@ -205,10 +205,6 @@
                                 <input type="text" name="name" value="{{ $section->name }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Slug</label>
-                                <input type="text" name="slug" value="{{ $section->slug }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
-                            </div>
-                            <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur</label>
                                 <input type="text" name="measurement_unit" value="{{ $section->measurement_unit }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>

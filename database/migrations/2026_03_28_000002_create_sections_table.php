@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('report_type_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('slug');
             $table->string('measurement_unit', 50)->default('cfu');
             $table->string('measurement_type', 50)->default('exposure');
             $table->unsignedTinyInteger('max_exposure')->default(1);

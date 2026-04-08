@@ -159,7 +159,6 @@ class ReportTypeManagementController extends Controller
     {
         $validated = $request->validate([
             'name'             => ['required', 'string', 'max:255'],
-            'slug'             => ['required', 'string', 'max:100'],
             'measurement_unit' => ['required', 'string', 'max:50'],
             'measurement_type' => ['required', 'string', 'max:50'],
             'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
@@ -186,7 +185,6 @@ class ReportTypeManagementController extends Controller
     {
         $validated = $request->validate([
             'name'             => ['required', 'string', 'max:255'],
-            'slug'             => ['required', 'string', 'max:100'],
             'measurement_unit' => ['required', 'string', 'max:50'],
             'measurement_type' => ['required', 'string', 'max:50'],
             'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
