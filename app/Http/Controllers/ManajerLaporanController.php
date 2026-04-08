@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use App\Models\ReportApproval;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class SupervisorLaporanController extends Controller
+class ManajerLaporanController extends Controller
 {
     public function dashboard()
     {
@@ -19,7 +18,7 @@ class SupervisorLaporanController extends Controller
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
         $rejected = $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count();
 
-        return view('pages.supervisor.index', compact('pending', 'approved', 'rejected'));
+        return view('pages.manajer.index', compact('pending', 'approved', 'rejected'));
     }
 
     public function laporanMasuk(Request $request)
@@ -35,7 +34,7 @@ class SupervisorLaporanController extends Controller
 
         $reports = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals'])
             ->join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
-            ->where('report_approvals.step', 2)
+            ->where('report_approvals.step', 3)
             ->where('report_approvals.user_id', $userId)
             ->where('report_approvals.status', $tab)
             ->select('reports.*', 'report_approvals.status as approval_status', 'report_approvals.id as approval_id')
@@ -43,20 +42,23 @@ class SupervisorLaporanController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.supervisor.laporan-masuk', compact('reports', 'counts', 'tab'));
+        return view('pages.manajer.laporan-masuk', compact('reports', 'counts', 'tab'));
     }
 
     public function show(Report $report)
     {
         $userId = Auth::id();
         $approval = ReportApproval::where('report_id', $report->id)
-            ->where('step', 2)
+            ->where('step', 3)
             ->where('user_id', $userId)
             ->firstOrFail();
 
         $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals']);
 
-        // entryMap[$pivot_id][$period_number][$shift] = entry
+        // Supervisor (step 2 user) for the return dropdown
+        $supervisorApproval = $report->approvals->firstWhere('step', 2);
+        $supervisor = $supervisorApproval?->user;
+
         $entryMap = [];
         foreach ($report->entries as $entry) {
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
@@ -67,8 +69,8 @@ class SupervisorLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('pages.supervisor.laporan-show', compact(
-            'report', 'approval', 'entryMap',
+        return view('pages.manajer.laporan-show', compact(
+            'report', 'approval', 'entryMap', 'supervisor',
             'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }
@@ -89,7 +91,7 @@ class SupervisorLaporanController extends Controller
 
         $userId = Auth::id();
         $approval = ReportApproval::where('report_id', $report->id)
-            ->where('step', 2)
+            ->where('step', 3)
             ->where('user_id', $userId)
             ->where('status', 'pending')
             ->firstOrFail();
@@ -99,20 +101,10 @@ class SupervisorLaporanController extends Controller
             'signed_at' => now(),
         ]);
 
-        // Create step 3 approval for manajer
-        $manager = User::where('role', 'manajer')->first();
-        if ($manager) {
-            ReportApproval::firstOrCreate(
-                ['report_id' => $report->id, 'step' => 3],
-                ['role_label' => 'manajer', 'user_id' => $manager->id, 'status' => 'pending']
-            );
-            $report->update(['status' => 'pending_manager']);
-        } else {
-            $report->update(['status' => 'approved']);
-        }
+        $report->update(['status' => 'approved']);
 
-        return redirect()->route('supervisor.laporan-masuk')
-            ->with('success', 'Laporan berhasil disetujui dan dikirim ke Manajer.');
+        return redirect()->route('manajer.laporan-masuk')
+            ->with('success', 'Laporan berhasil disetujui.');
     }
 
     public function returnReport(Request $request, Report $report)
@@ -131,19 +123,22 @@ class SupervisorLaporanController extends Controller
 
         $userId = Auth::id();
         $approval = ReportApproval::where('report_id', $report->id)
-            ->where('step', 2)
+            ->where('step', 3)
             ->where('user_id', $userId)
             ->where('status', 'pending')
             ->firstOrFail();
 
         $returnedToUserId = (int) $request->input('returned_to_user_id');
+
+        // Validate: must be the step-2 supervisor
+        $supervisorApproval = ReportApproval::where('report_id', $report->id)
+            ->where('step', 2)
+            ->first();
+
         abort_unless(
-            in_array($returnedToUserId, array_filter([
-                $report->shift1_analyst_id,
-                $report->shift2_analyst_id,
-            ])),
+            $supervisorApproval && $supervisorApproval->user_id === $returnedToUserId,
             422,
-            'Analis tujuan tidak valid.'
+            'Penerima pengembalian tidak valid.'
         );
 
         $approval->update([
@@ -152,26 +147,25 @@ class SupervisorLaporanController extends Controller
             'returned_to_user_id'  => $returnedToUserId,
         ]);
 
-        // Reset handover so analis can re-edit from the beginning
-        $hd = $report->header_data ?? [];
-        unset($hd['shift1_handed_over']);
-        $report->update(['status' => 'returned', 'header_data' => $hd]);
+        // Reset supervisor approval back to pending so they can re-review
+        $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
 
-        return redirect()->route('supervisor.laporan-masuk')
-            ->with('success', 'Laporan telah dikembalikan ke analis.');
+        $report->update(['status' => 'returned_to_supervisor']);
+
+        return redirect()->route('manajer.laporan-masuk')
+            ->with('success', 'Laporan telah dikembalikan ke Supervisor.');
     }
 
     public function cetak(Report $report)
     {
         $userId = Auth::id();
         ReportApproval::where('report_id', $report->id)
-            ->where('step', 2)
+            ->where('step', 3)
             ->where('user_id', $userId)
             ->firstOrFail();
 
         $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis']);
 
-        // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
         foreach ($report->entries as $entry) {
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
@@ -190,7 +184,7 @@ class SupervisorLaporanController extends Controller
     private function baseQuery(int $userId)
     {
         return Report::join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
-            ->where('report_approvals.step', 2)
+            ->where('report_approvals.step', 3)
             ->where('report_approvals.user_id', $userId);
     }
 }

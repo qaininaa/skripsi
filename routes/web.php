@@ -7,6 +7,7 @@ use App\Http\Controllers\ReportTypeManagementController;
 use App\Http\Controllers\TugasPelaporanController;
 use App\Http\Controllers\AnalisLaporanController;
 use App\Http\Controllers\SupervisorLaporanController;
+use App\Http\Controllers\ManajerLaporanController;
 use App\Http\Controllers\LokasiController;
 use App\Http\Controllers\PasswordSettingController;
 use App\Http\Controllers\RuanganController;
@@ -28,6 +29,8 @@ Route::get('/dashboard', function () {
         return redirect()->route('dashboard.analis');
     } elseif ($role === 'supervisor') {
         return redirect()->route('dashboard.supervisor');
+    } elseif ($role === 'manajer') {
+        return redirect()->route('dashboard.manajer');
     }
     return redirect('/');
 })->middleware(['auth', 'password.check'])->name('dashboard');
@@ -101,6 +104,18 @@ Route::middleware(['auth', 'password.check', 'role:supervisor'])
         Route::get('supervisor/laporan/{report}/cetak', [SupervisorLaporanController::class, 'cetak'])->name('supervisor.laporan.cetak');
         Route::post('supervisor/laporan/{report}/approve', [SupervisorLaporanController::class, 'approve'])->name('supervisor.laporan.approve');
         Route::post('supervisor/laporan/{report}/return', [SupervisorLaporanController::class, 'returnReport'])->name('supervisor.laporan.return');
+    });
+
+// Dashboard & Laporan Masuk Manajer
+Route::middleware(['auth', 'password.check', 'role:manajer'])
+    ->prefix('dashboard')
+    ->group(function () {
+        Route::get('manajer', [ManajerLaporanController::class, 'dashboard'])->name('dashboard.manajer');
+        Route::get('manajer/laporan-masuk', [ManajerLaporanController::class, 'laporanMasuk'])->name('manajer.laporan-masuk');
+        Route::get('manajer/laporan/{report}', [ManajerLaporanController::class, 'show'])->name('manajer.laporan.show');
+        Route::get('manajer/laporan/{report}/cetak', [ManajerLaporanController::class, 'cetak'])->name('manajer.laporan.cetak');
+        Route::post('manajer/laporan/{report}/approve', [ManajerLaporanController::class, 'approve'])->name('manajer.laporan.approve');
+        Route::post('manajer/laporan/{report}/return', [ManajerLaporanController::class, 'returnReport'])->name('manajer.laporan.return');
     });
 
 Route::middleware(['auth', 'password.check'])->group(function () {

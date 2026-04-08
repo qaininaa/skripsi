@@ -46,6 +46,9 @@
         @elseif(Auth::user()->role === 'supervisor')
         <a href="{{ route('dashboard.supervisor') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('dashboard.supervisor') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+        @elseif(Auth::user()->role === 'manajer')
+        <a href="{{ route('dashboard.manajer') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('dashboard.manajer') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
         @else
         <a href="#"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-800 font-medium text-sm transition-colors">
@@ -150,6 +153,17 @@
 
         <a href="{{ route('supervisor.laporan-masuk') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('supervisor.laporan*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            Laporan Masuk
+        </a>
+
+        {{-- Manajer only --}}
+        @elseif(Auth::user()->role === 'manajer')
+
+        <a href="{{ route('manajer.laporan-masuk') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('manajer.laporan*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
