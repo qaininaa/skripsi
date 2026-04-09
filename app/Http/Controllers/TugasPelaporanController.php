@@ -33,15 +33,8 @@ class TugasPelaporanController extends Controller
         $analis      = User::where('role', 'analis')->orderBy('name')->get();
         $reportTypes = ReportType::orderBy('annex_number')->get();
 
-        // Instrument list selalu tetap 4, meski belum semua punya jenis laporan
-        $instruments = ['air_sampler', 'settle_plate', 'contact_plate', 'swab'];
-
-        // Map: instrument => [report_type_id, ...]
-        $instrumentMap = $reportTypes->groupBy('instrument')
-            ->map(fn($items) => $items->pluck('id')->values());
-
         return view('pages.tugas-pelaporan.create', compact(
-            'analis', 'reportTypes', 'instruments', 'instrumentMap'
+            'analis', 'reportTypes'
         ));
     }
 
@@ -73,16 +66,10 @@ class TugasPelaporanController extends Controller
         $analis      = User::where('role', 'analis')->orderBy('name')->get();
         $reportTypes = ReportType::orderBy('annex_number')->get();
 
-        $instruments = ['air_sampler', 'settle_plate', 'contact_plate', 'swab'];
-        $instrumentMap = $reportTypes->groupBy('instrument')
-            ->map(fn($items) => $items->pluck('id')->values());
-
         $selectedReportType = $tugasPelaporan->report_type_id;
-        $selectedInstrument = $tugasPelaporan->reportType->instrument;
 
         return view('pages.tugas-pelaporan.edit', compact(
-            'tugasPelaporan', 'analis', 'reportTypes', 'selectedReportType',
-            'instruments', 'instrumentMap', 'selectedInstrument'
+            'tugasPelaporan', 'analis', 'reportTypes', 'selectedReportType'
         ));
     }
 

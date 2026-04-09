@@ -17,9 +17,7 @@
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
          x-data="tugasForm(
-            {{ $analis->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->values()->toJson() }},
-            {{ $reportTypes->map(fn($rt) => ['id' => $rt->id, 'annex_number' => $rt->annex_number, 'name' => $rt->name, 'instrument' => $rt->instrument])->values()->toJson() }},
-            {{ $instrumentMap->toJson() }}
+            {{ $analis->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->values()->toJson() }}
          )"
     >
 
@@ -116,30 +114,17 @@
                     <p class="text-xs text-gray-400 mb-3">Shift 1 mengerjakan terlebih dahulu, kemudian dilanjutkan Shift 2.</p>
                 </div>
 
-                {{-- Nama Alat --}}
+                {{-- Jenis Laporan --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Alat <span class="text-red-500">*</span></label>
-                    <select x-model="selectedInstrument" @change="onInstrumentChange()"
-                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
-                        <option value="">— Pilih Nama Alat —</option>
-                        @foreach ($instruments as $inst)
-                            <option value="{{ $inst }}" {{ old('instrument') == $inst ? 'selected' : '' }}>
-                                {{ ucwords(str_replace('_', ' ', $inst)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Jenis Laporan (filtered by instrument) --}}
-                <div x-show="selectedInstrument" x-transition>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Laporan <span class="text-red-500">*</span></label>
-                    <select name="report_type_id" x-model="selectedReportType"
+                    <select name="report_type_id"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                         <option value="">— Pilih Jenis Laporan —</option>
-                        <template x-for="rt in filteredReportTypes" :key="rt.id">
-                            <option :value="rt.id" x-text="rt.annex_number + ' — ' + rt.name"
-                                    :selected="rt.id == {{ old('report_type_id', 0) }}"></option>
-                        </template>
+                        @foreach ($reportTypes as $rt)
+                            <option value="{{ $rt->id }}" {{ old('report_type_id') == $rt->id ? 'selected' : '' }}>
+                                {{ $rt->annex_number }} — {{ $rt->name }}
+                            </option>
+                        @endforeach
                     </select>
                     @error('report_type_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -162,34 +147,20 @@
 </div>
 
 <script>
-function tugasForm(analysts, reportTypes, instrumentMap) {
+function tugasForm(analysts) {
     return {
         analysts: analysts,
-        reportTypes: reportTypes,
-        instrumentMap: instrumentMap,
         s1: '{{ old('shift1_analyst_id', '') }}',
         s2: '{{ old('shift2_analyst_id', '') }}',
-        selectedInstrument: '{{ old('instrument', '') }}',
-        selectedReportType: '{{ old('report_type_id', '') }}',
 
         get availS2() {
             return this.analysts.filter(a => String(a.id) !== String(this.s1));
-        },
-
-        get filteredReportTypes() {
-            if (!this.selectedInstrument || !this.instrumentMap[this.selectedInstrument]) return [];
-            const allowedIds = this.instrumentMap[this.selectedInstrument];
-            return this.reportTypes.filter(rt => allowedIds.includes(rt.id));
         },
 
         onS1Change() {
             if (String(this.s2) === String(this.s1)) {
                 this.s2 = '';
             }
-        },
-
-        onInstrumentChange() {
-            this.selectedReportType = '';
         },
     };
 }

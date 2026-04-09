@@ -56,10 +56,6 @@
                 <dd class="font-medium text-gray-800">{{ $reportType->name }}</dd>
             </div>
             <div>
-                <dt class="text-gray-500">Instrumen</dt>
-                <dd class="font-medium text-gray-800">{{ ucwords(str_replace('_', ' ', $reportType->instrument)) }}</dd>
-            </div>
-            <div>
                 <dt class="text-gray-500">Frekuensi</dt>
                 <dd class="font-medium text-gray-800">{{ $reportType->frequency ?? '-' }}</dd>
             </div>

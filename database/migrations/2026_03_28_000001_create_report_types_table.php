@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('name');
             $table->string('annex_number', 50);
-            $table->string('instrument', 50);
             $table->json('medium_groups')->nullable();
             $table->json('incubators')->nullable();
             $table->timestamps();

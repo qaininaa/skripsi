@@ -50,23 +50,14 @@
                 <input type="text" name="name" value="{{ old('name', $reportType->name) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Instrumen <span class="text-red-500">*</span></label>
-                    <select name="instrument" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="air_sampler" {{ old('instrument', $reportType->instrument) === 'air_sampler' ? 'selected' : '' }}>Air Sampler</option>
-                        <option value="particle_counter" {{ old('instrument', $reportType->instrument) === 'particle_counter' ? 'selected' : '' }}>Particle Counter</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Frekuensi</label>
-                    <select name="frequency" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">— Pilih frekuensi —</option>
-                        @foreach ($frequencies as $freq)
-                        <option value="{{ $freq }}" {{ old('frequency', $reportType->frequency) === $freq ? 'selected' : '' }}>{{ $freq }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Frekuensi</label>
+                <select name="frequency" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">— Pilih frekuensi —</option>
+                    @foreach ($frequencies as $freq)
+                    <option value="{{ $freq }}" {{ old('frequency', $reportType->frequency) === $freq ? 'selected' : '' }}>{{ $freq }}</option>
+                    @endforeach
+                </select>
             </div>
 
 

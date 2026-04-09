@@ -255,7 +255,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     @php $as = $hd['air_sampler'] ?? []; @endphp
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">2. Identitas Instrumen</td></tr>
-        <tr><td style="width:45%">Nama Alat</td><td class="fw">Air Sampler</td></tr>
+        <tr><td style="width:45%">Nama Alat</td><td class="fw">{{ $as['nama_alat'] ?? 'Air Sampler' }}</td></tr>
         <tr><td>No. ID Air Sampler</td><td>{{ $as['no_id'] ?? '' }}</td></tr>
         <tr><td>Tanggal Kalibrasi Air Sampler</td><td>{{ $as['calibration_date'] ?? '' }}</td></tr>
         <tr><td>Tanggal Due Date Kalibrasi Air Sampler</td><td>{{ $as['due_date'] ?? '' }}</td></tr>

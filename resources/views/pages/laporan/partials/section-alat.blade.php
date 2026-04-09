@@ -4,11 +4,13 @@
         <h3 class="font-semibold text-sm text-gray-700">2. Identitas Instrumen </h3>
     </div>
     <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @php $as = $hd['air_sampler'] ?? []; @endphp
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Nama Alat</label>
-            <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm font-medium text-gray-700">Air Sampler</div>
+            <input type="text" name="header_data[air_sampler][nama_alat]" value="{{ $as['nama_alat'] ?? 'Air Sampler' }}"
+                   @if(!$isEditable) readonly @endif
+                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
         </div>
-        @php $as = $hd['air_sampler'] ?? []; @endphp
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
             <input type="text" name="header_data[air_sampler][no_id]" value="{{ $as['no_id'] ?? '' }}"

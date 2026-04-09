@@ -18,7 +18,6 @@ class ReportTypeSectionSeeder extends Seeder
             'code'         => 'HVAC-6.1.1-B-FL2',
             'name'         => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.1 B Filling Line 2',
             'annex_number' => 'Annex 18',
-            'instrument'   => 'air_sampler',
             'medium_groups' => json_encode([
                 'medium_tsp_60' => 'Medium TSP 60mm',
                 'medium_tsp_90' => 'Medium TSP 90mm',
@@ -82,7 +81,6 @@ class ReportTypeSectionSeeder extends Seeder
             'code'         => 'HVAC-6.1.5',
             'name'         => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5',
             'annex_number' => 'Annex 24',
-            'instrument'   => 'air_sampler',
             'medium_groups' => json_encode([
                 'medium_tsp_65' => 'Medium TSP 65mm',
                 'medium_tsp_90' => 'Medium TSP 90mm',
@@ -135,7 +133,6 @@ class ReportTypeSectionSeeder extends Seeder
             'code'         => 'HVAC-ANNEX3',
             'name'         => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 3',
             'annex_number' => 'Annex 3',
-            'instrument'   => 'air_sampler',
             'medium_groups' => json_encode([
                 'medium_tsp_60' => 'Medium TSP 60mm',
                 'medium_tsp_90' => 'Medium TSP 90mm',
@@ -188,7 +185,6 @@ class ReportTypeSectionSeeder extends Seeder
             'code'         => 'HVAC-ANNEX4',
             'name'         => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 4',
             'annex_number' => 'Annex 4',
-            'instrument'   => 'air_sampler',
             'medium_groups' => json_encode([
                 'medium_tsp_60' => 'Medium TSP 60mm',
                 'medium_tsp_90' => 'Medium TSP 90mm',
