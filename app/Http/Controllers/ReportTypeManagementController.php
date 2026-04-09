@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
-use App\Models\Frequency;
 use App\Models\ReportLocation;
 use App\Models\ReportSection;
 use App\Models\ReportType;
@@ -25,8 +24,7 @@ class ReportTypeManagementController extends Controller
 
     public function create(): View
     {
-        $frequencies = Frequency::orderBy('name')->pluck('name');
-        return view('pages.report-types.create', compact('frequencies'));
+        return view('pages.report-types.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -35,7 +33,6 @@ class ReportTypeManagementController extends Controller
             'code'         => ['required', 'string', 'max:100', 'unique:report_types,code'],
             'name'         => ['required', 'string', 'max:255'],
             'annex_number' => ['required', 'string', 'max:50'],
-            'frequency'    => ['nullable', 'string', 'max:50'],
             // Medium groups
             'medium_labels'   => ['nullable', 'array'],
             'medium_labels.*' => ['nullable', 'string', 'max:255'],
@@ -53,7 +50,6 @@ class ReportTypeManagementController extends Controller
             'code'          => $validated['code'],
             'name'          => $validated['name'],
             'annex_number'  => $validated['annex_number'],
-            'frequency'     => $validated['frequency'] ?? null,
             'is_active'     => true,
             'medium_groups' => $mediumGroups ?: null,
             'incubators'    => $incubators ?: null,
@@ -82,8 +78,7 @@ class ReportTypeManagementController extends Controller
 
     public function edit(ReportType $reportType): View
     {
-        $frequencies = Frequency::orderBy('name')->pluck('name');
-        return view('pages.report-types.edit', compact('reportType', 'frequencies'));
+        return view('pages.report-types.edit', compact('reportType'));
     }
 
     public function update(Request $request, ReportType $reportType): RedirectResponse
@@ -92,7 +87,6 @@ class ReportTypeManagementController extends Controller
             'code'         => ['required', 'string', 'max:100', 'unique:report_types,code,' . $reportType->id],
             'name'         => ['required', 'string', 'max:255'],
             'annex_number' => ['required', 'string', 'max:50'],
-            'frequency'    => ['nullable', 'string', 'max:50'],
             'medium_labels'   => ['nullable', 'array'],
             'medium_labels.*' => ['nullable', 'string', 'max:255'],
             'incubator_labels'    => ['nullable', 'array'],
@@ -108,7 +102,6 @@ class ReportTypeManagementController extends Controller
             'code'          => $validated['code'],
             'name'          => $validated['name'],
             'annex_number'  => $validated['annex_number'],
-            'frequency'     => $validated['frequency'] ?? null,
             'medium_groups' => $mediumGroups ?: null,
             'incubators'    => $incubators ?: null,
         ]);

@@ -50,16 +50,6 @@
                 <input type="text" name="name" value="{{ old('name', $reportType->name) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Frekuensi</label>
-                <select name="frequency" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">— Pilih frekuensi —</option>
-                    @foreach ($frequencies as $freq)
-                    <option value="{{ $freq }}" {{ old('frequency', $reportType->frequency) === $freq ? 'selected' : '' }}>{{ $freq }}</option>
-                    @endforeach
-                </select>
-            </div>
-
 
             {{-- Medium Groups --}}
             <div class="border-t border-gray-100 pt-5">

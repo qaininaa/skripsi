@@ -55,10 +55,6 @@
                 <dt class="text-gray-500">Nama</dt>
                 <dd class="font-medium text-gray-800">{{ $reportType->name }}</dd>
             </div>
-            <div>
-                <dt class="text-gray-500">Frekuensi</dt>
-                <dd class="font-medium text-gray-800">{{ $reportType->frequency ?? '-' }}</dd>
-            </div>
         </dl>
 
         {{-- Medium Groups --}}
