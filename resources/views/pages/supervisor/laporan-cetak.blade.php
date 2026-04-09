@@ -585,26 +585,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     </div>
 
     {{-- Tanda Tangan --}}
-    <table class="dt sig-tbl" style="margin-top:10px">
-        <tr>
-            <td style="width:25%;font-weight:700">Dimonitoring oleh:</td>
-            <td style="width:25%;font-weight:700">Dibaca oleh:</td>
-            <td style="width:25%;font-weight:700">Direview oleh:</td>
-            <td style="width:25%;font-weight:700">Disetujui oleh:</td>
-        </tr>
-        <tr>
-            <td style="height:22mm;vertical-align:bottom">{{ $report->shift1Analis->name }}</td>
-            <td style="height:22mm;vertical-align:bottom">{{ $report->shift2Analis?->name ?? '' }}</td>
-            <td style="height:22mm"></td>
-            <td style="height:22mm"></td>
-        </tr>
-        <tr>
-            <td>(Analis Lab. Mikrobiologi)</td>
-            <td>(Analis Lab. Mikrobiologi)</td>
-            <td>(Supervisor Mikrobiologi)</td>
-            <td>(QC Manager)</td>
-        </tr>
-    </table>
+    @include('partials.report-signature-print', ['report' => $report])
     <div class="pg-footer"></div>
 </div>
 @endforeach

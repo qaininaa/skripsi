@@ -53,7 +53,7 @@ class ManajerLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
 
         // Supervisor (step 2 user) for the return dropdown
         $supervisorApproval = $report->approvals->firstWhere('step', 2);
@@ -164,7 +164,7 @@ class ManajerLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
 
         $entryMap = [];
         foreach ($report->entries as $entry) {

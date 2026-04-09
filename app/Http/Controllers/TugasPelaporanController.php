@@ -96,6 +96,9 @@ class TugasPelaporanController extends Controller
             'report_type_id'     => ['required', 'exists:report_types,id'],
         ]);
 
+        $shiftChanged = (int) $tugasPelaporan->shift1_analyst_id !== (int) $request->shift1_analyst_id
+            || (int) ($tugasPelaporan->shift2_analyst_id ?? 0) !== (int) ($request->shift2_analyst_id ?? 0);
+
         $tugasPelaporan->update([
             'report_type_id'    => $request->report_type_id,
             'product_name'      => $request->product_name,
@@ -104,14 +107,12 @@ class TugasPelaporanController extends Controller
             'shift2_analyst_id' => $request->shift2_analyst_id,
         ]);
 
-        // Jika shift 2 dihapus sementara shift 1 sudah melakukan estafet,
-        // reset flag handed_over agar shift 1 bisa melanjutkan pengisian.
-        if (is_null($request->shift2_analyst_id)) {
+        if ($shiftChanged) {
             $hd = $tugasPelaporan->header_data ?? [];
-            if (!empty($hd['shift1_handed_over'])) {
-                unset($hd['shift1_handed_over']);
-                $tugasPelaporan->update(['header_data' => $hd]);
-            }
+            unset($hd['shift1_handed_over'], $hd['ttd_monitoring_signed_at'], $hd['ttd_dibaca_signed_at']);
+            $hd['ttd_monitoring_id'] = (int) $request->shift1_analyst_id;
+            $hd['ttd_dibaca_id'] = (int) ($request->shift2_analyst_id ?: $request->shift1_analyst_id);
+            $tugasPelaporan->update(['header_data' => $hd]);
         }
 
         return redirect()->route('tugas-pelaporan.index')

@@ -54,7 +54,7 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
@@ -154,7 +154,7 @@ class SupervisorLaporanController extends Controller
 
         // Reset handover so analis can re-edit from the beginning
         $hd = $report->header_data ?? [];
-        unset($hd['shift1_handed_over']);
+        unset($hd['shift1_handed_over'], $hd['ttd_monitoring_signed_at'], $hd['ttd_dibaca_signed_at']);
         $report->update(['status' => 'returned', 'header_data' => $hd]);
 
         return redirect()->route('supervisor.laporan-masuk')
@@ -169,7 +169,7 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];

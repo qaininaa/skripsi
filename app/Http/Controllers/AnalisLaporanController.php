@@ -30,7 +30,7 @@ class AnalisLaporanController extends Controller
             'rejected'    => $rawCounts['rejected']    ?? 0,
         ]);
 
-        $query = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals'])
+        $query = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals.user'])
             ->where($mine)
             ->orderByDesc('created_at');
 
@@ -64,7 +64,7 @@ class AnalisLaporanController extends Controller
             $report->update(['status' => 'in_progress']);
         }
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
@@ -123,29 +123,34 @@ class AnalisLaporanController extends Controller
         $this->processEntries($request, $report, $myShift);
 
         if ($request->input('action') === 'handover') {
-            abort_if($myShift !== 1, 403);
+            abort_if($myShift !== 1 || ! $report->shift2_analyst_id, 403);
             $report->refresh();
-            $hd = $report->header_data ?? [];
+            $hd = $this->syncAnalystSignatureAssignments($report->header_data ?? [], $report);
             $hd['shift1_handed_over'] = true;
+            $hd['ttd_monitoring_signed_at'] = now()->toDateTimeString();
             $report->update(['header_data' => $hd]);
             return back()->with('success', 'Data Shift 1 berhasil disimpan dan diteruskan ke Shift 2.');
         }
 
         if ($request->input('action') === 'submit') {
+            abort_if($report->shift2_analyst_id && $myShift !== 2, 403, 'Shift 2 yang harus mengirim laporan.');
             $supervisorId = (int) $request->input('supervisor_id');
             abort_if($supervisorId === 0, 422, 'Pilih supervisor terlebih dahulu.');
             abort_unless(
-                \App\Models\User::where('id', $supervisorId)->where('role', 'supervisor')->exists(),
+                User::where('id', $supervisorId)->where('role', 'supervisor')->exists(),
                 422,
                 'Supervisor tidak valid.'
             );
+
+            $freshHd = $this->markAnalystSignaturesAsSigned($report->fresh()->header_data ?? [], $report);
+            $report->update(['header_data' => $freshHd]);
 
             $report->update(['status' => 'submitted']);
 
             // Reset approval if it was previously returned
             \App\Models\ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 2],
-                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending', 'notes' => null, 'returned_to_user_id' => null]
+                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending', 'signed_at' => null, 'notes' => null, 'returned_to_user_id' => null]
             );
 
             return redirect()->route('laporan.index')
@@ -162,6 +167,7 @@ class AnalisLaporanController extends Controller
         if ($request->has('header_data')) {
             $hd = array_replace_recursive($hd, $request->input('header_data'));
         }
+        $hd = $this->syncAnalystSignatureAssignments($hd, $report);
         $shiftAssignment = $request->input('shift_assignment', []);
         if (!empty($shiftAssignment)) {
             $existing = $hd['shift_assignments'] ?? [];
@@ -216,7 +222,7 @@ class AnalisLaporanController extends Controller
                     if ($assignedShift !== $myShift) {
                         continue;
                     }
-                    $periodNumber = 1;
+                    $periodNumber = (int) $colIdx;
                     $shift        = $myShift;
                 } else {
                     // colIdx = period_number
@@ -269,5 +275,29 @@ class AnalisLaporanController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    private function syncAnalystSignatureAssignments(array $headerData, Report $report): array
+    {
+        $headerData['ttd_monitoring_id'] = (int) $report->shift1_analyst_id;
+        $headerData['ttd_dibaca_id'] = (int) ($report->shift2_analyst_id ?: $report->shift1_analyst_id);
+
+        return $headerData;
+    }
+
+    private function markAnalystSignaturesAsSigned(array $headerData, Report $report): array
+    {
+        $headerData = $this->syncAnalystSignatureAssignments($headerData, $report);
+        $signedAt = now()->toDateTimeString();
+
+        if ($report->shift2_analyst_id) {
+            $headerData['ttd_monitoring_signed_at'] = $headerData['ttd_monitoring_signed_at'] ?? $signedAt;
+            $headerData['ttd_dibaca_signed_at'] = $signedAt;
+        } else {
+            $headerData['ttd_monitoring_signed_at'] = $signedAt;
+            $headerData['ttd_dibaca_signed_at'] = $signedAt;
+        }
+
+        return $headerData;
     }
 }
