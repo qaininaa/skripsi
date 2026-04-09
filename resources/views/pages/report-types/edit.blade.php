@@ -97,18 +97,17 @@
                         Tambah Inkubator
                     </button>
                 </div>
-                <datalist id="incubator-suggestions">
-                    <option value="20-25°C">
-                    <option value="30-35°C">
-                </datalist>
                 <div class="space-y-2">
                     <template x-for="(inc, idx) in incubators" :key="idx">
                         <div class="flex items-center gap-2">
-                            <input type="text" :name="'incubator_labels[' + idx + ']'" x-model="inc.label"
-                                   list="incubator-suggestions"
-                                   @change="inc.min_days = incPresets[inc.label] ?? inc.min_days"
-                                   placeholder="cth: 20-25°C"
-                                   class="flex-1 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <div class="flex-1 flex items-center rounded-lg border border-gray-300 shadow-sm bg-white focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                                <input type="text" :name="'incubator_labels[' + idx + ']'" x-model="inc.label"
+                                       @focus="inc.label = inc.label.replace(/°C$/, '')"
+                                       @blur="if (inc.label.trim()) { inc.label = inc.label.replace(/°C$/, '').trim() + '°C' }; inc.min_days = incPresets[inc.label] ?? inc.min_days"
+                                       placeholder="cth: 20-25"
+                                       class="flex-1 min-w-0 px-3 py-[7px] text-sm border border-gray-300 rounded-lg focus:ring-0">
+                                <span class="px-3 text-sm text-gray-400 select-none pointer-events-none">°C</span>
+                            </div>
                             <div class="flex items-center gap-1">
                                 <input type="number" :name="'incubator_min_days[' + idx + ']'" x-model="inc.min_days"
                                        min="1" placeholder="Hari"
