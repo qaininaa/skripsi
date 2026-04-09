@@ -36,7 +36,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex18,
                 'name'             => 'Settle Plate',
-                'slug'             => 'settle_plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
                 'max_exposure'     => 4,
@@ -47,7 +46,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex18,
                 'name'             => 'Air Sampler',
-                'slug'             => 'air_sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
                 'max_exposure'     => 2,
@@ -58,7 +56,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex18,
                 'name'             => 'Contact Plate',
-                'slug'             => 'contact_plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
                 'max_exposure'     => 1,
@@ -69,7 +66,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex18,
                 'name'             => 'Swab',
-                'slug'             => 'swab',
                 'measurement_unit' => 'CFU/25cm2/plate',
                 'measurement_type' => 'swab',
                 'max_exposure'     => 2,
@@ -103,7 +99,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex24,
                 'name'             => 'Settle Plate',
-                'slug'             => 'settle_plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
                 'max_exposure'     => 3,
@@ -114,7 +109,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex24,
                 'name'             => 'Air Sampler',
-                'slug'             => 'air_sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
                 'max_exposure'     => 2,
@@ -125,7 +119,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex24,
                 'name'             => 'Contact Plate',
-                'slug'             => 'contact_plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
                 'max_exposure'     => 2,
@@ -159,7 +152,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex3,
                 'name'             => 'Settle Plate',
-                'slug'             => 'settle_plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
                 'max_exposure'     => 1,
@@ -170,7 +162,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex3,
                 'name'             => 'Air Sampler',
-                'slug'             => 'air_sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
                 'max_exposure'     => 1,
@@ -181,7 +172,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex3,
                 'name'             => 'Contact Plate',
-                'slug'             => 'contact_plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
                 'max_exposure'     => 1,
@@ -215,7 +205,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex4,
                 'name'             => 'Settle Plate',
-                'slug'             => 'settle_plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
                 'max_exposure'     => 1,
@@ -226,7 +215,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex4,
                 'name'             => 'Air Sampler',
-                'slug'             => 'air_sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
                 'max_exposure'     => 1,
@@ -237,7 +225,6 @@ class ReportTypeSectionSeeder extends Seeder
             [
                 'report_type_id'   => $annex4,
                 'name'             => 'Contact Plate',
-                'slug'             => 'contact_plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
                 'max_exposure'     => 1,

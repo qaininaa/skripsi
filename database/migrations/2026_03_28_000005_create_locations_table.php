@@ -14,9 +14,9 @@ return new class extends Migration
             $table->foreignId('frequency_id')->nullable()->constrained('frequencies')->nullOnDelete();
             $table->string('location_number', 50)->nullable();
             $table->string('measurement_type', 50)->nullable();
-            $table->unsignedSmallInteger('alert_limit_bacteria')->nullable();
+            $table->unsignedSmallInteger('alert_limit_total')->nullable();
             $table->unsignedSmallInteger('alert_limit_fungi')->nullable();
-            $table->unsignedSmallInteger('alert_action_bacteria')->nullable();
+            $table->unsignedSmallInteger('alert_action_total')->nullable();
             $table->unsignedSmallInteger('alert_action_fungi')->nullable();
             $table->timestamps();
         });

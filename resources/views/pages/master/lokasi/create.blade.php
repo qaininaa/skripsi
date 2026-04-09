@@ -79,19 +79,19 @@
                     </select>
                 </div>
 
-                {{-- Batas Alert Bakteri --}}
+                {{-- Batas Alert Total (B+F) --}}
                 <div class="rounded-lg bg-gray-50 border border-gray-200 p-4 space-y-3">
-                    <p class="text-sm font-medium text-gray-700">Batas Alert Bakteri (CFU)</p>
+                    <p class="text-sm font-medium text-gray-700">Batas Alert Total/B+F (CFU)</p>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Alert Limit</label>
-                            <input type="number" name="alert_limit_bacteria" value="{{ old('alert_limit_bacteria') }}"
+                            <input type="number" name="alert_limit_total" value="{{ old('alert_limit_total') }}"
                                    min="0" max="65535" placeholder="0"
                                    class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Action Limit</label>
-                            <input type="number" name="alert_action_bacteria" value="{{ old('alert_action_bacteria') }}"
+                            <input type="number" name="alert_action_total" value="{{ old('alert_action_total') }}"
                                    min="0" max="65535" placeholder="0"
                                    class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
                         </div>

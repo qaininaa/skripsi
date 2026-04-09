@@ -46,8 +46,8 @@
                     colspan="{{ ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp }}">
                         {{ $section->measurement_unit }}
                     </th>
-                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Alert</th>
-                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Tindakan</th>
+                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Alert<br>Limit</th>
+                    <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Alert<br>Action</th>
                     <th class="px-2 py-2 text-center font-semibold whitespace-nowrap" rowspan="3">Kesimpulan</th>
                 </tr>
                 {{-- Row 2: period/shift labels --}}
@@ -212,9 +212,9 @@
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
                     @endfor
-                    <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
+                    <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
                     <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
-                    <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
+                    <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
                     <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
                 </tr>
             </thead>
@@ -229,12 +229,12 @@
                             }
                         }
                     }
-                    $maxB   = $locEntries->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
+                    $maxT   = $locEntries->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
                     $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                    $hasTMS = ($loc->alert_action_bacteria && $maxB >= $loc->alert_action_bacteria)
+                    $hasTMS = ($loc->alert_action_total && $maxT >= $loc->alert_action_total)
                            || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                     $hasAlt = !$hasTMS && (
-                                ($loc->alert_limit_bacteria && $maxB >= $loc->alert_limit_bacteria)
+                                ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                              || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                     $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
 
@@ -302,14 +302,8 @@
                     {{-- Data columns per exposure/shift --}}
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @php
-                        $colAsgn = $secAssignments[$col] ?? 1;
-                        if ($hasSharedTime) {
-                            // air_sampler / contact_plate: entries always at period=1, distinguished by shift
-                            $existEntry = $entryMap[$loc->pivot->id][1][$colAsgn] ?? null;
-                        } else {
-                            // settle_plate etc: entries at period=$col
-                            $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
-                        }
+                        $colAsgn    = $secAssignments[$col] ?? 1;
+                        $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
                         $editable = $isEditable && ($colAsgn == $myShift);
                         $iName = "entries[{$loc->pivot->id}][{$col}]";
                         $rowKey = "{$loc->pivot->id}-{$col}";
@@ -371,8 +365,8 @@
                     @endfor
 
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                        <span class="text-[11px] font-medium {{ $loc->alert_limit_bacteria !== null ? 'text-amber-700' : 'text-gray-300' }}">
-                            {{ $loc->alert_limit_bacteria ?? '—' }}
+                        <span class="text-[11px] font-medium {{ $loc->alert_limit_total !== null ? 'text-amber-700' : 'text-gray-300' }}">
+                            {{ $loc->alert_limit_total ?? '—' }}
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
@@ -381,8 +375,8 @@
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                        <span class="text-[11px] font-medium {{ $loc->alert_action_bacteria !== null ? 'text-red-600' : 'text-gray-300' }}">
-                            {{ $loc->alert_action_bacteria !== null ? ($loc->alert_action_bacteria == 1 ? '<1' : $loc->alert_action_bacteria) : '—' }}
+                        <span class="text-[11px] font-medium {{ $loc->alert_action_total !== null ? 'text-red-600' : 'text-gray-300' }}">
+                            {{ $loc->alert_action_total !== null ? ($loc->alert_action_total == 1 ? '<1' : $loc->alert_action_total) : '—' }}
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
@@ -393,9 +387,9 @@
                     <td class="px-2 py-2.5 text-center konklusi-cell"
                         id="konklusi-{{ $loc->pivot->id }}"
                         data-section-id="{{ $section->id }}"
-                        data-alert-b="{{ $loc->alert_limit_bacteria ?? '' }}"
+                        data-alert-t="{{ $loc->alert_limit_total ?? '' }}"
                         data-alert-f="{{ $loc->alert_limit_fungi ?? '' }}"
-                        data-action-b="{{ $loc->alert_action_bacteria ?? '' }}"
+                        data-action-t="{{ $loc->alert_action_total ?? '' }}"
                         data-action-f="{{ $loc->alert_action_fungi ?? '' }}">
                         @if ($konklusi === 'TMS')
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
@@ -439,9 +433,9 @@
             }
             if ($locEntries2->isNotEmpty()) {
                 $sectionAllEmpty = false;
-                $maxB2 = $locEntries2->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
+                $maxT2 = $locEntries2->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
                 $maxF2 = $locEntries2->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                if (($_loc->alert_action_bacteria && $maxB2 >= $_loc->alert_action_bacteria)
+                if (($_loc->alert_action_total && $maxT2 >= $_loc->alert_action_total)
                     || ($_loc->alert_action_fungi && $maxF2 >= $_loc->alert_action_fungi)) {
                     $sectionHasTMS = true;
                 }

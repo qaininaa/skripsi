@@ -10,8 +10,8 @@ class ReportLocation extends Model
 
     protected $fillable = [
         'id_room', 'frequency_id', 'location_number', 'measurement_type',
-        'alert_limit_bacteria', 'alert_limit_fungi',
-        'alert_action_bacteria', 'alert_action_fungi',
+        'alert_limit_total', 'alert_limit_fungi',
+        'alert_action_total', 'alert_action_fungi',
     ];
 
     public function room()

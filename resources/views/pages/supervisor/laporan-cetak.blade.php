@@ -469,8 +469,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @endif
                 <th>B</th><th>F</th><th>T</th>
                 @endfor
-                <th>B</th><th>F</th>
-                <th>B</th><th>F</th>
+                <th>T</th><th>F</th>
+                <th>T</th><th>F</th>
             </tr>
         </thead>
 
@@ -483,12 +483,12 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         if (isset($entryMap[$loc->pivot->id][$p][$s])) $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
                     }
                 }
-                $maxB   = $locEntries->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
+                $maxT   = $locEntries->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
                 $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                $hasTMS = ($loc->alert_action_bacteria && $maxB >= $loc->alert_action_bacteria)
+                $hasTMS = ($loc->alert_action_total && $maxT >= $loc->alert_action_total)
                        || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                 $hasAlt = !$hasTMS && (
-                            ($loc->alert_limit_bacteria && $maxB >= $loc->alert_limit_bacteria)
+                            ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                          || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                 $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
             @endphp
@@ -515,9 +515,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @for ($col = 1; $col <= $maxCols; $col++)
                 @php
                     $colAsgn    = $secAssignments[$col] ?? 1;
-                    $existEntry = $hasSharedTime
-                        ? ($entryMap[$loc->pivot->id][1][$colAsgn] ?? null)
-                        : ($entryMap[$loc->pivot->id][$col][$colAsgn] ?? null);
+                    $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
                     $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
                         ? round(($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0), 10) : null;
                 @endphp
@@ -530,10 +528,10 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @endfor
 
                 {{-- Alert Limit --}}
-                <td class="tc">{{ $loc->alert_limit_bacteria !== null ? $loc->alert_limit_bacteria : 'NA' }}</td>
+                <td class="tc">{{ $loc->alert_limit_total !== null ? $loc->alert_limit_total : 'NA' }}</td>
                 <td class="tc">{{ $loc->alert_limit_fungi !== null ? $loc->alert_limit_fungi : 'NA' }}</td>
                 {{-- Action Limit --}}
-                <td class="tc">{{ $loc->alert_action_bacteria !== null ? ($loc->alert_action_bacteria == 1 ? '<1' : $loc->alert_action_bacteria) : 'NA' }}</td>
+                <td class="tc">{{ $loc->alert_action_total !== null ? ($loc->alert_action_total == 1 ? '<1' : $loc->alert_action_total) : 'NA' }}</td>
                 <td class="tc">{{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : 'NA' }}</td>
                 {{-- Kesimpulan --}}
                 <td class="tc fw">

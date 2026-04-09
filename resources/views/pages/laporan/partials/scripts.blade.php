@@ -158,21 +158,28 @@ document.addEventListener('input', function (e) {
     // Recalculate Kesimpulan for this location across all its inputs
     const konklusiCell = document.getElementById(`konklusi-${loc}`);
     if (konklusiCell) {
-        let maxB = 0, maxF = 0, hasAny = false;
-        document.querySelectorAll(`[data-loc="${loc}"][data-type="b"]`).forEach(inp => {
-            if (inp.value !== '') { hasAny = true; maxB = Math.max(maxB, parseFloat(inp.value) || 0); }
+        let maxT = 0, maxF = 0, hasAny = false;
+        // maxT = max of (B+F) per column for this location
+        const colSet = new Set();
+        document.querySelectorAll(`[data-loc="${loc}"][data-type="b"]`).forEach(inp => { if (inp.value !== '') colSet.add(inp.dataset.col); });
+        document.querySelectorAll(`[data-loc="${loc}"][data-type="f"]`).forEach(inp => { if (inp.value !== '') colSet.add(inp.dataset.col); });
+        colSet.forEach(c => {
+            hasAny = true;
+            const bInp = document.querySelector(`[data-loc="${loc}"][data-col="${c}"][data-type="b"]`);
+            const fInp = document.querySelector(`[data-loc="${loc}"][data-col="${c}"][data-type="f"]`);
+            maxT = Math.max(maxT, (parseFloat(bInp?.value) || 0) + (parseFloat(fInp?.value) || 0));
         });
         document.querySelectorAll(`[data-loc="${loc}"][data-type="f"]`).forEach(inp => {
-            if (inp.value !== '') { hasAny = true; maxF = Math.max(maxF, parseFloat(inp.value) || 0); }
+            if (inp.value !== '') { maxF = Math.max(maxF, parseFloat(inp.value) || 0); }
         });
-        const alertB  = konklusiCell.dataset.alertB  !== '' ? parseFloat(konklusiCell.dataset.alertB)  : null;
+        const alertT  = konklusiCell.dataset.alertT  !== '' ? parseFloat(konklusiCell.dataset.alertT)  : null;
         const alertF  = konklusiCell.dataset.alertF  !== '' ? parseFloat(konklusiCell.dataset.alertF)  : null;
-        const actionB = konklusiCell.dataset.actionB !== '' ? parseFloat(konklusiCell.dataset.actionB) : null;
+        const actionT = konklusiCell.dataset.actionT !== '' ? parseFloat(konklusiCell.dataset.actionT) : null;
         const actionF = konklusiCell.dataset.actionF !== '' ? parseFloat(konklusiCell.dataset.actionF) : null;
         let label = '—', cls = 'text-gray-300 text-[11px]';
         if (hasAny) {
-            const isTMS = (actionB !== null && maxB >= actionB) || (actionF !== null && maxF >= actionF);
-            const isAlert = !isTMS && ((alertB !== null && maxB >= alertB) || (alertF !== null && maxF >= alertF));
+            const isTMS = (actionT !== null && maxT >= actionT) || (actionF !== null && maxF >= actionF);
+            const isAlert = !isTMS && ((alertT !== null && maxT >= alertT) || (alertF !== null && maxF >= alertF));
             if (isTMS)       { label = 'TMS';   cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700'; }
             else if (isAlert){ label = 'Alert'; cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700'; }
             else             { label = 'MS';    cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700'; }

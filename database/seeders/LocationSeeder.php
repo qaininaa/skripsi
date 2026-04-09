@@ -17,8 +17,8 @@ class LocationSeeder extends Seeder
         // Kolom tabel locations:
         //   id, id_room (FK rooms), frequency_id (FK frequencies),
         //   location_number, measurement_type,
-        //   alert_limit_bacteria, alert_limit_fungi,
-        //   alert_action_bacteria, alert_action_fungi
+        //   alert_limit_total, alert_limit_fungi,
+        //   alert_action_total, alert_action_fungi
 
         $now = now();
 
@@ -35,9 +35,9 @@ class LocationSeeder extends Seeder
                 'frequency_id'          => $harian,
                 'location_number'       => 'SP1',
                 'measurement_type'      => 'settle_plate',
-                'alert_limit_bacteria'  => null,
+                'alert_limit_total'  => null,
                 'alert_limit_fungi'     => null,
-                'alert_action_bacteria' => 1,
+                'alert_action_total' => 1,
                 'alert_action_fungi'    => 1,
                 'created_at'            => $now,
                 'updated_at'            => $now,
@@ -48,9 +48,9 @@ class LocationSeeder extends Seeder
                 'frequency_id'          => $harian,
                 'location_number'       => 'AS1',
                 'measurement_type'      => 'air_sampler',
-                'alert_limit_bacteria'  => null,
+                'alert_limit_total'  => null,
                 'alert_limit_fungi'     => null,
-                'alert_action_bacteria' => 1,
+                'alert_action_total' => 1,
                 'alert_action_fungi'    => 1,
                 'created_at'            => $now,
                 'updated_at'            => $now,
@@ -61,9 +61,9 @@ class LocationSeeder extends Seeder
                 'frequency_id'          => $harian,
                 'location_number'       => 'SP1',
                 'measurement_type'      => 'settle_plate',
-                'alert_limit_bacteria'  => 2,
+                'alert_limit_total'  => 2,
                 'alert_limit_fungi'     => null,
-                'alert_action_bacteria' => 5,
+                'alert_action_total' => 5,
                 'alert_action_fungi'    => 1,
                 'created_at'            => $now,
                 'updated_at'            => $now,

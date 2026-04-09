@@ -316,8 +316,8 @@
                                     <td class="px-2 py-1.5 text-gray-600">{{ $loc->room->room_number ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-gray-600">{{ $loc->location_number ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-gray-600">{{ $loc->measurement_type ?? '-' }}</td>
-                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_bacteria ?? '-' }}</td>
-                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_bacteria ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_total ?? '-' }}</td>
+                                    <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_total ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_fungi ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_fungi ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-right">

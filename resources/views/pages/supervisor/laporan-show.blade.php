@@ -375,9 +375,9 @@
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
                         @endfor
-                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
-                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
                     </tr>
                 </thead>
@@ -392,12 +392,12 @@
                                 }
                             }
                         }
-                        $maxB   = $locEntries->max(fn($e) => $e->cfu_bacteria ?? 0) ?? 0;
+                        $maxT   = $locEntries->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
                         $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                        $hasTMS = ($loc->alert_action_bacteria && $maxB >= $loc->alert_action_bacteria)
+                        $hasTMS = ($loc->alert_action_total && $maxT >= $loc->alert_action_total)
                                || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                         $hasAlt = !$hasTMS && (
-                                    ($loc->alert_limit_bacteria && $maxB >= $loc->alert_limit_bacteria)
+                                    ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                                  || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                         $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
 
@@ -450,12 +450,8 @@
                         {{-- Data columns per exposure --}}
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
-                            $colAsgn = $secAssignments[$col] ?? 1;
-                            if ($hasSharedTime) {
-                                $existEntry = $entryMap[$loc->pivot->id][1][$colAsgn] ?? null;
-                            } else {
-                                $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
-                            }
+                            $colAsgn    = $secAssignments[$col] ?? 1;
+                            $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
                             $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
                                 ? round(($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0), 10)
                                 : null;
@@ -488,8 +484,8 @@
 
                         {{-- Alert Limit --}}
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                            <span class="text-[11px] font-medium {{ $loc->alert_limit_bacteria !== null ? 'text-amber-700' : 'text-gray-300' }}">
-                                {{ $loc->alert_limit_bacteria ?? '—' }}
+                            <span class="text-[11px] font-medium {{ $loc->alert_limit_total !== null ? 'text-amber-700' : 'text-gray-300' }}">
+                                {{ $loc->alert_limit_total ?? '—' }}
                             </span>
                         </td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
@@ -499,8 +495,8 @@
                         </td>
                         {{-- Action Limit --}}
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
-                            <span class="text-[11px] font-medium {{ $loc->alert_action_bacteria !== null ? 'text-red-600' : 'text-gray-300' }}">
-                                {{ $loc->alert_action_bacteria !== null ? ($loc->alert_action_bacteria == 1 ? '<1' : $loc->alert_action_bacteria) : '—' }}
+                            <span class="text-[11px] font-medium {{ $loc->alert_action_total !== null ? 'text-red-600' : 'text-gray-300' }}">
+                                {{ $loc->alert_action_total !== null ? ($loc->alert_action_total == 1 ? '<1' : $loc->alert_action_total) : '—' }}
                             </span>
                         </td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">

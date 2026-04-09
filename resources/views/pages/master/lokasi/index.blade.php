@@ -76,8 +76,8 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">No. Lokasi</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipe Pengukuran</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Frekuensi</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Bakteri</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Fungi</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Total (T)</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Alert Fungi (F)</th>
                         <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
@@ -93,8 +93,8 @@
                             <td class="px-4 py-3.5 text-gray-600">{{ $loc->measurement_type ? ucfirst(str_replace('_', ' ', $loc->measurement_type)) : '-' }}</td>
                             <td class="px-4 py-3.5 text-gray-600">{{ $loc->frequency->name ?? '-' }}</td>
                             <td class="px-4 py-3.5">
-                                <p class="text-xs text-gray-600">Alert limit: {{ $loc->alert_limit_bacteria ?? '-' }}</p>
-                                <p class="text-xs text-gray-500">Action limit: {{ $loc->alert_action_bacteria ?? '-' }}</p>
+                                <p class="text-xs text-gray-600">Alert limit: {{ $loc->alert_limit_total ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">Action limit: {{ $loc->alert_action_total ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3.5">
                                 <p class="text-xs text-gray-600">Alert limit: {{ $loc->alert_limit_fungi ?? '-' }}</p>

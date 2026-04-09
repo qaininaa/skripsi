@@ -46,10 +46,10 @@ class LokasiController extends Controller
             'frequency_id'          => ['nullable', 'exists:frequencies,id'],
             'location_number'       => ['nullable', 'string', 'max:50'],
             'measurement_type'      => ['nullable', 'string', 'max:50'],
-            'alert_limit_bacteria'  => ['nullable', 'integer', 'min:0', 'max:65535'],
-            'alert_limit_fungi'     => ['nullable', 'integer', 'min:0', 'max:65535'],
-            'alert_action_bacteria' => ['nullable', 'integer', 'min:0', 'max:65535'],
-            'alert_action_fungi'    => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_limit_total'  => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_limit_fungi'   => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_action_total'  => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_action_fungi'  => ['nullable', 'integer', 'min:0', 'max:65535'],
         ]);
 
         ReportLocation::create($validated);
@@ -74,10 +74,10 @@ class LokasiController extends Controller
             'frequency_id'          => ['nullable', 'exists:frequencies,id'],
             'location_number'       => ['nullable', 'string', 'max:50'],
             'measurement_type'      => ['nullable', 'string', 'max:50'],
-            'alert_limit_bacteria'  => ['nullable', 'integer', 'min:0', 'max:65535'],
-            'alert_limit_fungi'     => ['nullable', 'integer', 'min:0', 'max:65535'],
-            'alert_action_bacteria' => ['nullable', 'integer', 'min:0', 'max:65535'],
-            'alert_action_fungi'    => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_limit_total'  => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_limit_fungi'   => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_action_total'  => ['nullable', 'integer', 'min:0', 'max:65535'],
+            'alert_action_fungi'  => ['nullable', 'integer', 'min:0', 'max:65535'],
         ]);
 
         $lokasi->update($validated);
