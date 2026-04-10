@@ -33,7 +33,7 @@ class SupervisorLaporanController extends Controller
             'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
         ];
 
-        $reports = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals'])
+        $reports = Report::with(['reportType', 'approvals'])
             ->join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 2)
             ->where('report_approvals.user_id', $userId)
@@ -54,7 +54,7 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
@@ -137,11 +137,12 @@ class SupervisorLaporanController extends Controller
             ->firstOrFail();
 
         $returnedToUserId = (int) $request->input('returned_to_user_id');
+        $allowedUsers = array_merge(
+            $report->analyst_monitoring ?? [],
+            $report->analyst_reading ?? []
+        );
         abort_unless(
-            in_array($returnedToUserId, array_filter([
-                $report->shift1_analyst_id,
-                $report->shift2_analyst_id,
-            ])),
+            in_array($returnedToUserId, $allowedUsers),
             422,
             'Analis tujuan tidak valid.'
         );
@@ -152,9 +153,9 @@ class SupervisorLaporanController extends Controller
             'returned_to_user_id'  => $returnedToUserId,
         ]);
 
-        // Reset handover so analis can re-edit from the beginning
+        // Reset signature timestamps
         $hd = $report->header_data ?? [];
-        unset($hd['shift1_handed_over'], $hd['ttd_monitoring_signed_at'], $hd['ttd_dibaca_signed_at']);
+        unset($hd['ttd_monitoring_signed_at'], $hd['ttd_dibaca_signed_at']);
         $report->update(['status' => 'returned', 'header_data' => $hd]);
 
         return redirect()->route('supervisor.laporan-masuk')
@@ -169,7 +170,7 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];

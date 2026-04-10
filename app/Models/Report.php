@@ -8,27 +8,19 @@ class Report extends Model
 {
     protected $fillable = [
         'report_type_id', 'product_name', 'batch_number',
-        'shift1_analyst_id', 'shift2_analyst_id',
+        'analyst_monitoring', 'analyst_reading',
         'status', 'created_by', 'header_data',
     ];
 
     protected $casts = [
-        'header_data' => 'array',
+        'header_data'       => 'array',
+        'analyst_monitoring' => 'array',
+        'analyst_reading'    => 'array',
     ];
 
     public function reportType()
     {
         return $this->belongsTo(ReportType::class);
-    }
-
-    public function shift1Analis()
-    {
-        return $this->belongsTo(User::class, 'shift1_analyst_id');
-    }
-
-    public function shift2Analis()
-    {
-        return $this->belongsTo(User::class, 'shift2_analyst_id');
     }
 
     public function entries()

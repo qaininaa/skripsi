@@ -245,7 +245,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">1. Pemantauan Ruang</td></tr>
         <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->created_at->isoFormat('D MMMM Y') }}</td></tr>
-        <tr><td>Nama Analis</td><td>{{ $report->shift1Analis->name }}{{ $report->shift2Analis ? ' / ' . $report->shift2Analis->name : '' }}</td></tr>
+        <tr><td>Nama Analis</td><td>@php $names = \\App\\Models\\User::whereIn('id', array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []))->pluck('name'); @endphp{{ $names->isNotEmpty() ? $names->join(' / ') : '—' }}</td></tr>
         <tr><td>Nama Produk</td><td>{{ $report->product_name }}</td></tr>
         <tr><td>Nomor Batch Produk</td><td>{{ $report->batch_number ?: '' }}</td></tr>
     </table>

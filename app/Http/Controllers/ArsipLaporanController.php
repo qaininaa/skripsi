@@ -11,7 +11,7 @@ class ArsipLaporanController extends Controller
     {
         $search = $request->query('search');
 
-        $reports = Report::with(['reportType', 'shift1Analis'])
+        $reports = Report::with(['reportType'])
             ->whereHas('approvals', function ($q) {
                 $q->where('step', 3)->where('status', 'approved');
             })
@@ -35,7 +35,7 @@ class ArsipLaporanController extends Controller
         $managerApproval = $report->approvals->where('step', 3)->where('status', 'approved')->first();
         abort_unless($managerApproval, 404);
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis']);
+        $report->load(['reportType.sections.locations.room', 'entries']);
 
         $entryMap = [];
         foreach ($report->entries as $entry) {

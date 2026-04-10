@@ -14,12 +14,8 @@ class AnalisLaporanController extends Controller
     public function index(Request $request)
     {
         $status = $request->query('status', 'all');
-        $userId = Auth::id();
 
-        $mine = fn($q) => $q->where('shift1_analyst_id', $userId)
-                             ->orWhere('shift2_analyst_id', $userId);
-
-        $rawCounts = Report::where($mine)->get(['status'])->groupBy('status')->map->count();
+        $rawCounts = Report::get(['status'])->groupBy('status')->map->count();
 
         $counts = collect([
             'pending'     => $rawCounts['pending']     ?? 0,
@@ -30,8 +26,7 @@ class AnalisLaporanController extends Controller
             'rejected'    => $rawCounts['rejected']    ?? 0,
         ]);
 
-        $query = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals.user'])
-            ->where($mine)
+        $query = Report::with(['reportType', 'approvals.user'])
             ->orderByDesc('created_at');
 
         if ($status !== 'all') {
@@ -45,26 +40,11 @@ class AnalisLaporanController extends Controller
 
     public function isi(Report $report)
     {
-        $userId = Auth::id();
-        abort_if(
-            $report->shift1_analyst_id !== $userId && $report->shift2_analyst_id !== $userId,
-            403
-        );
-
-        $myShift    = $report->shift1_analyst_id === $userId ? 1 : 2;
-        $otherShift = $myShift === 1 ? 2 : 1;
-
-        // Hanya shift 1 yang boleh mengubah status dari pending → in_progress
-        if ($report->status === 'pending' && $myShift === 1) {
+        if ($report->status === 'pending' || $report->status === 'returned') {
             $report->update(['status' => 'in_progress']);
         }
 
-        // Jika laporan dikembalikan, ubah ke in_progress agar bisa diedit
-        if ($report->status === 'returned') {
-            $report->update(['status' => 'in_progress']);
-        }
-
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
@@ -77,63 +57,25 @@ class AnalisLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        $shift1HandedOver = !empty(($report->header_data ?? [])['shift1_handed_over']);
+        $isEditable = $report->status === 'in_progress';
+        $myShift    = 1;
 
-        // Edge case: shift 1 sudah handed over tapi shift 2 tidak ada (mis. dihapus admin)
-        // → reset flag agar shift 1 bisa melanjutkan
-        if ($shift1HandedOver && is_null($report->shift2_analyst_id)) {
-            $hd = $report->header_data ?? [];
-            unset($hd['shift1_handed_over']);
-            $report->update(['header_data' => $hd]);
-            $shift1HandedOver = false;
-        }
-
-        $isEditable       = $report->status === 'in_progress'
-                            && ($myShift === 1 ? !$shift1HandedOver : $shift1HandedOver);
+        $analis = User::where('role', 'analis')->orderBy('name')->get();
 
         return view('pages.laporan.isi', compact(
-            'report', 'myShift', 'otherShift', 'entryMap',
+            'report', 'myShift', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
-            'isEditable', 'shift1HandedOver'
+            'isEditable', 'analis'
         ));
     }
 
     public function save(Request $request, Report $report)
     {
-        $userId = Auth::id();
-        abort_if(
-            $report->shift1_analyst_id !== $userId && $report->shift2_analyst_id !== $userId,
-            403
-        );
         abort_if(in_array($report->status, ['submitted', 'approved']), 403);
 
-        $myShift = $report->shift1_analyst_id === $userId ? 1 : 2;
-
-        // Shift 2 cannot save until shift 1 has handed over
-        $shift1HandedOver = !empty(($report->header_data ?? [])['shift1_handed_over']);
-        if ($myShift === 2 && !$shift1HandedOver) {
-            abort(403, 'Shift 1 belum meneruskan laporan.');
-        }
-
-        // Shift 1 is read-only after handover
-        if ($myShift === 1 && $shift1HandedOver) {
-            abort(403, 'Data Shift 1 sudah dikunci setelah estafet.');
-        }
-
-        $this->processEntries($request, $report, $myShift);
-
-        if ($request->input('action') === 'handover') {
-            abort_if($myShift !== 1 || ! $report->shift2_analyst_id, 403);
-            $report->refresh();
-            $hd = $this->syncAnalystSignatureAssignments($report->header_data ?? [], $report);
-            $hd['shift1_handed_over'] = true;
-            $hd['ttd_monitoring_signed_at'] = now()->toDateTimeString();
-            $report->update(['header_data' => $hd]);
-            return back()->with('success', 'Data Shift 1 berhasil disimpan dan diteruskan ke Shift 2.');
-        }
+        $this->processEntries($request, $report);
 
         if ($request->input('action') === 'submit') {
-            abort_if($report->shift2_analyst_id && $myShift !== 2, 403, 'Shift 2 yang harus mengirim laporan.');
             $supervisorId = (int) $request->input('supervisor_id');
             abort_if($supervisorId === 0, 422, 'Pilih supervisor terlebih dahulu.');
             abort_unless(
@@ -143,14 +85,12 @@ class AnalisLaporanController extends Controller
             );
 
             $freshHd = $this->markAnalystSignaturesAsSigned($report->fresh()->header_data ?? [], $report);
-            $report->update(['header_data' => $freshHd]);
+            $report->update(['header_data' => $freshHd, 'status' => 'submitted']);
 
-            $report->update(['status' => 'submitted']);
-
-            // Reset approval if it was previously returned
             \App\Models\ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 2],
-                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending', 'signed_at' => null, 'notes' => null, 'returned_to_user_id' => null]
+                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending',
+                 'signed_at' => null, 'notes' => null, 'returned_to_user_id' => null]
             );
 
             return redirect()->route('laporan.index')
@@ -160,14 +100,27 @@ class AnalisLaporanController extends Controller
         return back()->with('success', 'Data berhasil disimpan sebagai draft.');
     }
 
-    private function processEntries(Request $request, Report $report, int $myShift): void
+    private function processEntries(Request $request, Report $report): void
     {
-        // Save header_data and shift assignments together
+        $myShift = 1;
+
+        // Save header_data (analyst assignments + timing data)
         $hd = $report->header_data ?? [];
         if ($request->has('header_data')) {
             $hd = array_replace_recursive($hd, $request->input('header_data'));
         }
-        $hd = $this->syncAnalystSignatureAssignments($hd, $report);
+
+        // Save analyst_monitoring and analyst_reading to the report
+        if ($request->has('analyst_monitoring')) {
+            $report->analyst_monitoring = array_map('intval', (array) $request->input('analyst_monitoring'));
+        }
+        if ($request->has('analyst_reading')) {
+            $report->analyst_reading = array_map('intval', (array) $request->input('analyst_reading'));
+        }
+        if ($request->has('analyst_monitoring') || $request->has('analyst_reading')) {
+            $report->save();
+        }
+
         $shiftAssignment = $request->input('shift_assignment', []);
         if (!empty($shiftAssignment)) {
             $existing = $hd['shift_assignments'] ?? [];
@@ -211,24 +164,12 @@ class AnalisLaporanController extends Controller
                 continue;
             }
 
-            $isShiftBased = in_array($sectionType, ['air_sampler', 'contact_plate', 'swab']);
             $timeSlotType = $pivotSectionTimeSlot[(int) $pivotId] ?? 'none';
             $sectionId    = $pivotSectionId[(int) $pivotId] ?? null;
 
             foreach ($cols as $colIdx => $data) {
-                if ($isShiftBased) {
-                    // only save columns assigned to the current user's shift
-                    $assignedShift = (int) ($hd['shift_assignments'][$sectionId][$colIdx] ?? 1);
-                    if ($assignedShift !== $myShift) {
-                        continue;
-                    }
-                    $periodNumber = (int) $colIdx;
-                    $shift        = $myShift;
-                } else {
-                    // colIdx = period_number
-                    $periodNumber = (int) $colIdx;
-                    $shift        = $myShift;
-                }
+                $periodNumber = (int) $colIdx;
+                $shift        = $myShift;
 
                 $hasData = collect($data)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
                 if (! $hasData) {
@@ -244,10 +185,10 @@ class AnalisLaporanController extends Controller
                     ],
                     [
                         'analyst_id'   => Auth::id(),
-                        'start_time'   => ($isShiftBased || $timeSlotType === 'per_location')
+                        'start_time'   => ($timeSlotType === 'per_location')
                             ? ($data['start_time'] ?? null ?: null)
                             : ($exposureTimes[$sectionId][$colIdx]['start_time'] ?? null ?: null),
-                        'end_time'     => ($isShiftBased || $timeSlotType === 'per_location')
+                        'end_time'     => ($timeSlotType === 'per_location')
                             ? null
                             : ($exposureTimes[$sectionId][$colIdx]['end_time'] ?? null ?: null),
                         'cfu_bacteria' => isset($data['cfu_bacteria']) && $data['cfu_bacteria'] !== ''
@@ -277,26 +218,17 @@ class AnalisLaporanController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    private function syncAnalystSignatureAssignments(array $headerData, Report $report): array
-    {
-        $headerData['ttd_monitoring_id'] = (int) $report->shift1_analyst_id;
-        $headerData['ttd_dibaca_id'] = (int) ($report->shift2_analyst_id ?: $report->shift1_analyst_id);
-
-        return $headerData;
-    }
-
     private function markAnalystSignaturesAsSigned(array $headerData, Report $report): array
     {
-        $headerData = $this->syncAnalystSignatureAssignments($headerData, $report);
-        $signedAt = now()->toDateTimeString();
+        $monitoringIds = $report->analyst_monitoring ?? [];
+        $readingIds    = $report->analyst_reading    ?? [];
 
-        if ($report->shift2_analyst_id) {
-            $headerData['ttd_monitoring_signed_at'] = $headerData['ttd_monitoring_signed_at'] ?? $signedAt;
-            $headerData['ttd_dibaca_signed_at'] = $signedAt;
-        } else {
-            $headerData['ttd_monitoring_signed_at'] = $signedAt;
-            $headerData['ttd_dibaca_signed_at'] = $signedAt;
-        }
+        $headerData['ttd_monitoring_id'] = (int) ($monitoringIds[0] ?? 0) ?: null;
+        $headerData['ttd_dibaca_id']     = (int) ($readingIds[0]    ?? 0) ?: null;
+
+        $signedAt = now()->toDateTimeString();
+        $headerData['ttd_monitoring_signed_at'] = $signedAt;
+        $headerData['ttd_dibaca_signed_at']     = $signedAt;
 
         return $headerData;
     }

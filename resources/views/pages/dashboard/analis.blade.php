@@ -8,9 +8,7 @@
 {{-- Quick stats --}}
 @php
     use App\Models\Report;
-    $myItems = Report::where(fn($q) => $q->where('shift1_analyst_id', Auth::id())
-                                         ->orWhere('shift2_analyst_id', Auth::id()))
-        ->selectRaw('status, count(*) as total')
+    $myItems = Report::selectRaw('status, count(*) as total')
         ->groupBy('status')
         ->pluck('total', 'status');
 @endphp

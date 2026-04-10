@@ -18,23 +18,6 @@
 </div>
 @endif
 
-{{-- ── Banner: Shift 2 menunggu estafet ────────────────── --}}
-@if ($myShift === 2 && !$shift1HandedOver && $report->status === 'in_progress')
-<div class="mb-5 px-4 py-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-    <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-    </svg>
-    <div>
-        <p class="text-sm font-semibold text-amber-800">Menunggu estafet dari Shift 1</p>
-        <p class="text-xs text-amber-700 mt-0.5">
-            Anda belum bisa mengisi data Shift 2. Analis Shift 1
-            (<span class="font-medium">{{ $report->shift1Analis->name }}</span>)
-            harus menekan tombol <span class="font-semibold">Estafet ke Shift 2</span> terlebih dahulu.
-        </p>
-    </div>
-</div>
-@endif
-
 {{-- ── 1. Pemantauan Ruang ─────────────────────────────── --}}
 @include('pages.laporan.partials.section-info')
 

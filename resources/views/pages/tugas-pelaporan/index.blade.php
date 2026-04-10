@@ -19,7 +19,7 @@
     <div class="flex items-center justify-between mb-5">
         <div>
             <h2 class="text-xl font-bold text-gray-800">Tugas Pelaporan</h2>
-            <p class="text-sm text-gray-500 mt-0.5">Daftar penugasan analis per shift.</p>
+            <p class="text-sm text-gray-500 mt-0.5">Daftar tugas pelaporan yang dibuat.</p>
         </div>
         <a href="{{ route('tugas-pelaporan.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 shadow-sm transition-colors">
@@ -68,9 +68,7 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama Produk</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Batch Produk</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Alat Instrumen</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Shift 1</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Shift 2</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis Laporan</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dibuat Oleh</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -95,17 +93,7 @@
 
                             {{-- Alat Instrumen --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
-                                {{ ucwords(str_replace('_', ' ', $item->reportType->instrument ?? '-')) }}
-                            </td>
-
-                            {{-- Shift 1 --}}
-                            <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
-                                {{ $item->shift1Analis->name ?? '-' }}
-                            </td>
-
-                            {{-- Shift 2 --}}
-                            <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">
-                                {{ $item->shift2Analis->name ?? '-' }}
+                                {{ $item->reportType->annex_number ?? '-' }} — {{ $item->reportType->name ?? '-' }}
                             </td>
 
                             <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ $item->createdBy->name ?? '-' }}</td>

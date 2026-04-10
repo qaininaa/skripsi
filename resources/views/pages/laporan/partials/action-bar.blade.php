@@ -31,16 +31,6 @@
             </svg>
             Simpan Draft
         </button>
-        @if ($myShift === 1 && !$shift1HandedOver && $report->shift2Analis)
-        <button type="button" onclick="openConfirmModal('handover')"
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-            </svg>
-            Estafet ke Shift 2
-        </button>
-        @endif
-        @if (!$report->shift2Analis || $myShift === 2)
         <button type="button" onclick="openSubmitFlow()"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -48,17 +38,8 @@
             </svg>
             Kirim Laporan
         </button>
-        @endif
     </div>
     @else
-        @if ($myShift === 1 && $shift1HandedOver)
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Sudah diteruskan ke Shift 2 - Mode Lihat
-        </span>
-        @else
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
             @if ($report->status === 'submitted') bg-blue-50 text-blue-700
             @elseif ($report->status === 'approved') bg-green-50 text-green-700
@@ -68,6 +49,5 @@
             @endphp
             {{ $statusLabel }} - Mode Lihat
         </span>
-        @endif
     @endif
 </div>

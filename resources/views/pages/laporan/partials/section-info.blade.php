@@ -11,28 +11,46 @@
             </div>
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Analis Shift 1</label>
-            <div class="px-3 py-2 rounded-lg border text-sm flex items-center gap-2
-                {{ $myShift === 1 ? 'bg-emerald-50 border-emerald-100 text-emerald-800 font-medium' : 'bg-gray-50 border-gray-100 text-gray-700' }}">
-                {{ $report->shift1Analis->name }}
-                <span class="inline-flex items-center justify-center h-5 w-12 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700 flex-shrink-0">
-                    Shift 1
-                </span>
-            </div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Analis Monitoring</label>
+            @if ($isEditable)
+                <select name="analyst_monitoring"
+                    class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    <option value="">— Pilih Analis —</option>
+                    @foreach ($analis as $a)
+                        <option value="{{ $a->id }}" {{ in_array($a->id, $report->analyst_monitoring ?? []) ? 'selected' : '' }}>
+                            {{ $a->name }}
+                        </option>
+                    @endforeach
+                </select>
+            @else
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
+                    @php
+                        $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
+                    @endphp
+                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
+                </div>
+            @endif
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Analis Shift 2</label>
-            <div class="px-3 py-2 rounded-lg border text-sm flex items-center gap-2
-                {{ $myShift === 2 ? 'bg-indigo-50 border-indigo-100 text-indigo-800 font-medium' : 'bg-gray-50 border-gray-100 text-gray-700' }}">
-                @if ($report->shift2Analis)
-                    {{ $report->shift2Analis->name }}
-                @else
-                    <span class="text-gray-400 italic">Belum ditentukan</span>
-                @endif
-                <span class="inline-flex items-center justify-center h-5 w-12 rounded-full text-[11px] font-semibold bg-indigo-100 text-indigo-700 flex-shrink-0">
-                    Shift 2
-                </span>
-            </div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Analis Baca</label>
+            @if ($isEditable)
+                <select name="analyst_reading"
+                    class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <option value="">— Pilih Analis —</option>
+                    @foreach ($analis as $a)
+                        <option value="{{ $a->id }}" {{ in_array($a->id, $report->analyst_reading ?? []) ? 'selected' : '' }}>
+                            {{ $a->name }}
+                        </option>
+                    @endforeach
+                </select>
+            @else
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
+                    @php
+                        $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
+                    @endphp
+                    {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
+                </div>
+            @endif
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Nama Produk</label>

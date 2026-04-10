@@ -67,8 +67,8 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama Produk</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nomor Batch Produk</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Analis Shift 1</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Analis Shift 2</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Analis Monitoring</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Analis Baca</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
@@ -86,10 +86,16 @@
                                     {{ $report->batch_number ?: '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $report->shift1Analis->name ?? '—' }}
+                                    @php
+                                        $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
+                                    @endphp
+                                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $report->shift2Analis->name ?? '—' }}
+                                    @php
+                                        $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
+                                    @endphp
+                                    {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                                 </td>
                                 <td class="px-5 py-3.5">
                                     @if ($report->approval_status === 'pending')

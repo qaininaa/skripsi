@@ -4,8 +4,16 @@
     $notice = $notice ?? null;
 
     $hd = $report->header_data ?? [];
-    $hasShift2 = (bool) $report->shift2Analis;
-    $shift1HandedOver = !empty($hd['shift1_handed_over']);
+
+    // Get analysts from JSON arrays (use first entry)
+    $monitoringUser = null;
+    $readingUser = null;
+    if (!empty($report->analyst_monitoring)) {
+        $monitoringUser = \App\Models\User::find($report->analyst_monitoring[0]);
+    }
+    if (!empty($report->analyst_reading)) {
+        $readingUser = \App\Models\User::find($report->analyst_reading[0]);
+    }
 
     $monitoringSignedAt = !empty($hd['ttd_monitoring_signed_at'])
         ? \Illuminate\Support\Carbon::parse($hd['ttd_monitoring_signed_at'])
@@ -17,29 +25,20 @@
     $supervisorApproval = $report->approvals->firstWhere('step', 2);
     $managerApproval = $report->approvals->firstWhere('step', 3);
 
-    $monitoringVisible = ! $hasShift2 || $shift1HandedOver || $monitoringSignedAt;
-    $dibacaVisible = ! $hasShift2 || $dibacaSignedAt;
-
     $cards = [
         [
             'label' => 'Dimonitoring oleh:',
             'sub' => '(Analis Lab. Mikrobiologi)',
-            'user' => $monitoringVisible ? $report->shift1Analis : null,
+            'user' => $monitoringUser,
             'signed_at' => $monitoringSignedAt,
-            'pending_text' => $hasShift2
-                ? 'Akan muncul setelah Shift 1 estafet ke Shift 2.'
-                : 'Otomatis saat laporan dikirim.',
+            'pending_text' => 'Otomatis saat laporan dikirim.',
         ],
         [
             'label' => 'Dibaca oleh:',
             'sub' => '(Analis Lab. Mikrobiologi)',
-            'user' => ! $hasShift2
-                ? $report->shift1Analis
-                : ($dibacaVisible ? $report->shift2Analis : null),
+            'user' => $readingUser,
             'signed_at' => $dibacaSignedAt,
-            'pending_text' => $hasShift2
-                ? 'Akan muncul saat Shift 2 mengirim laporan.'
-                : 'Otomatis saat laporan dikirim.',
+            'pending_text' => 'Otomatis saat laporan dikirim.',
         ],
         [
             'label' => 'Direview oleh:',

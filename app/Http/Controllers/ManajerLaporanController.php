@@ -32,7 +32,7 @@ class ManajerLaporanController extends Controller
             'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
         ];
 
-        $reports = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'approvals'])
+        $reports = Report::with(['reportType', 'approvals'])
             ->join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 3)
             ->where('report_approvals.user_id', $userId)
@@ -53,7 +53,7 @@ class ManajerLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
 
         // Supervisor (step 2 user) for the return dropdown
         $supervisorApproval = $report->approvals->firstWhere('step', 2);
@@ -164,9 +164,7 @@ class ManajerLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'shift1Analis', 'shift2Analis', 'approvals.user']);
-
-        $entryMap = [];
+        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
         foreach ($report->entries as $entry) {
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }

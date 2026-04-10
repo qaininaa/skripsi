@@ -82,17 +82,17 @@
                     <p class="text-xs font-semibold text-gray-500">{{ $field['label'] }}</p>
                     @if ($isEditable)
                     <div class="flex flex-wrap gap-2" data-radio-group="{{ $inkKey }}_{{ $fKey }}">
-                        @foreach ([1 => $report->shift1Analis, 2 => $report->shift2Analis] as $sNum => $analyst)
-                        @if ($analyst)
+                        @php
+                            $monitoringAnalysts = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->get();
+                        @endphp
+                        @foreach ($monitoringAnalysts as $analyst)
                         <button type="button"
                                 data-value="{{ $analyst->name }}"
                                 onclick="toggleAnalis('{{ $inkKey }}', '{{ $fKey }}', this.dataset.value, this)"
                                 class="inkubasi-radio-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors
                                        {{ $savedWho === $analyst->name ? 'bg-sky-50 border-sky-300 text-sky-700' : 'border-gray-200 bg-white text-gray-600 hover:border-sky-200' }}">
                             {{ $analyst->name }}
-                            <span class="px-1 py-0.5 rounded text-[10px] font-semibold {{ $sNum === 1 ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-100 text-indigo-600' }}">S{{ $sNum }}</span>
                         </button>
-                        @endif
                         @endforeach
                         <input type="hidden" name="header_data[{{ $inkKey }}][{{ $fName }}]" id="radio-val-{{ $inkKey }}-{{ $fKey }}" value="{{ $savedWho }}">
                     </div>

@@ -75,7 +75,6 @@
                             <th class="px-5 py-3 text-left">Tanggal</th>
                             <th class="px-5 py-3 text-left">Nama Produk</th>
                             <th class="px-5 py-3 text-left">Nomor Batch Produk</th>
-                            <th class="px-5 py-3 text-center">Shift</th>
                             <th class="px-5 py-3 text-center">Status</th>
                             <th class="px-5 py-3 text-center">Aksi</th>
                         </tr>
@@ -91,15 +90,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
                                     {{ $item->batch_number }}
-                                </td>
-                                <td class="px-5 py-3.5 text-center">
-                                    @php
-                                        $myShift = $item->shift1_analyst_id == Auth::id() ? 1 : 2;
-                                    @endphp
-                                    <span class="inline-flex items-center justify-center h-6 w-14 rounded-full text-xs font-semibold
-                                                 {{ $myShift === 1 ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-50 text-indigo-700' }}">
-                                        Shift {{ $myShift }}
-                                    </span>
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
                                     @php
@@ -142,13 +132,6 @@
                                                 </p>
                                             @endif
                                         </div>
-                                    @elseif ($item->status === 'pending' && $myShift === 2)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-400 text-xs font-medium cursor-not-allowed border border-gray-200">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Menunggu Shift 1
-                                        </span>
                                     @elseif ($item->status === 'pending')
                                         <a href="{{ route('laporan.isi', $item) }}"
                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">

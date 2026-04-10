@@ -179,18 +179,14 @@
                         {{-- Shift assignment toggle --}}
                         @if ($hasShiftToggle)
                         <input type="hidden" name="shift_assignment[{{ $section->id }}][{{ $col }}]" id="sa-{{ $section->id }}-{{ $col }}" value="{{ $colAsgn }}">
-                        @if ($isEditable && $myShift === 1 && !$shift1HandedOver)
+                        @if ($isEditable)
                         <div class="flex justify-center gap-1 mt-1.5">
                             <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 1)" id="sa-btn-{{ $section->id }}-{{ $col }}-1"
-                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 1 ? 'bg-sky-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S1</button>
-                            @if ($report->shift2Analis)
-                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 2)" id="sa-btn-{{ $section->id }}-{{ $col }}-2"
-                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors {{ $colAsgn == 2 ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">S2</button>
-                            @endif
+                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors bg-sky-500 text-white">S1</button>
                         </div>
                         @else
                         <div class="flex justify-center mt-1.5">
-                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700' }}">{{ $colAsgn == 1 ? 'S1' : 'S2' }}</span>
+                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold bg-sky-100 text-sky-700">S1</span>
                         </div>
                         @endif
                         @endif

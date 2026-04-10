@@ -1,6 +1,15 @@
 @php
     $hd = $report->header_data ?? [];
-    $hasShift2 = (bool) $report->shift2Analis;
+
+    // Get analysts from JSON arrays (use first entry)
+    $monitoringUser = null;
+    $readingUser = null;
+    if (!empty($report->analyst_monitoring)) {
+        $monitoringUser = \App\Models\User::find($report->analyst_monitoring[0]);
+    }
+    if (!empty($report->analyst_reading)) {
+        $readingUser = \App\Models\User::find($report->analyst_reading[0]);
+    }
 
     $monitoringSignedAt = !empty($hd['ttd_monitoring_signed_at'])
         ? \Illuminate\Support\Carbon::parse($hd['ttd_monitoring_signed_at'])
@@ -16,13 +25,13 @@
         [
             'label' => 'Dimonitoring oleh:',
             'sub' => '(Analis Lab. Mikrobiologi)',
-            'user' => $report->shift1Analis,
+            'user' => $monitoringUser,
             'signed_at' => $monitoringSignedAt,
         ],
         [
             'label' => 'Dibaca oleh:',
             'sub' => '(Analis Lab. Mikrobiologi)',
-            'user' => $hasShift2 ? $report->shift2Analis : $report->shift1Analis,
+            'user' => $readingUser,
             'signed_at' => $dibacaSignedAt,
         ],
         [

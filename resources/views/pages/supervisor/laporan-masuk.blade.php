@@ -86,10 +86,16 @@
                                     {{ $report->batch_number ?: '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $report->shift1Analis->name ?? '—' }}
+                                    @php
+                                        $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
+                                    @endphp
+                                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    {{ $report->shift2Analis->name ?? '—' }}
+                                    @php
+                                        $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
+                                    @endphp
+                                    {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                                 </td>
                                 <td class="px-5 py-3.5">
                                     @if ($report->approval_status === 'pending')

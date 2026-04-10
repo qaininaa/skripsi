@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use App\Models\ReportType;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +14,7 @@ class TugasPelaporanController extends Controller
         $query  = $request->input('search');
         $status = $request->input('status');
 
-        $tugas = Report::with(['reportType', 'shift1Analis', 'shift2Analis', 'createdBy'])
+        $tugas = Report::with(['reportType', 'createdBy'])
             ->when($query, fn($q) => $q->where(function ($q) use ($query) {
                 $q->where('product_name', 'like', "%{$query}%")
                   ->orWhere('batch_number',  'like', "%{$query}%");
@@ -30,31 +29,24 @@ class TugasPelaporanController extends Controller
 
     public function create()
     {
-        $analis      = User::where('role', 'analis')->orderBy('name')->get();
         $reportTypes = ReportType::orderBy('annex_number')->get();
 
-        return view('pages.tugas-pelaporan.create', compact(
-            'analis', 'reportTypes'
-        ));
+        return view('pages.tugas-pelaporan.create', compact('reportTypes'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'product_name'         => ['required', 'string', 'max:255'],
-            'batch_number'         => ['required', 'string', 'max:255'],
-            'shift1_analyst_id'    => ['required', 'exists:users,id'],
-            'shift2_analyst_id'    => ['nullable', 'exists:users,id', 'different:shift1_analyst_id'],
-            'report_type_id'       => ['required', 'exists:report_types,id'],
+            'product_name'   => ['required', 'string', 'max:255'],
+            'batch_number'   => ['required', 'string', 'max:255'],
+            'report_type_id' => ['required', 'exists:report_types,id'],
         ]);
 
         Report::create([
-            'report_type_id'   => $request->report_type_id,
-            'product_name'     => $request->product_name,
-            'batch_number'     => $request->batch_number,
-            'shift1_analyst_id' => $request->shift1_analyst_id,
-            'shift2_analyst_id' => $request->shift2_analyst_id,
-            'created_by'       => Auth::id(),
+            'report_type_id' => $request->report_type_id,
+            'product_name'   => $request->product_name,
+            'batch_number'   => $request->batch_number,
+            'created_by'     => Auth::id(),
         ]);
 
         return redirect()->route('tugas-pelaporan.index')
@@ -63,44 +55,27 @@ class TugasPelaporanController extends Controller
 
     public function edit(Report $tugasPelaporan)
     {
-        $analis      = User::where('role', 'analis')->orderBy('name')->get();
-        $reportTypes = ReportType::orderBy('annex_number')->get();
-
+        $reportTypes        = ReportType::orderBy('annex_number')->get();
         $selectedReportType = $tugasPelaporan->report_type_id;
 
         return view('pages.tugas-pelaporan.edit', compact(
-            'tugasPelaporan', 'analis', 'reportTypes', 'selectedReportType'
+            'tugasPelaporan', 'reportTypes', 'selectedReportType'
         ));
     }
 
     public function update(Request $request, Report $tugasPelaporan)
     {
         $request->validate([
-            'product_name'       => ['required', 'string', 'max:255'],
-            'batch_number'       => ['required', 'string', 'max:255'],
-            'shift1_analyst_id'  => ['required', 'exists:users,id'],
-            'shift2_analyst_id'  => ['nullable', 'exists:users,id', 'different:shift1_analyst_id'],
-            'report_type_id'     => ['required', 'exists:report_types,id'],
+            'product_name'   => ['required', 'string', 'max:255'],
+            'batch_number'   => ['required', 'string', 'max:255'],
+            'report_type_id' => ['required', 'exists:report_types,id'],
         ]);
-
-        $shiftChanged = (int) $tugasPelaporan->shift1_analyst_id !== (int) $request->shift1_analyst_id
-            || (int) ($tugasPelaporan->shift2_analyst_id ?? 0) !== (int) ($request->shift2_analyst_id ?? 0);
 
         $tugasPelaporan->update([
-            'report_type_id'    => $request->report_type_id,
-            'product_name'      => $request->product_name,
-            'batch_number'      => $request->batch_number,
-            'shift1_analyst_id' => $request->shift1_analyst_id,
-            'shift2_analyst_id' => $request->shift2_analyst_id,
+            'report_type_id' => $request->report_type_id,
+            'product_name'   => $request->product_name,
+            'batch_number'   => $request->batch_number,
         ]);
-
-        if ($shiftChanged) {
-            $hd = $tugasPelaporan->header_data ?? [];
-            unset($hd['shift1_handed_over'], $hd['ttd_monitoring_signed_at'], $hd['ttd_dibaca_signed_at']);
-            $hd['ttd_monitoring_id'] = (int) $request->shift1_analyst_id;
-            $hd['ttd_dibaca_id'] = (int) ($request->shift2_analyst_id ?: $request->shift1_analyst_id);
-            $tugasPelaporan->update(['header_data' => $hd]);
-        }
 
         return redirect()->route('tugas-pelaporan.index')
             ->with('success', 'Tugas pelaporan berhasil diperbarui.');
