@@ -72,7 +72,7 @@
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Analis Monitoring</label>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
                         $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
@@ -81,7 +81,7 @@
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Analis Baca</label>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Dibaca Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
                         $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');

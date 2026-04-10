@@ -112,10 +112,10 @@ class AnalisLaporanController extends Controller
 
         // Save analyst_monitoring and analyst_reading to the report
         if ($request->has('analyst_monitoring')) {
-            $report->analyst_monitoring = array_map('intval', (array) $request->input('analyst_monitoring'));
+            $report->analyst_monitoring = array_values(array_filter(array_map('intval', (array) $request->input('analyst_monitoring'))));
         }
         if ($request->has('analyst_reading')) {
-            $report->analyst_reading = array_map('intval', (array) $request->input('analyst_reading'));
+            $report->analyst_reading = array_values(array_filter(array_map('intval', (array) $request->input('analyst_reading'))));
         }
         if ($request->has('analyst_monitoring') || $request->has('analyst_reading')) {
             $report->save();
