@@ -18,15 +18,15 @@ class AnalisLaporanController extends Controller
         $rawCounts = Report::get(['status'])->groupBy('status')->map->count();
 
         $counts = collect([
-            'pending'     => $rawCounts['pending']     ?? 0,
-            'in_progress' => $rawCounts['in_progress'] ?? 0,
-            'submitted'   => $rawCounts['submitted']   ?? 0,
-            'returned'    => $rawCounts['returned']    ?? 0,
-            'approved'    => $rawCounts['approved']    ?? 0,
-            'rejected'    => $rawCounts['rejected']    ?? 0,
+            'pending'    => $rawCounts['pending']    ?? 0,
+            'monitoring' => $rawCounts['monitoring'] ?? 0,
+            'reading'    => $rawCounts['reading']    ?? 0,
+            'submitted'  => $rawCounts['submitted']  ?? 0,
+            'returned'   => $rawCounts['returned']   ?? 0,
+            'approved'   => $rawCounts['approved']   ?? 0,
         ]);
 
-        $query = Report::with(['reportType', 'approvals.user'])
+        $query = Report::with(['reportType', 'approvals.user', 'lockedByUser'])
             ->orderByDesc('created_at');
 
         if ($status !== 'all') {
@@ -40,11 +40,16 @@ class AnalisLaporanController extends Controller
 
     public function isi(Report $report)
     {
-        if ($report->status === 'pending' || $report->status === 'returned') {
-            $report->update(['status' => 'in_progress', 'locked_by' => auth()->id()]);
+        // Claim an unclaimed / returned report
+        if (in_array($report->status, ['pending', 'returned'])
+            || ($report->status === 'monitoring' && $report->locked_by === null)) {
+            $report->update(['status' => 'monitoring', 'locked_by' => auth()->id()]);
+        } elseif ($report->status === 'reading' && $report->locked_by === null) {
+            $report->update(['locked_by' => auth()->id()]);
         }
+        $report->refresh();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user', 'lockedByUser']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
@@ -57,15 +62,19 @@ class AnalisLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        $isEditable = $report->status === 'in_progress' && $report->locked_by === auth()->id();
-        $myShift    = 1;
+        $isEditable      = in_array($report->status, ['monitoring', 'reading'])
+                           && $report->locked_by === auth()->id();
+        $isMonitoringPhase = $report->status === 'monitoring';
+        $myShift         = 1;
 
         $analis = User::where('role', 'analis')->orderBy('name')->get();
+        // Analysts that can receive a handover (all analysts except current user)
+        $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
 
         return view('pages.laporan.isi', compact(
             'report', 'myShift', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
-            'isEditable', 'analis'
+            'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis'
         ));
     }
 
@@ -75,8 +84,10 @@ class AnalisLaporanController extends Controller
         abort_if($report->locked_by !== auth()->id(), 403);
 
         $this->processEntries($request, $report);
+        $action = $request->input('action', 'save');
 
-        if ($request->input('action') === 'submit') {
+        if ($action === 'submit') {
+            abort_unless($report->status === 'reading', 403);
             $supervisorId = (int) $request->input('supervisor_id');
             abort_if($supervisorId === 0, 422, 'Pilih supervisor terlebih dahulu.');
             abort_unless(
@@ -86,7 +97,7 @@ class AnalisLaporanController extends Controller
             );
 
             $freshHd = $this->markAnalystSignaturesAsSigned($report->fresh()->header_data ?? [], $report);
-            $report->update(['header_data' => $freshHd, 'status' => 'submitted']);
+            $report->update(['header_data' => $freshHd, 'status' => 'submitted', 'locked_by' => null]);
 
             \App\Models\ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 2],
@@ -98,6 +109,21 @@ class AnalisLaporanController extends Controller
                 ->with('success', 'Laporan berhasil dikirim ke supervisor.');
         }
 
+        if ($action === 'finish_monitoring') {
+            abort_unless($report->status === 'monitoring', 403);
+            Report::where('id', $report->id)->update(['status' => 'reading', 'locked_by' => null]);
+            return redirect()->route('laporan.index')
+                ->with('success', 'Monitoring selesai. Laporan masuk ke tahap pembacaan.');
+        }
+
+        if ($action === 'handover') {
+            // Release the lock — any analyst can pick it up next
+            Report::where('id', $report->id)->update(['locked_by' => null]);
+            return redirect()->route('laporan.index')
+                ->with('success', 'Draft tersimpan. Laporan bisa dilanjutkan oleh analis lain.');
+        }
+
+        // default: save draft — keep locked_by
         return back()->with('success', 'Data berhasil disimpan sebagai draft.');
     }
 
@@ -107,8 +133,24 @@ class AnalisLaporanController extends Controller
 
         // Save header_data (analyst assignments + timing data)
         $hd = $report->header_data ?? [];
+        $owners = $hd['_field_owners'] ?? [];
         if ($request->has('header_data')) {
-            $hd = array_replace_recursive($hd, $request->input('header_data'));
+            $incoming = $request->input('header_data');
+            // Remove ownership meta from incoming data
+            unset($incoming['_field_owners']);
+            foreach ($incoming as $sectionKey => $sectionData) {
+                // Skip sections owned by another analyst
+                if (isset($owners[$sectionKey]) && (int) $owners[$sectionKey] !== Auth::id()) {
+                    continue;
+                }
+                // Check if this section has any non-empty value
+                $hasValue = collect($sectionData)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                if ($hasValue) {
+                    $owners[$sectionKey] = Auth::id();
+                }
+                $hd[$sectionKey] = array_replace_recursive($hd[$sectionKey] ?? [], $sectionData);
+            }
+            $hd['_field_owners'] = $owners;
         }
 
         // Save analyst_monitoring and analyst_reading to the report
@@ -132,15 +174,42 @@ class AnalisLaporanController extends Controller
         }
         $settleTimes = $request->input('settle_times', []);
         if (!empty($settleTimes)) {
-            $hd['settle_times'] = array_replace_recursive($hd['settle_times'] ?? [], $settleTimes);
+            foreach ($settleTimes as $secId => $data) {
+                $ownerKey = "settle_times_{$secId}";
+                if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    continue;
+                }
+                $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                if ($hasVal) { $owners[$ownerKey] = Auth::id(); }
+                $hd['settle_times'][$secId] = array_replace_recursive($hd['settle_times'][$secId] ?? [], $data);
+            }
+            $hd['_field_owners'] = $owners;
         }
         $swabTimes = $request->input('swab_times', []);
         if (!empty($swabTimes)) {
-            $hd['swab_times'] = array_replace_recursive($hd['swab_times'] ?? [], $swabTimes);
+            foreach ($swabTimes as $secId => $data) {
+                $ownerKey = "swab_times_{$secId}";
+                if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    continue;
+                }
+                $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                if ($hasVal) { $owners[$ownerKey] = Auth::id(); }
+                $hd['swab_times'][$secId] = array_replace_recursive($hd['swab_times'][$secId] ?? [], $data);
+            }
+            $hd['_field_owners'] = $owners;
         }
         $exposureTimes = $request->input('exposure_times', []);
         if (!empty($exposureTimes)) {
-            $hd['exposure_times'] = array_replace_recursive($hd['exposure_times'] ?? [], $exposureTimes);
+            foreach ($exposureTimes as $secId => $data) {
+                $ownerKey = "exposure_times_{$secId}";
+                if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    continue;
+                }
+                $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                if ($hasVal) { $owners[$ownerKey] = Auth::id(); }
+                $hd['exposure_times'][$secId] = array_replace_recursive($hd['exposure_times'][$secId] ?? [], $data);
+            }
+            $hd['_field_owners'] = $owners;
         }
         if ($request->has('header_data') || !empty($shiftAssignment) || !empty($settleTimes) || !empty($swabTimes) || !empty($exposureTimes)) {
             $report->update(['header_data' => $hd]);
@@ -158,6 +227,17 @@ class AnalisLaporanController extends Controller
             }
         }
 
+        // Pre-load entries owned by other analysts — these must not be overwritten
+        $lockedEntryKeys = ReportEntry::where('report_id', $report->id)
+            ->where('analyst_id', '!=', Auth::id())
+            ->whereNotNull('analyst_id')
+            ->where(function ($q) {
+                $q->whereNotNull('cfu_bacteria')->orWhereNotNull('cfu_fungi');
+            })
+            ->get()
+            ->map(fn ($e) => "{$e->report_section_id}-{$e->period_number}-{$e->shift}")
+            ->toArray();
+
         // Upsert entries
         foreach ($request->input('entries', []) as $pivotId => $cols) {
             $sectionType = $pivotSectionType[(int) $pivotId] ?? null;
@@ -174,6 +254,12 @@ class AnalisLaporanController extends Controller
 
                 $hasData = collect($data)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
                 if (! $hasData) {
+                    continue;
+                }
+
+                // Skip entries owned by another analyst
+                $entryKey = ((int) $pivotId) . "-{$periodNumber}-{$shift}";
+                if (in_array($entryKey, $lockedEntryKeys)) {
                     continue;
                 }
 

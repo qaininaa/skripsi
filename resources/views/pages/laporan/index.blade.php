@@ -7,13 +7,13 @@
 
 @php
     $tabs = [
-        'all'         => ['label' => 'Semua',         'color' => 'gray'],
-        'pending'     => ['label' => 'Menunggu',      'color' => 'gray'],
-        'in_progress' => ['label' => 'Dikerjakan',   'color' => 'yellow'],
-        'submitted'   => ['label' => 'Dikirim',      'color' => 'blue'],
-        'returned'    => ['label' => 'Dikembalikan', 'color' => 'orange'],
-        'approved'    => ['label' => 'Disetujui',    'color' => 'green'],
-        'rejected'    => ['label' => 'Ditolak',      'color' => 'red'],
+        'all'         => ['label' => 'Semua',               'color' => 'gray'],
+        'pending'     => ['label' => 'Belum Dikerjakan',    'color' => 'gray'],
+        'monitoring'  => ['label' => 'Sedang Dimonitoring', 'color' => 'yellow'],
+        'reading'     => ['label' => 'Sedang Dibaca',       'color' => 'indigo'],
+        'submitted'   => ['label' => 'Dikirim',             'color' => 'blue'],
+        'returned'    => ['label' => 'Dikembalikan',        'color' => 'orange'],
+        'approved'    => ['label' => 'Disetujui',           'color' => 'green'],
     ];
 
     $total = $counts->sum();
@@ -94,21 +94,26 @@
                                 <td class="px-5 py-3.5 text-center">
                                     @php
                                         $badge = match($item->status) {
-                                            'pending'     => ['bg-gray-100 text-gray-600',    'Menunggu'],
-                                            'in_progress' => ['bg-yellow-100 text-yellow-700', 'Dikerjakan'],
-                                            'submitted'   => ['bg-blue-100 text-blue-700',    'Dikirim'],
-                                            'returned'    => ['bg-orange-100 text-orange-700', 'Dikembalikan'],
-                                            'approved'    => ['bg-green-100 text-green-700',   'Disetujui'],
-                                            'rejected'    => ['bg-red-100 text-red-700',       'Ditolak'],
-                                            default       => ['bg-gray-100 text-gray-600',     $item->status],
+                                            'pending'    => ['bg-gray-100 text-gray-600',     'Belum Dikerjakan'],
+                                            'monitoring' => ['bg-yellow-100 text-yellow-700',  'Sedang Dimonitoring'],
+                                            'reading'    => ['bg-indigo-100 text-indigo-700',  'Sedang Dibaca'],
+                                            'submitted'  => ['bg-blue-100 text-blue-700',      'Dikirim'],
+                                            'returned'   => ['bg-orange-100 text-orange-700',  'Dikembalikan'],
+                                            'approved'   => ['bg-green-100 text-green-700',    'Disetujui'],
+                                            default      => ['bg-gray-100 text-gray-600',      $item->status],
                                         };
+                                        $lockedName = ($item->status === 'monitoring' && $item->lockedByUser)
+                                            ? $item->lockedByUser->name : null;
                                     @endphp
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badge[0] }}">
                                         {{ $badge[1] }}
                                     </span>
+                                    @if ($lockedName)
+                                        <div class="text-[11px] text-gray-400 mt-0.5">oleh {{ $lockedName }}</div>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
-                                    @if (in_array($item->status, ['submitted', 'approved', 'rejected']))
+                                    @if (in_array($item->status, ['submitted', 'approved']))
                                         <a href="{{ route('laporan.isi', $item) }}"
                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-medium hover:bg-gray-100 transition-colors border border-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -133,21 +138,42 @@
                                             @endif
                                         </div>
                                     @elseif ($item->status === 'pending')
-                                        <a href="{{ route('laporan.isi', $item) }}"
-                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
+                                        <button type="button"
+                                                onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}')"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Mulai
-                                        </a>
-                                    @else
-                                        <a href="{{ route('laporan.isi', $item) }}"
-                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500 text-white text-xs font-medium hover:bg-yellow-600 transition-colors">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Lanjutkan
-                                        </a>
+                                        </button>
+                                    @elseif (in_array($item->status, ['monitoring', 'reading']))
+                                        @php $isMine = $item->locked_by === auth()->id(); @endphp
+                                        @if ($isMine)
+                                            <a href="{{ route('laporan.isi', $item) }}"
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-yellow-500 text-white hover:bg-yellow-600">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Lanjutkan
+                                            </a>
+                                        @elseif ($item->status === 'monitoring' && $item->locked_by === null)
+                                            <button type="button"
+                                                    onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', true)"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Mulai
+                                            </button>
+                                        @else
+                                            <a href="{{ route('laporan.isi', $item) }}"
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-medium hover:bg-gray-100 transition-colors border border-gray-100">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                Lihat
+                                            </a>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>
@@ -166,4 +192,65 @@
     </div>
 
 </div>
+
+{{-- Confirm Start Modal --}}
+<div id="mulai-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeMulaiModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-base font-semibold text-gray-800">Mulai Pengerjaan Laporan?</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Laporan ini akan masuk ke tahap monitoring.</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl px-4 py-3 space-y-1 text-sm">
+            <div class="flex gap-2">
+                <span class="text-gray-500 w-28 flex-shrink-0">Nama Produk</span>
+                <span class="font-medium text-gray-800" id="mulai-product"></span>
+            </div>
+            <div class="flex gap-2">
+                <span class="text-gray-500 w-28 flex-shrink-0">Nomor Batch</span>
+                <span class="font-medium text-gray-800" id="mulai-batch"></span>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600" id="mulai-desc">Setelah dimulai, Anda akan menjadi penanggung jawab monitoring laporan ini. Analis lain hanya bisa melihat.</p>
+        <div class="flex justify-end gap-2 pt-1">
+            <button type="button" onclick="closeMulaiModal()"
+                    class="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+                Batal
+            </button>
+            <a id="mulai-confirm-link" href="#"
+               class="px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors">
+                Ya, Mulai
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmMulai(url, product, batch, isResume) {
+    document.getElementById('mulai-product').textContent = product;
+    document.getElementById('mulai-batch').textContent = batch;
+    document.getElementById('mulai-confirm-link').href = url;
+    if (isResume) {
+        document.querySelector('#mulai-modal h3').textContent = 'Lanjutkan Monitoring Laporan?';
+        document.querySelector('#mulai-modal p.text-xs').textContent = 'Laporan ini sedang dalam tahap monitoring.';
+        document.getElementById('mulai-desc').textContent = 'Anda akan mengambil alih pengerjaan laporan ini. Data yang sudah diisi analis sebelumnya tidak dapat diubah.';
+    } else {
+        document.querySelector('#mulai-modal h3').textContent = 'Mulai Pengerjaan Laporan?';
+        document.querySelector('#mulai-modal p.text-xs').textContent = 'Laporan ini akan masuk ke tahap monitoring.';
+        document.getElementById('mulai-desc').textContent = 'Setelah dimulai, Anda akan menjadi penanggung jawab monitoring laporan ini. Analis lain hanya bisa melihat.';
+    }
+    document.getElementById('mulai-modal').classList.remove('hidden');
+}
+function closeMulaiModal() {
+    document.getElementById('mulai-modal').classList.add('hidden');
+}
+</script>
+
 @endsection

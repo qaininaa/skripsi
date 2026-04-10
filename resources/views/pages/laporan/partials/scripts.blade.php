@@ -1,4 +1,99 @@
 <script>
+// ── Handover / Finish Monitoring modal ─────────────────────────────────
+function _hmUpdateConfirmBtn() {
+    const action   = document.querySelector('input[name="hm-action"]:checked')?.value;
+    const username = document.getElementById('hm-username').value.trim();
+    const password = document.getElementById('hm-password').value;
+    document.getElementById('hm-confirm').disabled = !(action && username && password);
+}
+
+function openHandoverModal() {
+    // Reset state
+    document.querySelectorAll('input[name="hm-action"]').forEach(r => r.checked = false);
+    document.getElementById('hm-target-row')?.classList.add('hidden');
+    document.getElementById('hm-analyst-error')?.classList.add('hidden');
+    document.getElementById('hm-username').value = '';
+    document.getElementById('hm-password').value = '';
+    document.getElementById('hm-error').classList.add('hidden');
+    const btn = document.getElementById('hm-confirm');
+    btn.disabled = true;
+    btn.textContent = 'Lanjutkan';
+    document.getElementById('handover-modal').classList.remove('hidden');
+    document.getElementById('hm-username').focus();
+}
+
+function closeHandoverModal() {
+    document.getElementById('handover-modal').classList.add('hidden');
+}
+
+function onHmActionChange() {
+    _hmUpdateConfirmBtn();
+}
+
+async function confirmHandover() {
+    const action   = document.querySelector('input[name="hm-action"]:checked')?.value;
+    const errEl    = document.getElementById('hm-error');
+    const btn      = document.getElementById('hm-confirm');
+
+    if (!action) {
+        errEl.textContent = 'Pilih tindakan terlebih dahulu.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    const username = document.getElementById('hm-username').value.trim();
+    const password = document.getElementById('hm-password').value;
+
+    if (!username || !password) {
+        errEl.textContent = 'Username dan password harus diisi.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Memeriksa...';
+    errEl.classList.add('hidden');
+
+    try {
+        const res = await fetch('{{ route('laporan.verify-password') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                             ?? document.querySelector('input[name="_token"]')?.value,
+            },
+            body: JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+            closeHandoverModal();
+            document.getElementById('save-action-input').value = action;
+            formDirty = false;
+            document.getElementById('laporan-form').submit();
+        } else {
+            errEl.textContent = data.message ?? 'Username atau password salah.';
+            errEl.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Lanjutkan';
+        }
+    } catch (e) {
+        errEl.textContent = 'Terjadi kesalahan. Coba lagi.';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Lanjutkan';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('hm-password')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') confirmHandover();
+    });
+    document.getElementById('hm-username')?.addEventListener('input', _hmUpdateConfirmBtn);
+    document.getElementById('hm-password')?.addEventListener('input', _hmUpdateConfirmBtn);
+});
+
 // ── Simpan Draft / Estafet: password confirmation modal ────────────────
 let _pendingAction = 'save';
 

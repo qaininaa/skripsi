@@ -20,6 +20,12 @@
 
     // Hitung sub-kolom per exposure: B + F + T = 3, +1 JAM jika per_location
     $subColsPerExp = $isPerLocation ? 4 : 3;
+
+    // Check ownership of time fields for this section
+    $hdOwners = $hd['_field_owners'] ?? [];
+    $expTimeLocked = $isEditable && isset($hdOwners["exposure_times_{$section->id}"]) && (int) $hdOwners["exposure_times_{$section->id}"] !== auth()->id();
+    $settlTimeLocked = $isEditable && isset($hdOwners["settle_times_{$section->id}"]) && (int) $hdOwners["settle_times_{$section->id}"] !== auth()->id();
+    $swabTimeLocked = $isEditable && isset($hdOwners["swab_times_{$section->id}"]) && (int) $hdOwners["swab_times_{$section->id}"] !== auth()->id();
 @endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4 overflow-hidden">
     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
@@ -66,7 +72,7 @@
                     @endphp
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100" colspan="3">
                         <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
-                        @if ($isEditable)
+                        @if ($isEditable && !$expTimeLocked)
                         <div class="flex justify-center items-center gap-1">
                             <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
                                    value="{{ $msJamMulai }}"
@@ -75,6 +81,14 @@
                             <input type="time" name="exposure_times[{{ $section->id }}][0][end_time]"
                                    value="{{ $msJamSelesai }}"
                                    class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        </div>
+                        @elseif ($expTimeLocked)
+                        <div class="flex justify-center items-center gap-1">
+                            <input type="time" value="{{ $msJamMulai }}" disabled
+                                   class="rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[10px] font-normal text-gray-400 cursor-not-allowed">
+                            <span class="text-gray-400 text-[10px] font-normal">–</span>
+                            <input type="time" value="{{ $msJamSelesai }}" disabled
+                                   class="rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[10px] font-normal text-gray-400 cursor-not-allowed">
                         </div>
                         @else
                         <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
@@ -92,7 +106,7 @@
                         {{-- Swab time slots (S1, S1-2, S1-3) --}}
                         @if ($isSwabTime)
                         @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
-                        @if ($isEditable)
+                        @if ($isEditable && !$swabTimeLocked)
                         <div class="space-y-0.5 mt-1">
                             @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                             @php $st = $swabColTimes[$swabKey] ?? []; @endphp
@@ -120,7 +134,7 @@
 
                         {{-- Dual A/B time slots (settle plate) --}}
                         @if ($isDualAB)
-                            @if ($isEditable)
+                            @if ($isEditable && !$settlTimeLocked)
                             <div class="space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
                                 @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
@@ -153,7 +167,7 @@
                             $expJamMulai   = $expJam['start_time'] ?? null;
                             $expJamSelesai = $expJam['end_time'] ?? null;
                         @endphp
-                        @if ($isEditable)
+                        @if ($isEditable && !$expTimeLocked)
                         <div class="space-y-0.5 mt-1">
                             <div class="flex items-center justify-center gap-0.5">
                                 <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
@@ -262,13 +276,19 @@
                         $msEntry = $entryMap[$loc->pivot->id][0][$myShift] ?? null;
                         $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
                             ? round(($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0), 10) : null;
+                        $msLocked = $isEditable && $msEntry && $msEntry->analyst_id && $msEntry->analyst_id !== auth()->id()
+                                    && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null);
+                        $msEditable = $isEditable && !$msLocked;
                     @endphp
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
-                        @if ($isEditable)
+                        @if ($msEditable)
                             <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][0][cfu_bacteria]"
                                    value="{{ $msEntry?->cfu_bacteria }}"
                                    data-loc="{{ $loc->pivot->id }}" data-col="0" data-type="b" data-section-id="{{ $section->id }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
+                        @elseif ($msLocked)
+                            <input type="number" value="{{ $msEntry?->cfu_bacteria }}" disabled
+                                   class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
                                 {{ $msEntry?->cfu_bacteria ?? '—' }}
@@ -276,11 +296,14 @@
                         @endif
                     </td>
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
-                        @if ($isEditable)
+                        @if ($msEditable)
                             <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][0][cfu_fungi]"
                                    value="{{ $msEntry?->cfu_fungi }}"
                                    data-loc="{{ $loc->pivot->id }}" data-col="0" data-type="f"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
+                        @elseif ($msLocked)
+                            <input type="number" value="{{ $msEntry?->cfu_fungi }}" disabled
+                                   class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $msEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
                                 {{ $msEntry?->cfu_fungi ?? '—' }}
@@ -300,7 +323,10 @@
                     @php
                         $colAsgn    = $secAssignments[$col] ?? 1;
                         $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
-                        $editable = $isEditable && ($colAsgn == $myShift);
+                        $entryLocked = $isEditable && $existEntry && $existEntry->analyst_id
+                                       && $existEntry->analyst_id !== auth()->id()
+                                       && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null);
+                        $editable = $isEditable && ($colAsgn == $myShift) && !$entryLocked;
                         $iName = "entries[{$loc->pivot->id}][{$col}]";
                         $rowKey = "{$loc->pivot->id}-{$col}";
                     @endphp
@@ -312,6 +338,9 @@
                                    value="{{ $existEntry?->start_time }}"
                                    class="w-[84px] rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        @elseif ($entryLocked)
+                            <input type="time" value="{{ $existEntry?->start_time }}" disabled
+                                   class="w-[84px] rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-gray-{{ $existEntry?->start_time ? '600' : '300' }} text-[11px]">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '-' }}</span>
                         @endif
@@ -326,6 +355,9 @@
                                    @if (str_starts_with($loc->location_number, '*)')) data-optional="true" @endif
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
+                        @elseif ($entryLocked)
+                            <input type="number" value="{{ $existEntry?->cfu_bacteria }}" disabled
+                                   class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $existEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
                                 {{ $existEntry?->cfu_bacteria ?? '—' }}
@@ -340,6 +372,9 @@
                                    data-loc="{{ $loc->pivot->id }}" data-col="{{ $col }}" data-type="f" data-section-id="{{ $section->id }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
+                        @elseif ($entryLocked)
+                            <input type="number" value="{{ $existEntry?->cfu_fungi }}" disabled
+                                   class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $existEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
                                 {{ $existEntry?->cfu_fungi ?? '—' }}

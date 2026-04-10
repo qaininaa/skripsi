@@ -6,29 +6,34 @@
     </div>
     <div class="p-5 grid grid-cols-1 gap-6 {{ count($mediumGroups) > 2 ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
         @foreach ($mediumGroups as $medKey => $medLabel)
-        @php $med = $hd[$medKey] ?? []; @endphp
+        @php
+            $med = $hd[$medKey] ?? [];
+            $medOwner = ($hd['_field_owners'][$medKey] ?? null);
+            $medLocked = $isEditable && $medOwner && (int) $medOwner !== auth()->id();
+            $medDisabled = !$isEditable || $medLocked;
+        @endphp
         <div>
             <h4 class="text-xs font-semibold text-sky-600 uppercase tracking-wide mb-3">{{ $medLabel }}</h4>
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
-                    <input type="text" name="header_data[{{ $medKey }}][nomor_batch]" value="{{ $med['nomor_batch'] ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+                    <input type="text" @if(!$medLocked) name="header_data[{{ $medKey }}][nomor_batch]" @endif value="{{ $med['nomor_batch'] ?? '' }}"
+                           @if($medDisabled) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($medDisabled) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
                 </div>
                 @if (!str_contains(strtolower($medLabel), 'swab'))
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
-                    <input type="text" name="header_data[{{ $medKey }}][nomor_gpt]" value="{{ $med['nomor_gpt'] ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+                    <input type="text" @if(!$medLocked) name="header_data[{{ $medKey }}][nomor_gpt]" @endif value="{{ $med['nomor_gpt'] ?? '' }}"
+                           @if($medDisabled) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($medDisabled) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
                 </div>
                 @endif
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medLabel }}</label>
-                    <input type="date" name="header_data[{{ $medKey }}][expiry_date]" value="{{ $med['expiry_date'] ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+                    <input type="date" @if(!$medLocked) name="header_data[{{ $medKey }}][expiry_date]" @endif value="{{ $med['expiry_date'] ?? '' }}"
+                           @if($medDisabled) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($medDisabled) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
                 </div>
             </div>
         </div>

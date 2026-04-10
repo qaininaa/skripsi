@@ -24,6 +24,7 @@
 
     @if ($isEditable)
     <div class="flex items-center gap-2">
+        {{-- Simpan Draft (all phases) --}}
         <button type="button" onclick="openSaveModal()"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -31,6 +32,18 @@
             </svg>
             Simpan Draft
         </button>
+
+        {{-- Handover / finish-monitoring button (both phases) --}}
+        <button type="button" onclick="openHandoverModal()"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-sky-200 bg-sky-50 text-sm font-medium text-sky-700 hover:bg-sky-100 transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+            </svg>
+            Simpan &amp; Selesaikan
+        </button>
+
+        @if(!$isMonitoringPhase)
+        {{-- Kirim Laporan (reading phase only) --}}
         <button type="button" onclick="openSubmitFlow()"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -38,6 +51,7 @@
             </svg>
             Kirim Laporan
         </button>
+        @endif
     </div>
     @else
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
@@ -45,7 +59,13 @@
             @elseif ($report->status === 'approved') bg-green-50 text-green-700
             @else bg-gray-100 text-gray-500 @endif">
             @php
-                $statusLabel = ['in_progress' => 'Sedang Dikerjakan', 'submitted' => 'Dikirim', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'pending' => 'Menunggu'][$report->status] ?? $report->status;
+                $statusLabel = [
+                    'monitoring' => 'Sedang Dimonitoring',
+                    'reading'    => 'Sedang Dibaca',
+                    'submitted'  => 'Dikirim',
+                    'approved'   => 'Disetujui',
+                    'pending'    => 'Menunggu',
+                ][$report->status] ?? $report->status;
             @endphp
             {{ $statusLabel }} - Mode Lihat
         </span>

@@ -23,6 +23,11 @@ class Report extends Model
         return $this->belongsTo(ReportType::class);
     }
 
+    public function lockedByUser()
+    {
+        return $this->belongsTo(User::class, 'locked_by');
+    }
+
     public function entries()
     {
         return $this->hasMany(ReportEntry::class);

@@ -4,30 +4,35 @@
         <h3 class="font-semibold text-sm text-gray-700">2. Identitas Instrumen </h3>
     </div>
     <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        @php $as = $hd['air_sampler'] ?? []; @endphp
+        @php
+            $as = $hd['air_sampler'] ?? [];
+            $asOwner = ($hd['_field_owners']['air_sampler'] ?? null);
+            $asLocked = $isEditable && $asOwner && (int) $asOwner !== auth()->id();
+            $asDisabled = !$isEditable || $asLocked;
+        @endphp
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Nama Alat</label>
-            <input type="text" name="header_data[air_sampler][nama_alat]" value="{{ $as['nama_alat'] ?? 'Air Sampler' }}"
-                   @if(!$isEditable) readonly @endif
-                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+            <input type="text" @if(!$asLocked) name="header_data[air_sampler][nama_alat]" @endif value="{{ $as['nama_alat'] ?? 'Air Sampler' }}"
+                   @if($asDisabled) readonly @endif
+                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($asDisabled) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
-            <input type="text" name="header_data[air_sampler][no_id]" value="{{ $as['no_id'] ?? '' }}"
-                   @if(!$isEditable) readonly @endif
-                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+            <input type="text" @if(!$asLocked) name="header_data[air_sampler][no_id]" @endif value="{{ $as['no_id'] ?? '' }}"
+                   @if($asDisabled) readonly @endif
+                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($asDisabled) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
-            <input type="date" name="header_data[air_sampler][calibration_date]" value="{{ $as['calibration_date'] ?? '' }}"
-                   @if(!$isEditable) readonly @endif
-                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+            <input type="date" @if(!$asLocked) name="header_data[air_sampler][calibration_date]" @endif value="{{ $as['calibration_date'] ?? '' }}"
+                   @if($asDisabled) readonly @endif
+                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($asDisabled) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
-            <input type="date" name="header_data[air_sampler][due_date]" value="{{ $as['due_date'] ?? '' }}"
-                   @if(!$isEditable) readonly @endif
-                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-50 @endif">
+            <input type="date" @if(!$asLocked) name="header_data[air_sampler][due_date]" @endif value="{{ $as['due_date'] ?? '' }}"
+                   @if($asDisabled) readonly @endif
+                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($asDisabled) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
         </div>
     </div>
 </div>
