@@ -41,7 +41,7 @@ class AnalisLaporanController extends Controller
     public function isi(Report $report)
     {
         if ($report->status === 'pending' || $report->status === 'returned') {
-            $report->update(['status' => 'in_progress']);
+            $report->update(['status' => 'in_progress', 'locked_by' => auth()->id()]);
         }
 
         $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
@@ -57,7 +57,7 @@ class AnalisLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        $isEditable = $report->status === 'in_progress';
+        $isEditable = $report->status === 'in_progress' && $report->locked_by === auth()->id();
         $myShift    = 1;
 
         $analis = User::where('role', 'analis')->orderBy('name')->get();
@@ -72,6 +72,7 @@ class AnalisLaporanController extends Controller
     public function save(Request $request, Report $report)
     {
         abort_if(in_array($report->status, ['submitted', 'approved']), 403);
+        abort_if($report->locked_by !== auth()->id(), 403);
 
         $this->processEntries($request, $report);
 

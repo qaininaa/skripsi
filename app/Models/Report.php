@@ -9,7 +9,7 @@ class Report extends Model
     protected $fillable = [
         'report_type_id', 'product_name', 'batch_number',
         'analyst_monitoring', 'analyst_reading',
-        'status', 'created_by', 'header_data',
+        'status', 'created_by', 'locked_by', 'header_data',
     ];
 
     protected $casts = [

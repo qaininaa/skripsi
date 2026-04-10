@@ -156,7 +156,7 @@ class SupervisorLaporanController extends Controller
         // Reset signature timestamps
         $hd = $report->header_data ?? [];
         unset($hd['ttd_monitoring_signed_at'], $hd['ttd_dibaca_signed_at']);
-        $report->update(['status' => 'returned', 'header_data' => $hd]);
+        $report->update(['status' => 'returned', 'locked_by' => null, 'header_data' => $hd]);
 
         return redirect()->route('supervisor.laporan-masuk')
             ->with('success', 'Laporan telah dikembalikan ke analis.');
