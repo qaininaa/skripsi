@@ -99,8 +99,16 @@
                             <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ $item->createdBy->name ?? '-' }}</td>
                             <td class="px-4 py-3 text-xs whitespace-nowrap {{ $item->status == 'completed' ? 'text-green-600' : 'text-orange-600' }}">{{ $item->status ?? '-' }}</td>
 
-                            {{-- Tombol edit & hapus --}}
+                            {{-- Tombol lihat, edit & hapus --}}
                             <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <a href="{{ route('admin.laporan.preview', $item) }}"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Lihat
+                                </a>
+
                                 <a href="{{ route('tugas-pelaporan.edit', $item) }}"
                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

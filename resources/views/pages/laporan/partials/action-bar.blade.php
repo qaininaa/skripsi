@@ -1,7 +1,7 @@
 {{-- ── Action Bar (top) ────────────────────────────────── --}}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
     <div class="flex items-center gap-3">
-        <a href="{{ route('laporan.index') }}"
+        <a href="javascript:history.back()"
            class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>

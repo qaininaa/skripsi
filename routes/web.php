@@ -79,6 +79,7 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
         Route::resource('tugas-pelaporan', TugasPelaporanController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('tugas-pelaporan');
+        Route::get('tugas-pelaporan/{report}/preview', [AnalisLaporanController::class, 'lihat'])->name('admin.laporan.preview');
     });
 
 // Dashboard & Laporan Analis
