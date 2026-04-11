@@ -58,8 +58,13 @@
             <label class="flex gap-3 items-start cursor-pointer rounded-xl border border-gray-200 p-3 hover:border-sky-300 hover:bg-sky-50/40 transition-colors">
                 <input type="radio" name="hm-action" value="handover" class="mt-0.5 accent-sky-500" onchange="onHmActionChange()">
                 <div>
+                    @if($isMonitoringPhase)
                     <div class="text-sm font-medium text-gray-800">Simpan Monitoring</div>
                     <div class="text-xs text-gray-500 mt-0.5">Draft tersimpan, analis lain bisa melanjutkan monitoring</div>
+                    @else
+                    <div class="text-sm font-medium text-gray-800">Simpan Pembacaan</div>
+                    <div class="text-xs text-gray-500 mt-0.5">Draft tersimpan, analis lain bisa melanjutkan pembacaan</div>
+                    @endif
                 </div>
             </label>
             @if($isMonitoringPhase)

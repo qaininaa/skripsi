@@ -20,6 +20,9 @@ function _hmUpdateConfirmBtn() {
 function openHandoverModal() {
     // Reset state
     document.querySelectorAll('input[name="hm-action"]').forEach(r => r.checked = false);
+    // Pre-select default action (handover)
+    const defaultRadio = document.querySelector('input[name="hm-action"][value="handover"]');
+    if (defaultRadio) defaultRadio.checked = true;
     document.getElementById('hm-target-row')?.classList.add('hidden');
     document.getElementById('hm-analyst-error')?.classList.add('hidden');
     document.getElementById('hm-username').value = '';
