@@ -48,6 +48,7 @@ class AnalisLaporanController extends Controller
             $report->update(['locked_by' => auth()->id()]);
         }
         $report->refresh();
+        $this->migrateFieldOwners($report);
 
         $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user', 'lockedByUser']);
 
@@ -69,6 +70,34 @@ class AnalisLaporanController extends Controller
 
         $analis = User::where('role', 'analis')->orderBy('name')->get();
         // Analysts that can receive a handover (all analysts except current user)
+        $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
+
+        return view('pages.laporan.isi', compact(
+            'report', 'myShift', 'entryMap',
+            'needsAirSampler', 'needsInkubator', 'needsMedium',
+            'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis'
+        ));
+    }
+
+    public function lihat(Report $report)
+    {
+        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user', 'lockedByUser']);
+
+        $entryMap = [];
+        foreach ($report->entries as $entry) {
+            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
+        }
+
+        $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
+        $needsAirSampler = $sectionTypes->contains('air_sampler');
+        $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+
+        $isEditable        = false;
+        $isMonitoringPhase = $report->status === 'monitoring';
+        $myShift           = 1;
+
+        $analis      = User::where('role', 'analis')->orderBy('name')->get();
         $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
 
         return view('pages.laporan.isi', compact(
@@ -127,6 +156,34 @@ class AnalisLaporanController extends Controller
         return back()->with('success', 'Data berhasil disimpan sebagai draft.');
     }
 
+    private function migrateFieldOwners(Report $report): void
+    {
+        $hd = $report->header_data ?? [];
+        $owners = $hd['_field_owners'] ?? [];
+        if (empty($owners)) return;
+        $changed = false;
+        foreach (array_keys($owners) as $k) {
+            if (!str_contains((string) $k, '.')) {
+                $sectionData = $hd[$k] ?? [];
+                if (is_array($sectionData)) {
+                    foreach (array_keys($sectionData) as $fk) {
+                        if (!isset($owners["{$k}.{$fk}"])) {
+                            $owners["{$k}.{$fk}"] = $owners[$k];
+                            $changed = true;
+                        }
+                    }
+                }
+                unset($owners[$k]);
+                $changed = true;
+            }
+        }
+        if ($changed) {
+            $hd['_field_owners'] = $owners;
+            $report->header_data = $hd;
+            $report->saveQuietly();
+        }
+    }
+
     private function processEntries(Request $request, Report $report): void
     {
         $myShift = 1;
@@ -134,6 +191,20 @@ class AnalisLaporanController extends Controller
         // Save header_data (analyst assignments + timing data)
         $hd = $report->header_data ?? [];
         $owners = $hd['_field_owners'] ?? [];
+        // Migrate any old per-section ownership keys to per-field format
+        foreach (array_keys($owners) as $k) {
+            if (!str_contains((string) $k, '.')) {
+                $sectionData = $hd[$k] ?? [];
+                if (is_array($sectionData)) {
+                    foreach (array_keys($sectionData) as $fk) {
+                        if (!isset($owners["{$k}.{$fk}"])) {
+                            $owners["{$k}.{$fk}"] = $owners[$k];
+                        }
+                    }
+                }
+                unset($owners[$k]);
+            }
+        }
         if ($request->has('header_data')) {
             $incoming = $request->input('header_data');
             // Remove ownership meta from incoming data
