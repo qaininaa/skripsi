@@ -139,16 +139,19 @@ class AnalisLaporanController extends Controller
             // Remove ownership meta from incoming data
             unset($incoming['_field_owners']);
             foreach ($incoming as $sectionKey => $sectionData) {
-                // Skip sections owned by another analyst
-                if (isset($owners[$sectionKey]) && (int) $owners[$sectionKey] !== Auth::id()) {
+                if (!is_array($sectionData)) {
+                    $ownerKey = $sectionKey;
+                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) continue;
+                    if ($sectionData !== null && $sectionData !== '') $owners[$ownerKey] = Auth::id();
+                    $hd[$sectionKey] = $sectionData;
                     continue;
                 }
-                // Check if this section has any non-empty value
-                $hasValue = collect($sectionData)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if ($hasValue) {
-                    $owners[$sectionKey] = Auth::id();
+                foreach ($sectionData as $fieldKey => $fieldValue) {
+                    $ownerKey = "{$sectionKey}.{$fieldKey}";
+                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) continue;
+                    if ($fieldValue !== null && $fieldValue !== '') $owners[$ownerKey] = Auth::id();
+                    $hd[$sectionKey][$fieldKey] = $fieldValue;
                 }
-                $hd[$sectionKey] = array_replace_recursive($hd[$sectionKey] ?? [], $sectionData);
             }
             $hd['_field_owners'] = $owners;
         }
