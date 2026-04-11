@@ -55,17 +55,7 @@ Route::middleware(['auth', 'password.check', 'role:super'])
         Route::get('settings', [PasswordSettingController::class, 'index'])->name('settings.index');
         Route::put('settings', [PasswordSettingController::class, 'update'])->name('settings.update');
 
-        // Jenis Laporan CRUD
-        Route::resource('report-types', ReportTypeManagementController::class)->names('report-types');
-
-        // Seksi dalam jenis laporan
-        Route::post('report-types/{reportType}/sections', [ReportTypeManagementController::class, 'storeSection'])->name('report-types.sections.store');
-        Route::put('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'updateSection'])->name('report-types.sections.update');
-        Route::delete('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'destroySection'])->name('report-types.sections.destroy');
-
-        // Lokasi dalam seksi
-        Route::post('report-types/{reportType}/sections/{section}/locations', [ReportTypeManagementController::class, 'storeLocation'])->name('report-types.sections.locations.store');
-        Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportTypeManagementController::class, 'destroyLocation'])->name('report-types.sections.locations.destroy');
+        // Jenis Laporan CRUD — dipindah ke admin
 
     });
 
@@ -80,6 +70,13 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
         // Data Master
         Route::resource('master/ruangan', RuanganController::class)->names('master.ruangan');
         Route::resource('master/lokasi', LokasiController::class)->names('master.lokasi');
+        // Manajemen Laporan
+        Route::resource('report-types', ReportTypeManagementController::class)->names('report-types');
+        Route::post('report-types/{reportType}/sections', [ReportTypeManagementController::class, 'storeSection'])->name('report-types.sections.store');
+        Route::put('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'updateSection'])->name('report-types.sections.update');
+        Route::delete('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'destroySection'])->name('report-types.sections.destroy');
+        Route::post('report-types/{reportType}/sections/{section}/locations', [ReportTypeManagementController::class, 'storeLocation'])->name('report-types.sections.locations.store');
+        Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportTypeManagementController::class, 'destroyLocation'])->name('report-types.sections.locations.destroy');
     });
 
 // Dashboard & Laporan Analis

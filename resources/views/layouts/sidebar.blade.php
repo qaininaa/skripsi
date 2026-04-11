@@ -70,14 +70,6 @@
             Manajemen Pengguna
         </a>
 
-        <a href="{{ route('report-types.index') }}"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('report-types.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            Manajemen Laporan
-        </a>
-
         <a href="{{ route('audit-logs.index') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('audit-logs.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,6 +117,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     Lokasi
+                </a>
+                <a href="{{ route('report-types.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('report-types.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    Manajemen Laporan
                 </a>
             </div>
         </div>
