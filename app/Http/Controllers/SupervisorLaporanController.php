@@ -19,7 +19,24 @@ class SupervisorLaporanController extends Controller
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
         $rejected = $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count();
 
-        return view('pages.supervisor.index', compact('pending', 'approved', 'rejected'));
+        $counts = Report::selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $pendingReports    = Report::with('reportType', 'lockedByUser')
+            ->where('status', 'pending')
+            ->latest()->take(5)->get();
+        $monitoringReports = Report::with('reportType', 'lockedByUser')
+            ->where('status', 'monitoring')
+            ->latest()->take(5)->get();
+        $readingReports    = Report::with('reportType', 'lockedByUser')
+            ->where('status', 'reading')
+            ->latest()->take(5)->get();
+
+        return view('pages.supervisor.index', compact(
+            'pending', 'approved', 'rejected',
+            'counts', 'pendingReports', 'monitoringReports', 'readingReports'
+        ));
     }
 
     public function laporanMasuk(Request $request)
