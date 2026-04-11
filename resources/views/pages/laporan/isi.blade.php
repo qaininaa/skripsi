@@ -46,7 +46,9 @@
 @endif
 
 {{-- ── 4+. Tabel Pengukuran per Seksi ─────────────────── --}}
-@foreach ($report->reportType->sections as $section)@include('pages.laporan.partials.section-tabel')
+@foreach ($sectionInstances as $sectionInstance)
+@php $section = $sectionInstance['section']; $instance = $sectionInstance['instance']; $totalInstances = $sectionInstance['totalInstances']; @endphp
+@include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'totalInstances' => $totalInstances])
 @endforeach
 
 @include('pages.laporan.partials.section-ttd')

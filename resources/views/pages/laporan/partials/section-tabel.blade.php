@@ -1,6 +1,7 @@
 {{-- ── Tabel Pengukuran per Seksi (dipakai di dalam @foreach sections) ── --}}
 @php
     // Config-driven flags dari tabel sections
+    $instance       = $instance ?? 1;
     $hasSharedTime  = (bool) $section->has_shared_time;
     $hasJam         = $section->time_slot_type === 'single';
     $isPerLocation  = $section->time_slot_type === 'per_location';
@@ -33,9 +34,36 @@
             <span class="text-xs font-bold text-sky-600">{{ $secNum }}</span>
         </div>
         <div>
-            <h3 class="font-semibold text-sm text-gray-700">{{ $section->measurement_unit }}</h3>
+            <h3 class="font-semibold text-sm text-gray-700 flex items-center gap-2">
+                {{ $section->measurement_unit }}
+                @if ($instance > 1)
+                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-600">Duplikat {{ $instance }}</span>
+                @endif
+            </h3>
             <p class="text-xs text-gray-400 mt-0.5">{{ $section->name }}</p>
         </div>
+
+        {{-- Admin-only: tombol duplikat / hapus duplikat --}}
+        @if ($isAdminPreview ?? false)
+        <div class="ml-auto flex items-center gap-2 shrink-0">
+            @if ($instance === 1)
+            <button type="button"
+                    onclick="adminSectionAction('POST', '{{ route('tugas-pelaporan.sections.duplicate', [$report->id, $section->id]) }}')"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Duplikat Seksi
+            </button>
+            @endif
+            @if ($instance > 1 && $instance === ($totalInstances ?? $instance))
+            <button type="button"
+                    onclick="if(confirm('Hapus duplikat seksi ini?')) adminSectionAction('DELETE', '{{ route('tugas-pelaporan.sections.remove', [$report->id, $section->id]) }}')"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                Hapus Duplikat
+            </button>
+            @endif
+        </div>
+        @endif
     </div>
 
     <div class="overflow-x-auto">
@@ -62,7 +90,7 @@
                     @php
                         $msJamMulai = null; $msJamSelesai = null;
                         foreach ($section->locations as $loc2) {
-                            $e0 = $entryMap[$loc2->id][0][$myShift] ?? null;
+                            $e0 = $entryMap[$loc2->id][$instance][0][$myShift] ?? null;
                             if ($e0 && ($e0->start_time || $e0->end_time)) {
                                 $msJamMulai   = $e0->start_time;
                                 $msJamSelesai = $e0->end_time;
@@ -234,8 +262,8 @@
                     $locEntries = collect();
                     for ($p = 1; $p <= $section->max_exposure; $p++) {
                         for ($s = 1; $s <= 2; $s++) {
-                            if (isset($entryMap[$loc->pivot->id][$p][$s])) {
-                                $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
+                            if (isset($entryMap[$loc->pivot->id][$instance][$p][$s])) {
+                                $locEntries->push($entryMap[$loc->pivot->id][$instance][$p][$s]);
                             }
                         }
                     }
@@ -273,7 +301,7 @@
                     </td>
                     @if ($hasSharedTime)
                     @php
-                        $msEntry = $entryMap[$loc->pivot->id][0][$myShift] ?? null;
+                        $msEntry = $entryMap[$loc->pivot->id][$instance][0][$myShift] ?? null;
                         $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
                             ? round(($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0), 10) : null;
                         $msLocked = $isEditable && $msEntry && $msEntry->analyst_id && $msEntry->analyst_id !== auth()->id()
@@ -282,9 +310,9 @@
                     @endphp
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($msEditable)
-                            <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][0][cfu_bacteria]"
+                            <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_bacteria]"
                                    value="{{ $msEntry?->cfu_bacteria }}"
-                                   data-loc="{{ $loc->pivot->id }}" data-col="0" data-type="b" data-section-id="{{ $section->id }}"
+                                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="0" data-type="b" data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @elseif ($msLocked)
                             <input type="number" value="{{ $msEntry?->cfu_bacteria }}" disabled
@@ -297,9 +325,10 @@
                     </td>
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($msEditable)
-                            <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][0][cfu_fungi]"
+                            <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_fungi]"
                                    value="{{ $msEntry?->cfu_fungi }}"
-                                   data-loc="{{ $loc->pivot->id }}" data-col="0" data-type="f"
+                                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="0" data-type="f"
+                                   data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @elseif ($msLocked)
                             <input type="number" value="{{ $msEntry?->cfu_fungi }}" disabled
@@ -311,7 +340,7 @@
                         @endif
                     </td>
                     <td class="px-1 py-2 border-r border-gray-100 text-center bg-gray-50/40">
-                        <span id="t-{{ $loc->pivot->id }}-0"
+                        <span id="t-{{ $loc->pivot->id }}-{{ $instance }}-0"
                               class="text-[11px] font-semibold {{ $msTVal !== null ? 'text-gray-700' : 'text-gray-300' }}">
                             {{ $msTVal ?? '—' }}
                         </span>
@@ -322,13 +351,13 @@
                     @for ($col = 1; $col <= $maxCols; $col++)
                     @php
                         $colAsgn    = $secAssignments[$col] ?? 1;
-                        $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
+                        $existEntry = $entryMap[$loc->pivot->id][$instance][$col][$colAsgn] ?? null;
                         $entryLocked = $isEditable && $existEntry && $existEntry->analyst_id
                                        && $existEntry->analyst_id !== auth()->id()
                                        && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null);
                         $editable = $isEditable && ($colAsgn == $myShift) && !$entryLocked;
-                        $iName = "entries[{$loc->pivot->id}][{$col}]";
-                        $rowKey = "{$loc->pivot->id}-{$col}";
+                        $iName = "entries[{$loc->pivot->id}][{$instance}][{$col}]";
+                        $rowKey = "{$loc->pivot->id}-{$instance}-{$col}";
                     @endphp
 
                     @if ($isPerLocation)
@@ -351,7 +380,7 @@
                         @if ($editable)
                             <input type="number" min="0" step="any" name="{{ $iName }}[cfu_bacteria]"
                                    value="{{ $existEntry?->cfu_bacteria }}"
-                                   data-loc="{{ $loc->pivot->id }}" data-col="{{ $col }}" data-type="b" data-section-id="{{ $section->id }}"
+                                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="b" data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    @if (str_starts_with($loc->location_number, '*)')) data-optional="true" @endif
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
@@ -369,7 +398,7 @@
                         @if ($editable)
                             <input type="number" min="0" step="any" name="{{ $iName }}[cfu_fungi]"
                                    value="{{ $existEntry?->cfu_fungi }}"
-                                   data-loc="{{ $loc->pivot->id }}" data-col="{{ $col }}" data-type="f" data-section-id="{{ $section->id }}"
+                                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="f" data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @elseif ($entryLocked)
@@ -416,8 +445,9 @@
                         </span>
                     </td>
                     <td class="px-2 py-2.5 text-center konklusi-cell"
-                        id="konklusi-{{ $loc->pivot->id }}"
+                        id="konklusi-{{ $loc->pivot->id }}-{{ $instance }}"
                         data-section-id="{{ $section->id }}"
+                        data-section-instance="{{ $section->id }}-{{ $instance }}"
                         data-alert-t="{{ $loc->alert_limit_total ?? '' }}"
                         data-alert-f="{{ $loc->alert_limit_fungi ?? '' }}"
                         data-action-t="{{ $loc->alert_action_total ?? '' }}"
@@ -447,28 +477,32 @@
         MS: Memenuhi Spesifikasi &nbsp;·&nbsp; TMS: Tidak Memenuhi Spesifikasi
     </div>
 
-    {{-- Catatan & Kesimpulan per seksi --}}
+    {{-- Catatan & Kesimpulan per seksi (only rendered by instance 1, aggregates all instances) --}}
+    @if ($instance === 1)
     @php
         $secNote = $hd['section_notes'][$section->id] ?? [];
-        // Auto-compute section conclusion: TMS if any location has TMS
-        $sectionHasTMS = false;
+        // Auto-compute section conclusion across ALL instances
+        $totalInstances  = (int) ($hd['_section_counts'][$section->id] ?? 1);
+        $sectionHasTMS   = false;
         $sectionAllEmpty = true;
-        foreach ($section->locations as $_loc) {
-            $locEntries2 = collect();
-            for ($p = 1; $p <= $section->max_exposure; $p++) {
-                for ($s = 1; $s <= 2; $s++) {
-                    if (isset($entryMap[$_loc->pivot->id][$p][$s])) {
-                        $locEntries2->push($entryMap[$_loc->pivot->id][$p][$s]);
+        for ($_inst = 1; $_inst <= $totalInstances; $_inst++) {
+            foreach ($section->locations as $_loc) {
+                $locEntries2 = collect();
+                for ($p = 1; $p <= $section->max_exposure; $p++) {
+                    for ($s = 1; $s <= 2; $s++) {
+                        if (isset($entryMap[$_loc->pivot->id][$_inst][$p][$s])) {
+                            $locEntries2->push($entryMap[$_loc->pivot->id][$_inst][$p][$s]);
+                        }
                     }
                 }
-            }
-            if ($locEntries2->isNotEmpty()) {
-                $sectionAllEmpty = false;
-                $maxT2 = $locEntries2->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
-                $maxF2 = $locEntries2->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
-                if (($_loc->alert_action_total && $maxT2 >= $_loc->alert_action_total)
-                    || ($_loc->alert_action_fungi && $maxF2 >= $_loc->alert_action_fungi)) {
-                    $sectionHasTMS = true;
+                if ($locEntries2->isNotEmpty()) {
+                    $sectionAllEmpty = false;
+                    $maxT2 = $locEntries2->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
+                    $maxF2 = $locEntries2->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
+                    if (($_loc->alert_action_total && $maxT2 >= $_loc->alert_action_total)
+                        || ($_loc->alert_action_fungi && $maxF2 >= $_loc->alert_action_fungi)) {
+                        $sectionHasTMS = true;
+                    }
                 }
             }
         }
@@ -509,4 +543,5 @@
             </div>
         </div>
     </div>
+    @endif
 </div>

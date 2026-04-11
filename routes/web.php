@@ -67,6 +67,8 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('tugas-pelaporan');
         Route::get('tugas-pelaporan/{report}/preview', [AnalisLaporanController::class, 'lihat'])->name('admin.laporan.preview');
+        Route::post('tugas-pelaporan/{report}/sections/{sectionId}/duplicate', [TugasPelaporanController::class, 'duplicateSection'])->name('tugas-pelaporan.sections.duplicate');
+        Route::delete('tugas-pelaporan/{report}/sections/{sectionId}/duplicate', [TugasPelaporanController::class, 'removeSection'])->name('tugas-pelaporan.sections.remove');
         // Data Master
         Route::resource('master/ruangan', RuanganController::class)->names('master.ruangan');
         Route::resource('master/lokasi', LokasiController::class)->names('master.lokasi');

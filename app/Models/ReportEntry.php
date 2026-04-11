@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReportEntry extends Model
 {
     protected $fillable = [
-        'report_id', 'report_section_id', 'period_number',
+        'report_id', 'report_section_id', 'instance_number', 'period_number',
         'shift', 'analyst_id',
         'start_time', 'end_time', 'cfu_bacteria', 'cfu_fungi',
     ];

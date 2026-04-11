@@ -15,9 +15,12 @@
             $_o = $_fo["{$inkKey}.$_k"] ?? null;
             $inkF[$_k] = $isEditable && $_o && (int)$_o !== auth()->id();
         }
+        $allAnalysts = \App\Models\User::where('role', 'analis')->orderBy('name')->get();
     @endphp
     <div class="p-5 space-y-4 @if(!$loop->last) border-b border-gray-100 @endif">
         <p class="text-xs font-semibold text-sky-600 uppercase tracking-wide">{{ $inkLabel }}</p>
+
+        {{-- Row 1: Alat + Kalibrasi --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Nama Alat</label>
@@ -25,94 +28,114 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Inkubator</label>
-                <input type="text" @if(!$inkF['no_id']) name="header_data[{{ $inkKey }}][no_id]" @endif value="{{ $ink['no_id'] ?? '' }}"
-                       @if(!$isEditable || $inkF['no_id']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['no_id']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
+                @if ($isEditable && !$inkF['no_id'])
+                <input type="text" name="header_data[{{ $inkKey }}][no_id]" value="{{ $ink['no_id'] ?? '' }}"
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                @else
+                <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['no_id'] ?? '—' }}</div>
+                @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
-                <input type="date" @if(!$inkF['calibration_date']) name="header_data[{{ $inkKey }}][calibration_date]" @endif value="{{ $ink['calibration_date'] ?? '' }}"
-                       @if(!$isEditable || $inkF['calibration_date']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['calibration_date']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
+                @if ($isEditable && !$inkF['calibration_date'])
+                <input type="date" name="header_data[{{ $inkKey }}][calibration_date]" value="{{ $ink['calibration_date'] ?? '' }}"
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                @else
+                <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                    {{ isset($ink['calibration_date']) ? \Carbon\Carbon::parse($ink['calibration_date'])->format('d/m/Y') : '—' }}
+                </div>
+                @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
-                <input type="date" @if(!$inkF['due_date']) name="header_data[{{ $inkKey }}][due_date]" @endif value="{{ $ink['due_date'] ?? '' }}"
-                       @if(!$isEditable || $inkF['due_date']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['due_date']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
+                @if ($isEditable && !$inkF['due_date'])
+                <input type="date" name="header_data[{{ $inkKey }}][due_date]" value="{{ $ink['due_date'] ?? '' }}"
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                @else
+                <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                    {{ isset($ink['due_date']) ? \Carbon\Carbon::parse($ink['due_date'])->format('d/m/Y') : '—' }}
+                </div>
+                @endif
             </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-gray-50">
-            <div class="lg:col-span-2">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</label>
-                <input type="date" @if(!$inkF['incubation_date']) name="header_data[{{ $inkKey }}][incubation_date]" @endif value="{{ $ink['incubation_date'] ?? '' }}"
-                       @if(!$isEditable || $inkF['incubation_date']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['incubation_date']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
-                <input type="date" @if(!$inkF['date_in']) name="header_data[{{ $inkKey }}][date_in]" @endif value="{{ $ink['date_in'] ?? '' }}"
-                       @if(!$isEditable || $inkF['date_in']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['date_in']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
-                <input type="time" @if(!$inkF['time_in']) name="header_data[{{ $inkKey }}][time_in]" @endif value="{{ $ink['time_in'] ?? '' }}"
-                       @if(!$isEditable || $inkF['time_in']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['time_in']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
-            </div>
-            <div class="hidden lg:block lg:col-span-2"></div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
-                <input type="date" @if(!$inkF['date_out']) name="header_data[{{ $inkKey }}][date_out]" @endif value="{{ $ink['date_out'] ?? '' }}"
-                       @if(!$isEditable || $inkF['date_out']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['date_out']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
-                <input type="time" @if(!$inkF['time_out']) name="header_data[{{ $inkKey }}][time_out]" @endif value="{{ $ink['time_out'] ?? '' }}"
-                       @if(!$isEditable || $inkF['time_out']) readonly @endif
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF['time_out']) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
-            </div>
-            <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                @foreach ([
-                    ['key' => 'incubated',  'label' => 'Diinkubasi oleh',   'default_date' => date('Y-m-d')],
-                    ['key' => 'removed', 'label' => 'Dikeluarkan oleh',  'default_date' => ''],
-                ] as $field)
-                @php
-                    $fKey    = $field['key'];
-                    $fName   = $fKey . '_by';
-                    $fDate   = $fKey . '_date';
-                    $savedWho  = $ink[$fName] ?? '';
-                    $savedDate = $ink[$fDate] ?? $field['default_date'];
-                @endphp
-                <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-3 space-y-2">
-                    <p class="text-xs font-semibold text-gray-500">{{ $field['label'] }}</p>
-                    @if ($isEditable && !$inkF[$fName])
-                    <div class="flex flex-wrap gap-2" data-radio-group="{{ $inkKey }}_{{ $fKey }}">
-                        @php
-                            $monitoringAnalysts = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->get();
-                        @endphp
-                        @foreach ($monitoringAnalysts as $analyst)
-                        <button type="button"
-                                data-value="{{ $analyst->name }}"
-                                onclick="toggleAnalis('{{ $inkKey }}', '{{ $fKey }}', this.dataset.value, this)"
-                                class="inkubasi-radio-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors
-                                       {{ $savedWho === $analyst->name ? 'bg-sky-50 border-sky-300 text-sky-700' : 'border-gray-200 bg-white text-gray-600 hover:border-sky-200' }}">
-                            {{ $analyst->name }}
-                        </button>
+
+        {{-- Row 2: Inkubasi & Keluar --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-50">
+            {{-- Masuk / Diinkubasi --}}
+            <div class="space-y-3">
+                <p class="text-xs font-semibold text-sky-600">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</p>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
+                    @if ($isEditable && !$inkF['incubated_by'])
+                    <select name="header_data[{{ $inkKey }}][incubated_by]"
+                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <option value="">— Pilih Analis —</option>
+                        @foreach ($allAnalysts as $analyst)
+                        <option value="{{ $analyst->name }}" @selected(($ink['incubated_by'] ?? '') === $analyst->name)>{{ $analyst->name }}</option>
                         @endforeach
-                        <input type="hidden" name="header_data[{{ $inkKey }}][{{ $fName }}]" id="radio-val-{{ $inkKey }}-{{ $fKey }}" value="{{ $savedWho }}">
-                    </div>
+                    </select>
                     @else
-                    <div class="text-sm text-gray-700">{{ $savedWho ?: '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['incubated_by'] ?? '—' }}</div>
                     @endif
-                    <input type="date" @if(!$inkF[$fDate]) name="header_data[{{ $inkKey }}][{{ $fDate }}]" @endif
-                           value="{{ $savedDate }}"
-                           @if(!$isEditable || $inkF[$fDate]) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $inkF[$fDate]) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
                 </div>
-                @endforeach
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
+                    @if ($isEditable && !$inkF['date_in'])
+                    <input type="date" name="header_data[{{ $inkKey }}][date_in]" value="{{ $ink['date_in'] ?? '' }}"
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                        {{ isset($ink['date_in']) ? \Carbon\Carbon::parse($ink['date_in'])->format('d/m/Y') : '—' }}
+                    </div>
+                    @endif
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
+                    @if ($isEditable && !$inkF['time_in'])
+                    <input type="time" name="header_data[{{ $inkKey }}][time_in]" value="{{ $ink['time_in'] ?? '' }}"
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['time_in'] ?? '—' }}</div>
+                    @endif
+                </div>
+            </div>
+            {{-- Keluar / Dikeluarkan --}}
+            <div class="space-y-3">
+                <p class="text-xs font-semibold text-sky-600">&nbsp;</p>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
+                    @if ($isEditable && !$inkF['removed_by'])
+                    <select name="header_data[{{ $inkKey }}][removed_by]"
+                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <option value="">— Pilih Analis —</option>
+                        @foreach ($allAnalysts as $analyst)
+                        <option value="{{ $analyst->name }}" @selected(($ink['removed_by'] ?? '') === $analyst->name)>{{ $analyst->name }}</option>
+                        @endforeach
+                    </select>
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['removed_by'] ?? '—' }}</div>
+                    @endif
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
+                    @if ($isEditable && !$inkF['date_out'])
+                    <input type="date" name="header_data[{{ $inkKey }}][date_out]" value="{{ $ink['date_out'] ?? '' }}"
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                        {{ isset($ink['date_out']) ? \Carbon\Carbon::parse($ink['date_out'])->format('d/m/Y') : '—' }}
+                    </div>
+                    @endif
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
+                    @if ($isEditable && !$inkF['time_out'])
+                    <input type="time" name="header_data[{{ $inkKey }}][time_out]" value="{{ $ink['time_out'] ?? '' }}"
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['time_out'] ?? '—' }}</div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

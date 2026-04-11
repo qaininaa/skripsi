@@ -1,4 +1,14 @@
 <script>
+// ── Admin: duplikat / hapus section via fetch (avoid nested form) ───────
+function adminSectionAction(method, url) {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content
+                ?? document.querySelector('input[name="_token"]')?.value;
+    fetch(url, {
+        method: method,
+        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+    }).then(r => { window.location.reload(); });
+}
+
 // ── Handover / Finish Monitoring modal ─────────────────────────────────
 function _hmUpdateConfirmBtn() {
     const action   = document.querySelector('input[name="hm-action"]:checked')?.value;
@@ -282,16 +292,18 @@ document.addEventListener('input', function (e) {
         konklusiCell.innerHTML = `<span class="${cls}">${label}</span>`;
 
         // Recalculate section conclusion
-        const sectionId = e.target.dataset.sectionId;
-        if (sectionId) recalcSectionKonklusi(sectionId);
+        const sectionInstance = e.target.dataset.sectionInstance;
+        if (sectionInstance) recalcSectionKonklusi(sectionInstance);
     }
 });
 
-function recalcSectionKonklusi(sectionId) {
-    const el = document.getElementById(`section-konklusi-${sectionId}`);
+function recalcSectionKonklusi(sectionInstance) {
+    // sectionInstance is "{section_id}-{instance}" (e.g. "3-1" or "3-2")
+    const rawId = sectionInstance.replace(/-\d+$/, '');  // extract base section_id for IDs
+    const el = document.getElementById(`section-konklusi-${rawId}`);
     if (!el) return;
     let hasTMS = false, hasAny = false, newVal = '';
-    document.querySelectorAll(`.konklusi-cell[data-section-id="${sectionId}"]`).forEach(cell => {
+    document.querySelectorAll(`.konklusi-cell[data-section-instance="${sectionInstance}"]`).forEach(cell => {
         const span = cell.querySelector('span');
         if (!span) return;
         const txt = span.textContent.trim();
@@ -308,7 +320,7 @@ function recalcSectionKonklusi(sectionId) {
         el.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Memenuhi Spesifikasi <span class="font-bold">(MS)</span></span>';
         newVal = 'MS';
     }
-    const hiddenInput = document.getElementById(`section-konklusi-input-${sectionId}`);
+    const hiddenInput = document.getElementById(`section-konklusi-input-${rawId}`);
     if (hiddenInput) hiddenInput.value = newVal;
 }
 

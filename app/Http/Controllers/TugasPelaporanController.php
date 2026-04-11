@@ -55,12 +55,9 @@ class TugasPelaporanController extends Controller
 
     public function edit(Report $tugasPelaporan)
     {
-        $reportTypes        = ReportType::orderBy('annex_number')->get();
-        $selectedReportType = $tugasPelaporan->report_type_id;
+        $reportTypes = ReportType::orderBy('annex_number')->get();
 
-        return view('pages.tugas-pelaporan.edit', compact(
-            'tugasPelaporan', 'reportTypes', 'selectedReportType'
-        ));
+        return view('pages.tugas-pelaporan.edit', compact('tugasPelaporan', 'reportTypes'));
     }
 
     public function update(Request $request, Report $tugasPelaporan)
@@ -71,10 +68,17 @@ class TugasPelaporanController extends Controller
             'report_type_id' => ['required', 'exists:report_types,id'],
         ]);
 
+        $hd = $tugasPelaporan->header_data ?? [];
+        // If report type changed, clear section counts (they're tied to the old type's sections)
+        if ((int) $request->report_type_id !== (int) $tugasPelaporan->report_type_id) {
+            unset($hd['_section_counts']);
+        }
+
         $tugasPelaporan->update([
             'report_type_id' => $request->report_type_id,
             'product_name'   => $request->product_name,
             'batch_number'   => $request->batch_number,
+            'header_data'    => empty($hd) ? null : $hd,
         ]);
 
         return redirect()->route('tugas-pelaporan.index')
@@ -91,5 +95,59 @@ class TugasPelaporanController extends Controller
 
         return redirect()->route('tugas-pelaporan.index')
             ->with('success', 'Tugas pelaporan berhasil dihapus.');
+    }
+
+    public function duplicateSection(Report $report, $sectionId)
+    {
+        abort_unless(
+            $report->reportType->sections->contains('id', (int) $sectionId),
+            404
+        );
+
+        $hd      = $report->header_data ?? [];
+        $counts  = $hd['_section_counts'] ?? [];
+        $current = (int) ($counts[$sectionId] ?? 1);
+
+        if ($current >= 5) {
+            return back()->with('error', 'Maksimum 5 instance per seksi.');
+        }
+
+        $counts[(int) $sectionId] = $current + 1;
+        $hd['_section_counts']    = $counts;
+        $report->update(['header_data' => $hd]);
+
+        return request()->wantsJson()
+            ? response()->json(['ok' => true])
+            : back()->with('success', 'Seksi berhasil diduplikat.');
+    }
+
+    public function removeSection(Report $report, $sectionId)
+    {
+        abort_unless(
+            $report->reportType->sections->contains('id', (int) $sectionId),
+            404
+        );
+
+        $hd      = $report->header_data ?? [];
+        $counts  = $hd['_section_counts'] ?? [];
+        $current = (int) ($counts[$sectionId] ?? 1);
+
+        if ($current <= 2) {
+            unset($counts[(int) $sectionId]);
+        } else {
+            $counts[(int) $sectionId] = $current - 1;
+        }
+
+        if (empty($counts)) {
+            unset($hd['_section_counts']);
+        } else {
+            $hd['_section_counts'] = $counts;
+        }
+
+        $report->update(['header_data' => empty($hd) ? null : $hd]);
+
+        return request()->wantsJson()
+            ? response()->json(['ok' => true])
+            : back()->with('success', 'Duplikasi seksi berhasil dihapus.');
     }
 }

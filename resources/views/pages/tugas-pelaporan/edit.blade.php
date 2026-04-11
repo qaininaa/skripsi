@@ -60,7 +60,7 @@
                         class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
                     <option value="">— Pilih Jenis Laporan —</option>
                     @foreach ($reportTypes as $rt)
-                        <option value="{{ $rt->id }}" {{ old('report_type_id', $selectedReportType) == $rt->id ? 'selected' : '' }}>
+                        <option value="{{ $rt->id }}" {{ $tugasPelaporan->report_type_id == $rt->id ? 'selected' : '' }}>
                             {{ $rt->annex_number }} — {{ $rt->name }}
                         </option>
                     @endforeach

@@ -52,10 +52,10 @@ class AnalisLaporanController extends Controller
 
         $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user', 'lockedByUser']);
 
-        // entryMap[$pivot_id][$period_number][$shift] = entry
+        // entryMap[$pivot_id][$instance][$period_number][$shift] = entry
         $entryMap = [];
         foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
+            $entryMap[$entry->report_section_id][$entry->instance_number ?? 1][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
@@ -68,6 +68,16 @@ class AnalisLaporanController extends Controller
         $isMonitoringPhase = $report->status === 'monitoring';
         $myShift         = 1;
 
+        // Build sectionInstances: expand sections with duplicate counts
+        $sectionCounts    = $report->header_data['_section_counts'] ?? [];
+        $sectionInstances = [];
+        foreach ($report->reportType->sections as $section) {
+            $count = (int) ($sectionCounts[$section->id] ?? 1);
+            for ($i = 1; $i <= $count; $i++) {
+                $sectionInstances[] = ['section' => $section, 'instance' => $i, 'totalInstances' => $count];
+            }
+        }
+
         $analis = User::where('role', 'analis')->orderBy('name')->get();
         // Analysts that can receive a handover (all analysts except current user)
         $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
@@ -75,7 +85,8 @@ class AnalisLaporanController extends Controller
         return view('pages.laporan.isi', compact(
             'report', 'myShift', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
-            'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis'
+            'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
+            'sectionInstances'
         ));
     }
 
@@ -85,7 +96,7 @@ class AnalisLaporanController extends Controller
 
         $entryMap = [];
         foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
+            $entryMap[$entry->report_section_id][$entry->instance_number ?? 1][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
@@ -97,13 +108,24 @@ class AnalisLaporanController extends Controller
         $isMonitoringPhase = $report->status === 'monitoring';
         $myShift           = 1;
 
+        $sectionCounts    = $report->header_data['_section_counts'] ?? [];
+        $sectionInstances = [];
+        foreach ($report->reportType->sections as $section) {
+            $count = (int) ($sectionCounts[$section->id] ?? 1);
+            for ($i = 1; $i <= $count; $i++) {
+                $sectionInstances[] = ['section' => $section, 'instance' => $i, 'totalInstances' => $count];
+            }
+        }
+
         $analis      = User::where('role', 'analis')->orderBy('name')->get();
         $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
+        $isAdminPreview = auth()->user()->role === 'admin';
 
         return view('pages.laporan.isi', compact(
             'report', 'myShift', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
-            'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis'
+            'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
+            'sectionInstances', 'isAdminPreview'
         ));
     }
 
@@ -309,11 +331,11 @@ class AnalisLaporanController extends Controller
                 $q->whereNotNull('cfu_bacteria')->orWhereNotNull('cfu_fungi');
             })
             ->get()
-            ->map(fn ($e) => "{$e->report_section_id}-{$e->period_number}-{$e->shift}")
+            ->map(fn ($e) => "{$e->report_section_id}-{$e->instance_number}-{$e->period_number}-{$e->shift}")
             ->toArray();
 
         // Upsert entries
-        foreach ($request->input('entries', []) as $pivotId => $cols) {
+        foreach ($request->input('entries', []) as $pivotId => $instances) {
             $sectionType = $pivotSectionType[(int) $pivotId] ?? null;
             if (! $sectionType) {
                 continue;
@@ -322,28 +344,32 @@ class AnalisLaporanController extends Controller
             $timeSlotType = $pivotSectionTimeSlot[(int) $pivotId] ?? 'none';
             $sectionId    = $pivotSectionId[(int) $pivotId] ?? null;
 
-            foreach ($cols as $colIdx => $data) {
-                $periodNumber = (int) $colIdx;
-                $shift        = $myShift;
+            foreach ($instances as $instanceNum => $cols) {
+                $instanceNumber = max(1, (int) $instanceNum);
 
-                $hasData = collect($data)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if (! $hasData) {
-                    continue;
-                }
+                foreach ($cols as $colIdx => $data) {
+                    $periodNumber = (int) $colIdx;
+                    $shift        = $myShift;
 
-                // Skip entries owned by another analyst
-                $entryKey = ((int) $pivotId) . "-{$periodNumber}-{$shift}";
-                if (in_array($entryKey, $lockedEntryKeys)) {
-                    continue;
-                }
+                    $hasData = collect($data)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                    if (! $hasData) {
+                        continue;
+                    }
 
-                ReportEntry::updateOrCreate(
-                    [
-                        'report_id'          => $report->id,
-                        'report_section_id'  => (int) $pivotId,
-                        'period_number'      => $periodNumber,
-                        'shift'              => $shift,
-                    ],
+                    // Skip entries owned by another analyst
+                    $entryKey = ((int) $pivotId) . "-{$instanceNumber}-{$periodNumber}-{$shift}";
+                    if (in_array($entryKey, $lockedEntryKeys)) {
+                        continue;
+                    }
+
+                    ReportEntry::updateOrCreate(
+                        [
+                            'report_id'          => $report->id,
+                            'report_section_id'  => (int) $pivotId,
+                            'instance_number'    => $instanceNumber,
+                            'period_number'      => $periodNumber,
+                            'shift'              => $shift,
+                        ],
                     [
                         'analyst_id'   => Auth::id(),
                         'start_time'   => ($timeSlotType === 'per_location')
@@ -359,6 +385,7 @@ class AnalisLaporanController extends Controller
                     ]
                 );
             }
+        }
         }
     }
 
