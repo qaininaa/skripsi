@@ -62,37 +62,6 @@
         {{-- Super Admin only --}}
         @if(Auth::user()->role === 'super')
 
-         {{-- Data Master dropdown --}}
-        <div x-data="{ openMaster: {{ request()->routeIs('master.*') ? 'true' : 'false' }} }">
-            <button type="button" @click="openMaster = !openMaster"
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('master.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-                </svg>
-                <span class="flex-1 text-left">Data Master</span>
-                <svg class="w-4 h-4 transition-transform duration-200" :class="openMaster ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div x-show="openMaster" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="mt-0.5 ml-4 pl-4 border-l-2 border-gray-100 space-y-0.5">
-                <a href="{{ route('master.ruangan.index') }}"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('master.ruangan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} text-sm transition-colors">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    Ruangan
-                </a>
-                <a href="{{ route('master.lokasi.index') }}"
-                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('master.lokasi.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} text-sm transition-colors">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Lokasi
-                </a>
-            </div>
-        </div>
-
         <a href="{{ route('users.index') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('users.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,6 +97,37 @@
 
         {{-- Admin QC only --}}
         @elseif(Auth::user()->role === 'admin')
+
+         {{-- Data Master dropdown --}}
+        <div x-data="{ openMaster: {{ request()->routeIs('master.*') ? 'true' : 'false' }} }">
+            <button type="button" @click="openMaster = !openMaster"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('master.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                </svg>
+                <span class="flex-1 text-left">Data Master</span>
+                <svg class="w-4 h-4 transition-transform duration-200" :class="openMaster ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div x-show="openMaster" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="mt-0.5 ml-4 pl-4 border-l-2 border-gray-100 space-y-0.5">
+                <a href="{{ route('master.ruangan.index') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('master.ruangan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} text-sm transition-colors">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Ruangan
+                </a>
+                <a href="{{ route('master.lokasi.index') }}"
+                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('master.lokasi.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} text-sm transition-colors">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Lokasi
+                </a>
+            </div>
+        </div>
 
         <a href="{{ route('tugas-pelaporan.index') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('tugas-pelaporan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">

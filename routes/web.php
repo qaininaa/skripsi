@@ -67,9 +67,6 @@ Route::middleware(['auth', 'password.check', 'role:super'])
         Route::post('report-types/{reportType}/sections/{section}/locations', [ReportTypeManagementController::class, 'storeLocation'])->name('report-types.sections.locations.store');
         Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportTypeManagementController::class, 'destroyLocation'])->name('report-types.sections.locations.destroy');
 
-         // Data Master
-        Route::resource('master/ruangan', RuanganController::class)->names('master.ruangan');
-        Route::resource('master/lokasi', LokasiController::class)->names('master.lokasi');
     });
 
 // Tugas Pelaporan (hanya Admin QC)
@@ -80,6 +77,9 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('tugas-pelaporan');
         Route::get('tugas-pelaporan/{report}/preview', [AnalisLaporanController::class, 'lihat'])->name('admin.laporan.preview');
+        // Data Master
+        Route::resource('master/ruangan', RuanganController::class)->names('master.ruangan');
+        Route::resource('master/lokasi', LokasiController::class)->names('master.lokasi');
     });
 
 // Dashboard & Laporan Analis
