@@ -134,6 +134,34 @@ class AnalisLaporanController extends Controller
         abort_if(in_array($report->status, ['submitted', 'approved']), 403);
         abort_if($report->locked_by !== auth()->id(), 403);
 
+        // Validate CFU values before processing — reject invalid inputs instead of silently discarding
+        $entries = $request->input('entries', []);
+        $cfuPattern = '/^(<1|TNTC|[1-9][0-9]*)$/i';
+        $invalidFields = [];
+        foreach ($entries as $sectionKey => $instanceMap) {
+            if (!is_array($instanceMap)) continue;
+            foreach ($instanceMap as $instanceKey => $periodMap) {
+                if (!is_array($periodMap)) continue;
+                foreach ($periodMap as $periodKey => $shiftMap) {
+                    if (!is_array($shiftMap)) continue;
+                    foreach ($shiftMap as $shiftKey => $data) {
+                        if (!is_array($data)) continue;
+                        foreach (['cfu_bacteria', 'cfu_fungi'] as $field) {
+                            $v = trim((string) ($data[$field] ?? ''));
+                            if ($v !== '' && !preg_match($cfuPattern, $v)) {
+                                $invalidFields[] = "entries.{$sectionKey}.{$instanceKey}.{$periodKey}.{$shiftKey}.{$field}";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (!empty($invalidFields)) {
+            return back()
+                ->withInput()
+                ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC. Nilai nol, desimal, dan negatif tidak diperbolehkan.']);
+        }
+
         $this->processEntries($request, $report);
         $action = $request->input('action', 'save');
 
@@ -378,15 +406,31 @@ class AnalisLaporanController extends Controller
                         'end_time'     => ($timeSlotType === 'per_location')
                             ? null
                             : ($exposureTimes[$sectionId][$colIdx]['end_time'] ?? null ?: null),
-                        'cfu_bacteria' => isset($data['cfu_bacteria']) && $data['cfu_bacteria'] !== ''
-                            ? (float) $data['cfu_bacteria'] : null,
-                        'cfu_fungi'    => isset($data['cfu_fungi']) && $data['cfu_fungi'] !== ''
-                            ? (float) $data['cfu_fungi'] : null,
+                        'cfu_bacteria' => self::normalizeCfu($data['cfu_bacteria'] ?? null),
+                        'cfu_fungi'    => self::normalizeCfu($data['cfu_fungi'] ?? null),
                     ]
                 );
             }
         }
         }
+    }
+
+    /**
+     * Normalize a raw CFU input value.
+     * Valid: '<1', 'TNTC', non-negative integer string.
+     * Returns null if empty or invalid.
+     */
+    private static function normalizeCfu(mixed $raw): ?string
+    {
+        if ($raw === null || $raw === '') return null;
+        $v = trim((string) $raw);
+        if ($v === '') return null;
+        // Allow <1 and TNTC (case-insensitive)
+        if ($v === '<1') return '<1';
+        if (strtoupper($v) === 'TNTC') return 'TNTC';
+        // Allow non-negative integers
+        if (preg_match('/^[1-9][0-9]*$/', $v)) return $v;
+        return null; // invalid — discard
     }
 
     public function verifyPassword(Request $request): \Illuminate\Http\JsonResponse

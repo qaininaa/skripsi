@@ -133,6 +133,16 @@ const _modalConfig = {
 
 function openSaveModal()    { openConfirmModal('save'); }
 function openConfirmModal(action) {
+    // Block save/handover/submit if any CFU input has an invalid value
+    const invalidInputs = document.querySelectorAll('.cfu-input.border-red-400');
+    if (invalidInputs.length > 0) {
+        showAlertModal(
+            'Format Nilai CFU Tidak Valid',
+            'Terdapat ' + invalidInputs.length + ' field CFU dengan nilai tidak valid.\n\nNilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC.\n\nJika tidak ada koloni, gunakan <1. Nilai desimal, nol, dan negatif tidak diperbolehkan.'
+        );
+        invalidInputs[0].focus();
+        return;
+    }
     if (action === 'handover') {
         const missing = getMissingCols(1);
         if (missing.size > 0) {
@@ -240,11 +250,46 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('save-modal-password')?.addEventListener('keydown', e => {
         if (e.key === 'Enter') confirmSave();
     });
+
+    // Re-validate CFU inputs on page load (restores red border after back()->withInput())
+    document.querySelectorAll('.cfu-input').forEach(inp => {
+        const raw = inp.value;
+        if (raw === '') return;
+        const valid = /^(<1|TNTC|[1-9][0-9]*)$/i.test(raw);
+        inp.classList.toggle('border-red-400', !valid);
+        inp.classList.toggle('ring-1',          !valid);
+        inp.classList.toggle('ring-red-400',    !valid);
+    });
 });
+
+// CFU string helpers — support <1, TNTC, non-negative integers
+function cfuToNum(v) {
+    if (v === undefined || v === null || v === '') return null;
+    if (v.toUpperCase() === 'TNTC') return Infinity;
+    if (v === '<1') return 0;
+    const n = parseInt(v, 10);
+    return isNaN(n) || n < 0 ? null : n;
+}
+function cfuSumStr(b, f) {
+    const bn = cfuToNum(b);
+    const fn = cfuToNum(f);
+    if (bn === null && fn === null) return '';
+    if (bn === Infinity || fn === Infinity) return 'TNTC';
+    const sum = (bn ?? 0) + (fn ?? 0);
+    if (sum === 0 && (b === '<1' || f === '<1')) return '<1';
+    return String(sum);
+}
 
 // Auto-calculate T = B + F when user types in a CFU input
 document.addEventListener('input', function (e) {
     if (!e.target.classList.contains('cfu-input')) return;
+
+    // Validate input value — highlight red if not a recognised CFU value
+    const raw = e.target.value;
+    const valid = raw === '' || /^(<1|TNTC|[1-9][0-9]*)$/i.test(raw);
+    e.target.classList.toggle('border-red-400', !valid);
+    e.target.classList.toggle('ring-1',          !valid);
+    e.target.classList.toggle('ring-red-400',    !valid);
 
     const loc = e.target.dataset.loc;
     const col = e.target.dataset.col;
@@ -252,15 +297,11 @@ document.addEventListener('input', function (e) {
     const bInput = document.querySelector(`[data-loc="${loc}"][data-col="${col}"][data-type="b"]`);
     const fInput = document.querySelector(`[data-loc="${loc}"][data-col="${col}"][data-type="f"]`);
 
-    const b = parseFloat(bInput?.value) >= 0 ? parseFloat(bInput.value) : 0;
-    const f = parseFloat(fInput?.value) >= 0 ? parseFloat(fInput.value) : 0;
-
     const tSpan = document.getElementById(`t-${loc}-${col}`);
     if (tSpan) {
-        const hasValue = (bInput?.value !== '' || fInput?.value !== '');
-        const tVal = b + f;
-        tSpan.textContent  = hasValue ? (Number.isInteger(tVal) ? tVal : parseFloat(tVal.toPrecision(10))) : '-';
-        tSpan.className    = `text-[11px] font-semibold ${hasValue ? 'text-gray-700' : 'text-gray-300'}`;
+        const tStr = cfuSumStr(bInput?.value, fInput?.value);
+        tSpan.textContent = tStr !== '' ? tStr : '-';
+        tSpan.className   = `text-[11px] font-semibold ${tStr !== '' ? 'text-gray-700' : 'text-gray-300'}`;
     }
 
     // Recalculate Kesimpulan for this location across all its inputs
@@ -275,10 +316,10 @@ document.addEventListener('input', function (e) {
             hasAny = true;
             const bInp = document.querySelector(`[data-loc="${loc}"][data-col="${c}"][data-type="b"]`);
             const fInp = document.querySelector(`[data-loc="${loc}"][data-col="${c}"][data-type="f"]`);
-            maxT = Math.max(maxT, (parseFloat(bInp?.value) || 0) + (parseFloat(fInp?.value) || 0));
+            maxT = Math.max(maxT, (cfuToNum(bInp?.value) ?? 0) + (cfuToNum(fInp?.value) ?? 0));
         });
         document.querySelectorAll(`[data-loc="${loc}"][data-type="f"]`).forEach(inp => {
-            if (inp.value !== '') { maxF = Math.max(maxF, parseFloat(inp.value) || 0); }
+            if (inp.value !== '') { maxF = Math.max(maxF, cfuToNum(inp.value) ?? 0); }
         });
         const alertT  = konklusiCell.dataset.alertT  !== '' ? parseFloat(konklusiCell.dataset.alertT)  : null;
         const alertF  = konklusiCell.dataset.alertF  !== '' ? parseFloat(konklusiCell.dataset.alertF)  : null;
@@ -342,43 +383,6 @@ function toggleAnalis(inkKey, field, value, btn) {
         b.classList.toggle('border-gray-200', !active);
         b.classList.toggle('bg-white', !active);
         b.classList.toggle('text-gray-600', !active);
-    });
-    formDirty = true;
-}
-
-// Shift assignment toggle
-function setAssignment(secId, col, shift) {
-    const myShift = {{ $myShift }};
-    const hidden = document.getElementById(`sa-${secId}-${col}`);
-    if (hidden) hidden.value = shift;
-    for (const s of [1, 2]) {
-        const btn = document.getElementById(`sa-btn-${secId}-${col}-${s}`);
-        if (!btn) continue;
-        if (s === shift) {
-            btn.className = 'px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors ' + (s === 1 ? 'bg-sky-500 text-white' : 'bg-amber-500 text-white');
-        } else {
-            btn.className = 'px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors bg-gray-100 text-gray-500 hover:bg-gray-200';
-        }
-    }
-    // Toggle editability of column inputs based on assignment
-    const isMine = (shift === myShift);
-    document.querySelectorAll(`input[data-section-id="${secId}"][data-col="${col}"]`).forEach(inp => {
-        inp.disabled = !isMine;
-        inp.classList.toggle('bg-gray-100', !isMine);
-        inp.classList.toggle('bg-white', isMine);
-        if (!isMine) inp.value = '';
-    });
-    // Also toggle time inputs in the same column (JAM)
-    const colCell = document.querySelectorAll(`input[name*="entries"][name*="[${col}]"][name*="start_time"]`);
-    colCell.forEach(inp => {
-        const row = inp.closest('tr');
-        if (!row) return;
-        const secInput = row.querySelector(`input[data-section-id="${secId}"]`);
-        if (!secInput) return;
-        inp.disabled = !isMine;
-        inp.classList.toggle('bg-gray-100', !isMine);
-        inp.classList.toggle('bg-white', isMine);
-        if (!isMine) inp.value = '';
     });
     formDirty = true;
 }

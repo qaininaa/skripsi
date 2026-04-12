@@ -1,5 +1,27 @@
 {{-- ── Tabel Pengukuran per Seksi (dipakai di dalam @foreach sections) ── --}}
 @php
+    // Helper: convert CFU string value to numeric for comparison/summation
+    // Returns PHP_INT_MAX for TNTC (always exceeds any limit), 0 for <1, int for numbers
+    $cfuNum = function(?string $v): ?int {
+        if ($v === null || $v === '') return null;
+        if (strtoupper($v) === 'TNTC') return PHP_INT_MAX;
+        if ($v === '<1') return 0;
+        if (is_numeric($v)) return (int)$v;
+        return null;
+    };
+    // Helper: compute T = B + F as display string
+    $cfuTot = function(?string $b, ?string $f) use ($cfuNum): ?string {
+        if ($b === null && $f === null) return null;
+        if (strtoupper((string)$b) === 'TNTC' || strtoupper((string)$f) === 'TNTC') return 'TNTC';
+        $bn = ($b === '<1') ? 0 : ($b !== null && is_numeric($b) ? (int)$b : null);
+        $fn = ($f === '<1') ? 0 : ($f !== null && is_numeric($f) ? (int)$f : null);
+        if ($bn === null && $fn === null) return null;
+        $sum = ($bn ?? 0) + ($fn ?? 0);
+        if ($sum === 0 && ($b === '<1' || $f === '<1')) return '<1';
+        return (string)$sum;
+    };
+@endphp
+@php
     // Config-driven flags dari tabel sections
     $instance       = $instance ?? 1;
     $hasSharedTime  = (bool) $section->has_shared_time;
@@ -218,20 +240,7 @@
                         @endif
                         @endif
 
-                        {{-- Shift assignment toggle --}}
-                        @if ($hasShiftToggle)
-                        <input type="hidden" name="shift_assignment[{{ $section->id }}][{{ $col }}]" id="sa-{{ $section->id }}-{{ $col }}" value="{{ $colAsgn }}">
-                        @if ($isEditable)
-                        <div class="flex justify-center gap-1 mt-1.5">
-                            <button type="button" onclick="setAssignment({{ $section->id }}, {{ $col }}, 1)" id="sa-btn-{{ $section->id }}-{{ $col }}-1"
-                                    class="px-1.5 py-0.5 text-[10px] rounded font-semibold transition-colors bg-sky-500 text-white">S1</button>
-                        </div>
-                        @else
-                        <div class="flex justify-center mt-1.5">
-                            <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold bg-sky-100 text-sky-700">S1</span>
-                        </div>
-                        @endif
-                        @endif
+
                     </th>
                     @endfor
                 </tr>
@@ -267,8 +276,8 @@
                             }
                         }
                     }
-                    $maxT   = $locEntries->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
-                    $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
+                    $maxT   = $locEntries->max(fn($e) => ($cfuNum($e->cfu_bacteria) ?? 0) + ($cfuNum($e->cfu_fungi) ?? 0)) ?? 0;
+                    $maxF   = $locEntries->max(fn($e) => $cfuNum($e->cfu_fungi) ?? 0) ?? 0;
                     $hasTMS = ($loc->alert_action_total && $maxT >= $loc->alert_action_total)
                            || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                     $hasAlt = !$hasTMS && (
@@ -302,20 +311,20 @@
                     @if ($hasSharedTime)
                     @php
                         $msEntry = $entryMap[$loc->pivot->id][$instance][0][$myShift] ?? null;
-                        $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
-                            ? round(($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0), 10) : null;
+                        $msTVal = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
                         $msLocked = $isEditable && $msEntry && $msEntry->analyst_id && $msEntry->analyst_id !== auth()->id()
                                     && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null);
                         $msEditable = $isEditable && !$msLocked;
                     @endphp
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($msEditable)
-                            <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_bacteria]"
+                            <input type="text" inputmode="text" name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_bacteria]"
                                    value="{{ $msEntry?->cfu_bacteria }}"
+                                   placeholder="—"
                                    data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="0" data-type="b" data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @elseif ($msLocked)
-                            <input type="number" value="{{ $msEntry?->cfu_bacteria }}" disabled
+                            <input type="text" value="{{ $msEntry?->cfu_bacteria }}" disabled
                                    class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -325,13 +334,14 @@
                     </td>
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($msEditable)
-                            <input type="number" min="0" step="any" name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_fungi]"
+                            <input type="text" inputmode="text" name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_fungi]"
                                    value="{{ $msEntry?->cfu_fungi }}"
+                                   placeholder="—"
                                    data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="0" data-type="f"
                                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @elseif ($msLocked)
-                            <input type="number" value="{{ $msEntry?->cfu_fungi }}" disabled
+                            <input type="text" value="{{ $msEntry?->cfu_fungi }}" disabled
                                    class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $msEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -378,14 +388,15 @@
 
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($editable)
-                            <input type="number" min="0" step="any" name="{{ $iName }}[cfu_bacteria]"
+                            <input type="text" inputmode="text" name="{{ $iName }}[cfu_bacteria]"
                                    value="{{ $existEntry?->cfu_bacteria }}"
+                                   placeholder="—"
                                    data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="b" data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    @if (str_starts_with($loc->location_number, '*)')) data-optional="true" @endif
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @elseif ($entryLocked)
-                            <input type="number" value="{{ $existEntry?->cfu_bacteria }}" disabled
+                            <input type="text" value="{{ $existEntry?->cfu_bacteria }}" disabled
                                    class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $existEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -396,13 +407,14 @@
 
                     <td class="px-1 py-2 border-r border-gray-100 text-center">
                         @if ($editable)
-                            <input type="number" min="0" step="any" name="{{ $iName }}[cfu_fungi]"
+                            <input type="text" inputmode="text" name="{{ $iName }}[cfu_fungi]"
                                    value="{{ $existEntry?->cfu_fungi }}"
+                                   placeholder="—"
                                    data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="f" data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
                         @elseif ($entryLocked)
-                            <input type="number" value="{{ $existEntry?->cfu_fungi }}" disabled
+                            <input type="text" value="{{ $existEntry?->cfu_fungi }}" disabled
                                    class="w-12 rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-center text-gray-400 cursor-not-allowed">
                         @else
                             <span class="text-[11px] {{ $existEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -413,9 +425,7 @@
 
                     <td class="px-1 py-2 border-r border-gray-100 text-center bg-gray-50/40">
                         @php
-                            $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
-                                ? round(($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0), 10)
-                                : null;
+                            $tVal = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
                         <span id="t-{{ $rowKey }}"
                               class="text-[11px] font-semibold {{ $tVal !== null ? 'text-gray-700' : 'text-gray-300' }}">
