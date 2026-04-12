@@ -2,6 +2,7 @@
     $sectionClass = $sectionClass ?? 'bg-white rounded-xl border border-gray-100 shadow-sm';
     $sectionMarginClass = $sectionMarginClass ?? '';
     $notice = $notice ?? null;
+    $onlySupervisor = $onlySupervisor ?? false;  // when true, skip monitoring/reading columns
 
     $hd = $report->header_data ?? [];
 
@@ -60,6 +61,10 @@
             ]] : []),
         ],
     ];
+
+    if ($onlySupervisor) {
+        $cards = array_slice($cards, 2); // keep only Direview + Disetujui
+    }
 @endphp
 
 <div class="{{ $sectionClass }} {{ $sectionMarginClass }}">

@@ -507,8 +507,8 @@
                 }
                 if ($locEntries2->isNotEmpty()) {
                     $sectionAllEmpty = false;
-                    $maxT2 = $locEntries2->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
-                    $maxF2 = $locEntries2->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
+                    $maxT2 = $locEntries2->max(fn($e) => ($cfuNum($e->cfu_bacteria) ?? 0) + ($cfuNum($e->cfu_fungi) ?? 0)) ?? 0;
+                    $maxF2 = $locEntries2->max(fn($e) => $cfuNum($e->cfu_fungi) ?? 0) ?? 0;
                     if (($_loc->alert_action_total && $maxT2 >= $_loc->alert_action_total)
                         || ($_loc->alert_action_fungi && $maxF2 >= $_loc->alert_action_fungi)) {
                         $sectionHasTMS = true;
@@ -550,6 +550,132 @@
                 @else
                     <span class="text-xs text-gray-400 italic">Belum ada data</span>
                 @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Per-section Signature ─────────────────────────────── --}}
+    @php
+        // Collect unique analyst_ids from all entries belonging to this section
+        $_sectionPivotIds = $section->locations->pluck('pivot.id')->toArray();
+        $_secAnalysts = [];
+        foreach ($_sectionPivotIds as $_pid) {
+            foreach ($entryMap[$_pid] ?? [] as $_instMap) {
+                foreach ($_instMap as $_pMap) {
+                    foreach ($_pMap as $_e) {
+                        if ((int) $_e->analyst_id) {
+                            $_secAnalysts[(string) $_e->analyst_id] = true;
+                        }
+                    }
+                }
+            }
+        }
+        $_secAnalystIds = array_keys($_secAnalysts);
+        $_allMonIds  = array_map('strval', $report->analyst_monitoring ?? []);
+        $_allReadIds = array_map('strval', $report->analyst_reading    ?? []);
+        $_secMonIds  = array_values(array_intersect($_secAnalystIds, $_allMonIds));
+        $_secReadIds = array_values(array_intersect($_secAnalystIds, $_allReadIds));
+        $_secMonTs   = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
+        $_secReadTs  = $hd['section_ttd_reading'][(string) $section->id]    ?? [];
+        // Supervisor & Manager approvals (same for all sections)
+        $_supApproval = $report->approvals->firstWhere('step', 2);
+        $_mngrApproval = $report->approvals->firstWhere('step', 3);
+        // Fetch user objects in one query
+        $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
+        $_secUserMap   = \App\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
+    @endphp
+    <div class="px-5 py-4 border-t border-gray-100">
+        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Tanda Tangan & Verifikasi</p>
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+            {{-- Dimonitoring oleh --}}
+            <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
+                <p class="text-[11px] font-semibold text-gray-600 mb-2">Dimonitoring oleh:</p>
+                <div class="flex-1 flex flex-col gap-2 justify-center">
+                    @forelse ($_secMonIds as $_uid)
+                    @php $_u = $_secUserMap->get($_uid); $_ts = isset($_secMonTs[$_uid]) ? \Illuminate\Support\Carbon::parse($_secMonTs[$_uid]) : null; @endphp
+                    @if ($_u)
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
+                        @if ($_ts)
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Tersimpan
+                        </span>
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ $_ts->isoFormat('D MMM Y, HH:mm') }}</p>
+                        @endif
+                    </div>
+                    @endif
+                    @empty
+                    <div class="text-center"><div class="h-px w-12 border-b border-dashed border-gray-300 mx-auto"></div></div>
+                    @endforelse
+                </div>
+                <p class="text-[10px] text-gray-400 text-center mt-2">(Analis Lab. Mikrobiologi)</p>
+            </div>
+            {{-- Dibaca oleh --}}
+            <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
+                <p class="text-[11px] font-semibold text-gray-600 mb-2">Dibaca oleh:</p>
+                <div class="flex-1 flex flex-col gap-2 justify-center">
+                    @forelse ($_secReadIds as $_uid)
+                    @php $_u = $_secUserMap->get($_uid); $_ts = isset($_secReadTs[$_uid]) ? \Illuminate\Support\Carbon::parse($_secReadTs[$_uid]) : null; @endphp
+                    @if ($_u)
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
+                        @if ($_ts)
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Tersimpan
+                        </span>
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ $_ts->isoFormat('D MMM Y, HH:mm') }}</p>
+                        @endif
+                    </div>
+                    @endif
+                    @empty
+                    <div class="text-center"><div class="h-px w-12 border-b border-dashed border-gray-300 mx-auto"></div></div>
+                    @endforelse
+                </div>
+                <p class="text-[10px] text-gray-400 text-center mt-2">(Analis Lab. Mikrobiologi)</p>
+            </div>
+            {{-- Direview oleh --}}
+            <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
+                <p class="text-[11px] font-semibold text-gray-600 mb-2">Direview oleh:</p>
+                <div class="flex-1 flex flex-col gap-2 justify-center">
+                    @if ($_supApproval?->user)
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-gray-700">{{ $_supApproval->user->name }}</p>
+                        @if ($_supApproval->signed_at)
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Disetujui
+                        </span>
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ \Illuminate\Support\Carbon::parse($_supApproval->signed_at)->isoFormat('D MMM Y, HH:mm') }}</p>
+                        @endif
+                    </div>
+                    @else
+                    <div class="text-center"><div class="h-px w-12 border-b border-dashed border-gray-300 mx-auto"></div></div>
+                    @endif
+                </div>
+                <p class="text-[10px] text-gray-400 text-center mt-2">(Supervisor Mikrobiologi)</p>
+            </div>
+            {{-- Disetujui oleh --}}
+            <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
+                <p class="text-[11px] font-semibold text-gray-600 mb-2">Disetujui oleh:</p>
+                <div class="flex-1 flex flex-col gap-2 justify-center">
+                    @if ($_mngrApproval?->user)
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-gray-700">{{ $_mngrApproval->user->name }}</p>
+                        @if ($_mngrApproval->signed_at)
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Disetujui
+                        </span>
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ \Illuminate\Support\Carbon::parse($_mngrApproval->signed_at)->isoFormat('D MMM Y, HH:mm') }}</p>
+                        @endif
+                    </div>
+                    @else
+                    <div class="text-center"><div class="h-px w-12 border-b border-dashed border-gray-300 mx-auto"></div></div>
+                    @endif
+                </div>
+                <p class="text-[10px] text-gray-400 text-center mt-2">(QC Manager)</p>
             </div>
         </div>
     </div>

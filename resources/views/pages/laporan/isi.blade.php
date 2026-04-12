@@ -60,8 +60,6 @@
 @include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'totalInstances' => $totalInstances])
 @endforeach
 
-@include('pages.laporan.partials.section-ttd')
-
 @include('pages.laporan.partials.bottom-bar')
 
 </form>

@@ -380,6 +380,7 @@ class AnalisLaporanController extends Controller
             ->toArray();
 
         // Upsert entries
+        $savedSectionIds = [];
         foreach ($request->input('entries', []) as $pivotId => $instances) {
             $sectionType = $pivotSectionType[(int) $pivotId] ?? null;
             if (! $sectionType) {
@@ -427,8 +428,19 @@ class AnalisLaporanController extends Controller
                         'cfu_fungi'    => self::normalizeCfu($data['cfu_fungi'] ?? null),
                     ]
                 );
+                    if ($sectionId) $savedSectionIds[(string) $sectionId] = true;
             }
         }
+        }
+
+        // Stamp per-section timestamps for every section this analyst saved entries in
+        if (!empty($savedSectionIds)) {
+            $sectHd   = $report->fresh()->header_data ?? [];
+            $secTsKey = $report->status === 'reading' ? 'section_ttd_reading' : 'section_ttd_monitoring';
+            foreach (array_keys($savedSectionIds) as $_sid) {
+                $sectHd[$secTsKey][$_sid][(string) Auth::id()] = now()->toDateTimeString();
+            }
+            $report->update(['header_data' => $sectHd]);
         }
     }
 
