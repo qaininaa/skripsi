@@ -80,7 +80,7 @@
                             {{-- Empty slot: current user can claim --}}
                             <select name="analyst_reading[]"
                                 class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                <option value="">— Slot {{ $ri + 1 }}: tambahkan saya —</option>
+                                <option value="">— Tambahkan saya —</option>
                                 @php $myAlreadyInRead = in_array($myId, $readIds); @endphp
                                 @if(!$myAlreadyInRead)
                                     <option value="{{ $myId }}">{{ $myName }}</option>

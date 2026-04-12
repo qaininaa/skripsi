@@ -158,8 +158,17 @@
                                             </a>
                                         @elseif ($item->status === 'monitoring' && $item->locked_by === null)
                                             <button type="button"
-                                                    onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', true)"
+                                                    onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', 'resume_monitoring')"
                                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Mulai
+                                            </button>
+                                        @elseif ($item->status === 'reading' && $item->locked_by === null)
+                                            <button type="button"
+                                                    onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', 'reading')"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500 text-white text-xs font-medium hover:bg-indigo-600 transition-colors">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
@@ -233,14 +242,18 @@
 </div>
 
 <script>
-function confirmMulai(url, product, batch, isResume) {
+function confirmMulai(url, product, batch, mode) {
     document.getElementById('mulai-product').textContent = product;
     document.getElementById('mulai-batch').textContent = batch;
     document.getElementById('mulai-confirm-link').href = url;
-    if (isResume) {
+    if (mode === 'resume_monitoring' || mode === true) {
         document.querySelector('#mulai-modal h3').textContent = 'Lanjutkan Monitoring Laporan?';
         document.querySelector('#mulai-modal p.text-xs').textContent = 'Laporan ini sedang dalam tahap monitoring.';
         document.getElementById('mulai-desc').textContent = 'Anda akan mengambil alih pengerjaan laporan ini. Data yang sudah diisi analis sebelumnya tidak dapat diubah.';
+    } else if (mode === 'reading') {
+        document.querySelector('#mulai-modal h3').textContent = 'Mulai Pembacaan Laporan?';
+        document.querySelector('#mulai-modal p.text-xs').textContent = 'Laporan ini siap memasuki tahap pembacaan.';
+        document.getElementById('mulai-desc').textContent = 'Setelah dimulai, Anda akan menjadi penanggung jawab pembacaan laporan ini. Analis lain hanya bisa melihat.';
     } else {
         document.querySelector('#mulai-modal h3').textContent = 'Mulai Pengerjaan Laporan?';
         document.querySelector('#mulai-modal p.text-xs').textContent = 'Laporan ini akan masuk ke tahap monitoring.';
