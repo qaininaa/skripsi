@@ -45,7 +45,18 @@ class AnalisLaporanController extends Controller
             || ($report->status === 'monitoring' && $report->locked_by === null)) {
             $report->update(['status' => 'monitoring', 'locked_by' => auth()->id()]);
         } elseif ($report->status === 'reading' && $report->locked_by === null) {
-            $report->update(['locked_by' => auth()->id()]);
+            // Add current user to analyst_reading if not already present
+            $readingIds = $report->analyst_reading ?? [];
+            $updates = ['locked_by' => auth()->id()];
+            if (!in_array(auth()->id(), $readingIds)) {
+                $readingIds[] = auth()->id();
+                $updates['analyst_reading'] = $readingIds;
+            }
+            $report->update($updates);
+            // Stamp per-analyst reading timestamp
+            $hd = $report->fresh()->header_data ?? [];
+            $hd['ttd_reading_timestamps'][(string) auth()->id()] = now()->toDateTimeString();
+            $report->update(['header_data' => $hd]);
         }
         $report->refresh();
         $this->migrateFieldOwners($report);
@@ -338,6 +349,12 @@ class AnalisLaporanController extends Controller
         if ($request->has('header_data') || !empty($shiftAssignment) || !empty($settleTimes) || !empty($swabTimes) || !empty($exposureTimes)) {
             $report->update(['header_data' => $hd]);
         }
+
+        // Stamp per-analyst save timestamp (always — so each save records when this analyst worked)
+        $freshHd = $report->fresh()->header_data ?? [];
+        $tsKey = $report->status === 'reading' ? 'ttd_reading_timestamps' : 'ttd_monitoring_timestamps';
+        $freshHd[$tsKey][(string) Auth::id()] = now()->toDateTimeString();
+        $report->update(['header_data' => $freshHd]);
 
         // Build pivot_row → measurement_type and pivot_row → section_id maps
         $pivotSectionType     = [];
