@@ -245,7 +245,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">1. Pemantauan Ruang</td></tr>
         <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->created_at->isoFormat('D MMMM Y') }}</td></tr>
-        <tr><td>Nama Analis</td><td>@php $names = \\App\\Models\\User::whereIn('id', array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []))->pluck('name'); @endphp{{ $names->isNotEmpty() ? $names->join(' / ') : '—' }}</td></tr>
+        @php $names = \App\Models\User::whereIn('id', array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []))->pluck('name'); @endphp
+        <tr><td>Nama Analis</td><td>{{ $names->isNotEmpty() ? $names->join(' / ') : '—' }}</td></tr>
         <tr><td>Nama Produk</td><td>{{ $report->product_name }}</td></tr>
         <tr><td>Nomor Batch Produk</td><td>{{ $report->batch_number ?: '' }}</td></tr>
     </table>
@@ -338,6 +339,21 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
      ══════════════════════════════════════════════════════ --}}
 @foreach ($report->reportType->sections as $section)
 @php
+    $cfuNum = function(?string $v): ?int {
+        if ($v === null || $v === '') return null;
+        if (strtoupper($v) === 'TNTC') return PHP_INT_MAX;
+        if ($v === '<1') return 0;
+        if (is_numeric($v)) return (int) $v;
+        return null;
+    };
+    $cfuTot = function(?string $b, ?string $f) use ($cfuNum): ?string {
+        $bn = $cfuNum($b); $fn = $cfuNum($f);
+        if ($bn === null && $fn === null) return null;
+        if ($bn === PHP_INT_MAX || $fn === PHP_INT_MAX) return 'TNTC';
+        $bn = $bn ?? 0; $fn = $fn ?? 0;
+        if ($b === '<1' && $f === '<1') return '<1';
+        return (string)($bn + $fn);
+    };
     // Config-driven flags (matching analis view)
     $hasSharedTime  = (bool) $section->has_shared_time;
     $hasJam         = $section->time_slot_type === 'single';
@@ -483,8 +499,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         if (isset($entryMap[$loc->pivot->id][$p][$s])) $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
                     }
                 }
-                $maxT   = $locEntries->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
-                $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
+                $maxT   = $locEntries->reduce(fn($carry, $e) => max($carry, ($cfuNum($e->cfu_bacteria) ?? 0) + ($cfuNum($e->cfu_fungi) ?? 0)), 0);
+                $maxF   = $locEntries->reduce(fn($carry, $e) => max($carry, $cfuNum($e->cfu_fungi) ?? 0), 0);
                 $hasTMS = ($loc->alert_action_total && $maxT >= $loc->alert_action_total)
                        || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                 $hasAlt = !$hasTMS && (
@@ -504,7 +520,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @php
                     $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
                     $msTVal  = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
-                        ? round(($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0), 10) : null;
+                        ? $cfuTot($msEntry->cfu_bacteria, $msEntry->cfu_fungi) : null;
                 @endphp
                 <td class="tc">{{ $msEntry?->cfu_bacteria ?? '' }}</td>
                 <td class="tc">{{ $msEntry?->cfu_fungi ?? '' }}</td>
@@ -517,7 +533,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                     $colAsgn    = $secAssignments[$col] ?? 1;
                     $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
                     $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
-                        ? round(($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0), 10) : null;
+                        ? $cfuTot($existEntry->cfu_bacteria, $existEntry->cfu_fungi) : null;
                 @endphp
                 @if ($isPerLocation)
                 <td class="tc" style="font-size:7.5pt">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '' }}</td>
@@ -583,7 +599,44 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     </div>
 
     {{-- Tanda Tangan --}}
-    @include('partials.report-signature-print', ['report' => $report])
+    @php
+        $_pSectionPivotIds = $section->locations->pluck('pivot.id')->toArray();
+        $_pSecAnalysts = [];
+        foreach ($_pSectionPivotIds as $_pid) {
+            foreach ($entryMap[$_pid] ?? [] as $_pMap) {
+                foreach ($_pMap as $_e) {
+                    if ((int) $_e->analyst_id) $_pSecAnalysts[(string) $_e->analyst_id] = true;
+                }
+            }
+        }
+        $_pSecAnalystIds = array_keys($_pSecAnalysts);
+        $_pAllMonIds  = array_map('strval', $report->analyst_monitoring ?? []);
+        $_pAllReadIds = array_map('strval', $report->analyst_reading    ?? []);
+        $_pSecMonTs   = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
+        $_pSecReadTs  = $hd['section_ttd_reading'][(string) $section->id]    ?? [];
+        $_pSecMonIds  = array_values(array_unique(array_merge(
+            array_intersect($_pSecAnalystIds, $_pAllMonIds),
+            array_intersect(array_keys($_pSecMonTs), $_pAllMonIds)
+        )));
+        $_pSecReadIds = array_values(array_unique(array_merge(
+            array_intersect($_pSecAnalystIds, $_pAllReadIds),
+            array_intersect(array_keys($_pSecReadTs), $_pAllReadIds)
+        )));
+        $_pSupApproval  = $report->approvals->firstWhere('step', 2);
+        $_pMngrApproval = $report->approvals->firstWhere('step', 3);
+        $_pUniqueIds = array_unique(array_filter(array_merge($_pSecMonIds, $_pSecReadIds)));
+        $_pUserMap   = \App\Models\User::whereIn('id', $_pUniqueIds)->get()->keyBy('id');
+    @endphp
+    @include('partials.report-signature-print', [
+        'report'       => $report,
+        'secMonIds'    => $_pSecMonIds,
+        'secReadIds'   => $_pSecReadIds,
+        'secMonTs'     => $_pSecMonTs,
+        'secReadTs'    => $_pSecReadTs,
+        'userMap'      => $_pUserMap,
+        'supApproval'  => $_pSupApproval,
+        'mngrApproval' => $_pMngrApproval,
+    ])
     <div class="pg-footer"></div>
 </div>
 @endforeach

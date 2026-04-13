@@ -602,12 +602,14 @@
                     @php $_u = $_secUserMap->get($_uid); $_ts = isset($_secMonTs[$_uid]) ? \Illuminate\Support\Carbon::parse($_secMonTs[$_uid]) : null; @endphp
                     @if ($_u)
                     <div class="text-center">
-                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
                         @if ($_ts)
                         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Tersimpan
                         </span>
+                        @endif
+                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
+                        @if ($_ts)
                         <p class="text-[11px] text-gray-500 mt-0.5">{{ $_ts->isoFormat('D MMM Y, HH:mm') }}</p>
                         @endif
                     </div>
@@ -626,12 +628,14 @@
                     @php $_u = $_secUserMap->get($_uid); $_ts = isset($_secReadTs[$_uid]) ? \Illuminate\Support\Carbon::parse($_secReadTs[$_uid]) : null; @endphp
                     @if ($_u)
                     <div class="text-center">
-                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
                         @if ($_ts)
                         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Tersimpan
                         </span>
+                        @endif
+                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
+                        @if ($_ts)
                         <p class="text-[11px] text-gray-500 mt-0.5">{{ $_ts->isoFormat('D MMM Y, HH:mm') }}</p>
                         @endif
                     </div>
