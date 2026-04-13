@@ -782,7 +782,7 @@
     <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
 
     {{-- Panel --}}
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <div class="relative bg-white rounded-2xl shadow-2xl shadow-black ring-1 ring-black/10 w-full max-w-md p-6">
         {{-- Icon + Title --}}
         <div id="modal-icon-approve" class="hidden flex items-center gap-3 mb-5">
             <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">

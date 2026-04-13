@@ -96,10 +96,20 @@ class ManajerLaporanController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
+        $signedAt = now();
         $approval->update([
             'status'    => 'approved',
-            'signed_at' => now(),
+            'signed_at' => $signedAt,
         ]);
+
+        // Stamp per-section manager TTD
+        $headerData = $report->header_data ?? [];
+        $signedAtStr = $signedAt->toDateTimeString();
+        $report->loadMissing('reportType.sections');
+        foreach ($report->reportType->sections as $sec) {
+            $headerData['section_ttd_manager'][(string) $sec->id][(string) $userId] = $signedAtStr;
+        }
+        $report->update(['header_data' => $headerData]);
 
         $report->update(['status' => 'approved']);
 
