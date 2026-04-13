@@ -717,8 +717,8 @@
                 </button>
             </div>
 
-            {{-- Return to Supervisor --}}
-            @if ($supervisor)
+            {{-- Return to Supervisor / Analyst --}}
+            @if ($supervisor || $monitoringUsers->isNotEmpty())
             <div class="rounded-xl border-2 border-orange-200 bg-orange-50 p-4 flex flex-col gap-3">
                 <div class="flex items-center gap-3">
                     <div class="h-9 w-9 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
@@ -728,16 +728,20 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-orange-800">Kembalikan Laporan</p>
-                        <p class="text-xs text-orange-600">Kirim kembali ke Supervisor untuk diperbaiki</p>
+                        <p class="text-xs text-orange-600">Kirim kembali ke Supervisor atau Analis untuk diperbaiki</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <div class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm text-gray-700 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-orange-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        {{ $supervisor->name }} <span class="text-xs text-gray-400 ml-1">(Supervisor)</span>
-                    </div>
+                    <select id="return-target-select"
+                        class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
+                        <option value="">-- Pilih Supervisor/Analis --</option>
+                        @if ($supervisor)
+                        <option value="supervisor:{{ $supervisor->id }}">{{ $supervisor->name }} (Supervisor)</option>
+                        @endif
+                        @foreach ($monitoringUsers as $analyst)
+                        <option value="analyst:{{ $analyst->id }}">{{ $analyst->name }} (Analis)</option>
+                        @endforeach
+                    </select>
                     <textarea id="return-notes-input" placeholder="Catatan / alasan pengembalian (opsional)"
                         class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm resize-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none"
                         rows="1"></textarea>
@@ -782,7 +786,7 @@
             </div>
             <div>
                 <p class="text-base font-semibold text-gray-800">Konfirmasi Pengembalian</p>
-                <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk mengembalikan laporan ke Supervisor</p>
+                <p id="modal-return-subtitle" class="text-xs text-gray-500">Masukkan kredensial Anda untuk mengembalikan laporan</p>
             </div>
         </div>
 
@@ -837,11 +841,20 @@ function openConfirmModal(action) {
         iconReturn.classList.add('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700';
         document.getElementById('modal-notes').value = '';
-    } else {
+    } else if (action === 'return') {
+        const select = document.getElementById('return-target-select');
+        if (!select.value) {
+            alert('Pilih tujuan pengembalian terlebih dahulu.');
+            return;
+        }
+        const [type, id] = select.value.split(':');
+        const label = type === 'analyst' ? 'Analis' : 'Supervisor';
         form.action = '{{ route('manajer.laporan.return', $report->id) }}';
         iconApprove.classList.add('hidden');
         iconReturn.classList.remove('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700';
+        document.getElementById('modal-returned-to-user-id').value = id;
+        document.getElementById('modal-return-subtitle').textContent = 'Masukkan kredensial Anda untuk mengembalikan laporan ke ' + label;
         document.getElementById('modal-notes').value = document.getElementById('return-notes-input')?.value ?? '';
     }
 

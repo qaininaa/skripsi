@@ -59,6 +59,9 @@ class ManajerLaporanController extends Controller
         $supervisorApproval = $report->approvals->firstWhere('step', 2);
         $supervisor = $supervisorApproval?->user;
 
+        // Monitoring analysts (step 1) for return-to-analyst option
+        $monitoringUsers = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->get();
+
         $entryMap = [];
         foreach ($report->entries as $entry) {
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
@@ -70,7 +73,7 @@ class ManajerLaporanController extends Controller
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         return view('pages.manajer.laporan-show', compact(
-            'report', 'approval', 'entryMap', 'supervisor',
+            'report', 'approval', 'entryMap', 'supervisor', 'monitoringUsers',
             'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }
@@ -140,16 +143,19 @@ class ManajerLaporanController extends Controller
 
         $returnedToUserId = (int) $request->input('returned_to_user_id');
 
-        // Validate: must be the step-2 supervisor
         $supervisorApproval = ReportApproval::where('report_id', $report->id)
             ->where('step', 2)
             ->first();
 
-        abort_unless(
-            $supervisorApproval && $supervisorApproval->user_id === $returnedToUserId,
-            422,
-            'Penerima pengembalian tidak valid.'
+        $allowedAnalysts = array_merge(
+            $report->analyst_monitoring ?? [],
+            $report->analyst_reading ?? []
         );
+
+        $isToSupervisor = $supervisorApproval && $supervisorApproval->user_id === $returnedToUserId;
+        $isToAnalyst    = in_array($returnedToUserId, $allowedAnalysts);
+
+        abort_unless($isToSupervisor || $isToAnalyst, 422, 'Penerima pengembalian tidak valid.');
 
         $approval->update([
             'status'               => 'returned',
@@ -157,9 +163,36 @@ class ManajerLaporanController extends Controller
             'returned_to_user_id'  => $returnedToUserId,
         ]);
 
-        // Reset supervisor approval back to pending so they can re-review
-        $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
+        if ($isToAnalyst) {
+            // Clear per-section TTDs so all roles re-sign from scratch
+            $hd = $report->header_data ?? [];
+            unset(
+                $hd['section_ttd_monitoring'],
+                $hd['section_ttd_reading'],
+                $hd['section_ttd_supervisor'],
+                $hd['section_ttd_manager'],
+                $hd['ttd_monitoring_signed_at'],
+                $hd['ttd_dibaca_signed_at']
+            );
 
+            $analystApproval = ReportApproval::where('report_id', $report->id)
+                ->where('step', 1)
+                ->first();
+            if ($analystApproval) {
+                $analystApproval->update(['status' => 'pending', 'signed_at' => null]);
+            }
+            if ($supervisorApproval) {
+                $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
+            }
+
+            $report->update(['status' => 'returned', 'locked_by' => null, 'header_data' => $hd]);
+
+            return redirect()->route('manajer.laporan-masuk')
+                ->with('success', 'Laporan telah dikembalikan ke Analis.');
+        }
+
+        // Return to supervisor
+        $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
         $report->update(['status' => 'returned_to_supervisor']);
 
         return redirect()->route('manajer.laporan-masuk')
