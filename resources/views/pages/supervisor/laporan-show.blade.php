@@ -237,6 +237,26 @@
     {{-- ── Tabel Pengukuran per Seksi ────────────────────── --}}
     @foreach ($report->reportType->sections as $section)
     @php
+        // CFU helpers (values are varchar: '<1', 'TNTC', or integer string)
+        $cfuNum = function(?string $v): ?int {
+            if ($v === null || $v === '') return null;
+            if (strtoupper($v) === 'TNTC') return PHP_INT_MAX;
+            if ($v === '<1') return 0;
+            if (is_numeric($v)) return (int)$v;
+            return null;
+        };
+        $cfuTot = function(?string $b, ?string $f) use ($cfuNum): ?string {
+            if ($b === null && $f === null) return null;
+            if (strtoupper((string)$b) === 'TNTC' || strtoupper((string)$f) === 'TNTC') return 'TNTC';
+            $bn = ($b === '<1') ? 0 : ($b !== null && is_numeric($b) ? (int)$b : null);
+            $fn = ($f === '<1') ? 0 : ($f !== null && is_numeric($f) ? (int)$f : null);
+            if ($bn === null && $fn === null) return null;
+            $sum = ($bn ?? 0) + ($fn ?? 0);
+            if ($sum === 0 && ($b === '<1' || $f === '<1')) return '<1';
+            return (string)$sum;
+        };
+    @endphp
+    @php
         // Config-driven flags (matching analis view)
         $hasSharedTime  = (bool) $section->has_shared_time;
         $hasJam         = $section->time_slot_type === 'single';
@@ -392,8 +412,8 @@
                                 }
                             }
                         }
-                        $maxT   = $locEntries->max(fn($e) => ($e->cfu_bacteria ?? 0) + ($e->cfu_fungi ?? 0)) ?? 0;
-                        $maxF   = $locEntries->max(fn($e) => $e->cfu_fungi ?? 0) ?? 0;
+                        $maxT   = $locEntries->max(fn($e) => ($cfuNum($e->cfu_bacteria) ?? 0) + ($cfuNum($e->cfu_fungi) ?? 0)) ?? 0;
+                        $maxF   = $locEntries->max(fn($e) => $cfuNum($e->cfu_fungi) ?? 0) ?? 0;
                         $hasTMS = ($loc->alert_action_total && $maxT >= $loc->alert_action_total)
                                || ($loc->alert_action_fungi && $maxF >= $loc->alert_action_fungi);
                         $hasAlt = !$hasTMS && (
@@ -427,8 +447,7 @@
                         @if ($hasSharedTime)
                         @php
                             $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
-                            $msTVal = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
-                                ? round(($msEntry->cfu_bacteria ?? 0) + ($msEntry->cfu_fungi ?? 0), 10) : null;
+                            $msTVal = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -452,9 +471,7 @@
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
                             $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
-                            $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
-                                ? round(($existEntry->cfu_bacteria ?? 0) + ($existEntry->cfu_fungi ?? 0), 10)
-                                : null;
+                            $tVal = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
 
                         @if ($isPerLocation)
