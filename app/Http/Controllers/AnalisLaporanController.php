@@ -307,6 +307,8 @@ class AnalisLaporanController extends Controller
             }
             $hd['shift_assignments'] = $existing;
         }
+        $savedSectionIds = [];
+
         $settleTimes = $request->input('settle_times', []);
         if (!empty($settleTimes)) {
             foreach ($settleTimes as $secId => $data) {
@@ -315,7 +317,7 @@ class AnalisLaporanController extends Controller
                     continue;
                 }
                 $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if ($hasVal) { $owners[$ownerKey] = Auth::id(); }
+                if ($hasVal) { $owners[$ownerKey] = Auth::id(); $savedSectionIds[(string) $secId] = true; }
                 $hd['settle_times'][$secId] = array_replace_recursive($hd['settle_times'][$secId] ?? [], $data);
             }
             $hd['_field_owners'] = $owners;
@@ -328,7 +330,7 @@ class AnalisLaporanController extends Controller
                     continue;
                 }
                 $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if ($hasVal) { $owners[$ownerKey] = Auth::id(); }
+                if ($hasVal) { $owners[$ownerKey] = Auth::id(); $savedSectionIds[(string) $secId] = true; }
                 $hd['swab_times'][$secId] = array_replace_recursive($hd['swab_times'][$secId] ?? [], $data);
             }
             $hd['_field_owners'] = $owners;
@@ -341,7 +343,7 @@ class AnalisLaporanController extends Controller
                     continue;
                 }
                 $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if ($hasVal) { $owners[$ownerKey] = Auth::id(); }
+                if ($hasVal) { $owners[$ownerKey] = Auth::id(); $savedSectionIds[(string) $secId] = true; }
                 $hd['exposure_times'][$secId] = array_replace_recursive($hd['exposure_times'][$secId] ?? [], $data);
             }
             $hd['_field_owners'] = $owners;
@@ -380,7 +382,6 @@ class AnalisLaporanController extends Controller
             ->toArray();
 
         // Upsert entries
-        $savedSectionIds = [];
         foreach ($request->input('entries', []) as $pivotId => $instances) {
             $sectionType = $pivotSectionType[(int) $pivotId] ?? null;
             if (! $sectionType) {

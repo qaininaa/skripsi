@@ -573,10 +573,17 @@
         $_secAnalystIds = array_keys($_secAnalysts);
         $_allMonIds  = array_map('strval', $report->analyst_monitoring ?? []);
         $_allReadIds = array_map('strval', $report->analyst_reading    ?? []);
-        $_secMonIds  = array_values(array_intersect($_secAnalystIds, $_allMonIds));
-        $_secReadIds = array_values(array_intersect($_secAnalystIds, $_allReadIds));
         $_secMonTs   = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
         $_secReadTs  = $hd['section_ttd_reading'][(string) $section->id]    ?? [];
+        // Union: analysts with entries in this section + analysts who saved time fields (timestamp-based)
+        $_secMonIds  = array_values(array_unique(array_merge(
+            array_intersect($_secAnalystIds, $_allMonIds),
+            array_intersect(array_keys($_secMonTs), $_allMonIds)
+        )));
+        $_secReadIds = array_values(array_unique(array_merge(
+            array_intersect($_secAnalystIds, $_allReadIds),
+            array_intersect(array_keys($_secReadTs), $_allReadIds)
+        )));
         // Supervisor & Manager approvals (same for all sections)
         $_supApproval = $report->approvals->firstWhere('step', 2);
         $_mngrApproval = $report->approvals->firstWhere('step', 3);
