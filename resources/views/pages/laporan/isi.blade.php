@@ -37,6 +37,21 @@
 </div>
 @endif
 
+@if (!empty($returnedApproval?->notes))
+<div class="mb-5 px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl flex items-start gap-3">
+    <div class="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <svg class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+        </svg>
+    </div>
+    <div>
+        <p class="text-sm font-semibold text-orange-800">Laporan dikembalikan untuk direvisi</p>
+        <p class="text-sm text-orange-700 mt-0.5 italic">&ldquo;{{ $returnedApproval->notes }}&rdquo;</p>
+        <p class="text-xs text-orange-500 mt-1">— {{ $returnedApproval->user?->name ?? 'Reviewer' }}</p>
+    </div>
+</div>
+@endif
+
 {{-- ── 1. Pemantauan Ruang ─────────────────────────────── --}}
 @include('pages.laporan.partials.section-info')
 

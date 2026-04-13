@@ -40,10 +40,28 @@ class AnalisLaporanController extends Controller
 
     public function isi(Report $report)
     {
+        $userId = auth()->id();
+
+        // Capture returned approval BEFORE status changes (for the revision banner)
+        $returnedApproval = null;
+        if ($report->status === 'returned') {
+            $returnedApproval = \App\Models\ReportApproval::where('report_id', $report->id)
+                ->where('status', 'returned')
+                ->with('user')
+                ->first();
+            // Only the intended recipient can claim and edit
+            if ($returnedApproval
+                && $returnedApproval->returned_to_user_id !== null
+                && $returnedApproval->returned_to_user_id !== $userId) {
+                return redirect()->route('laporan.index')
+                    ->with('error', 'Laporan ini dikembalikan ke analis lain dan tidak dapat Anda akses.');
+            }
+        }
+
         // Claim an unclaimed / returned report
         if (in_array($report->status, ['pending', 'returned'])
             || ($report->status === 'monitoring' && $report->locked_by === null)) {
-            $report->update(['status' => 'monitoring', 'locked_by' => auth()->id()]);
+            $report->update(['status' => 'monitoring', 'locked_by' => $userId]);
         } elseif ($report->status === 'reading' && $report->locked_by === null) {
             // Add current user to analyst_reading if not already present
             $readingIds = $report->analyst_reading ?? [];
@@ -97,7 +115,7 @@ class AnalisLaporanController extends Controller
             'report', 'myShift', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
-            'sectionInstances'
+            'sectionInstances', 'returnedApproval'
         ));
     }
 

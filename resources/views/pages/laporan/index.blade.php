@@ -5,6 +5,15 @@
 @section('avatar-color', 'bg-green-600')
 @section('content')
 
+@if (session('error'))
+<div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
+    <svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>
+    {{ session('error') }}
+</div>
+@endif
+
 @php
     $tabs = [
         'all'         => ['label' => 'Semua',               'color' => 'gray'],
@@ -123,7 +132,7 @@
                                         </a>
                                     @elseif ($item->status === 'returned')
                                         @php $retApproval = $item->approvals->firstWhere('status', 'returned'); @endphp
-                                        <div class="flex flex-col items-start gap-1">
+                                        <div class="flex flex-col items-center gap-1">
                                             <a href="{{ route('laporan.isi', $item) }}"
                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-xs font-medium hover:bg-orange-600 transition-colors">
                                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
