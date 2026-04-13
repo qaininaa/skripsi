@@ -38,7 +38,7 @@
                 @else
                     <select name="analyst_monitoring[]"
                         class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        <option value="" selected>— Tambahkan saya ke monitoring —</option>
+                        <option value="" selected>— Tambahkan saya —</option>
                         <option value="{{ $myId }}">{{ $myName }}</option>
                     </select>
                 @endif
