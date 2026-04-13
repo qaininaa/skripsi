@@ -12,7 +12,7 @@
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
-            @if ($isEditable)
+            @if ($isEditable && $isMonitoringPhase)
                 @php
                     $myId = auth()->id();
                     $myName = auth()->user()->name;
@@ -38,10 +38,20 @@
                 @else
                     <select name="analyst_monitoring[]"
                         class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        <option value="">— Tambahkan saya ke monitoring —</option>
-                        <option value="{{ $myId }}" selected>{{ $myName }}</option>
+                        <option value="" selected>— Tambahkan saya ke monitoring —</option>
+                        <option value="{{ $myId }}">{{ $myName }}</option>
                     </select>
                 @endif
+            @elseif ($isEditable && !$isMonitoringPhase)
+                {{-- Read-only during reading phase: monitoring is already finalized --}}
+                @php $monIds = $report->analyst_monitoring ?? []; @endphp
+                @foreach($monIds as $mid)
+                    <input type="hidden" name="analyst_monitoring[]" value="{{ $mid }}">
+                @endforeach
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
+                    @php $monitoringNames = \App\Models\User::whereIn('id', $monIds)->pluck('name'); @endphp
+                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
+                </div>
             @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name'); @endphp
