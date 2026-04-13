@@ -111,10 +111,20 @@ class SupervisorLaporanController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
+        $signedAt = now();
         $approval->update([
             'status'    => 'approved',
-            'signed_at' => now(),
+            'signed_at' => $signedAt,
         ]);
+
+        // Stamp per-section supervisor TTD
+        $headerData = $report->header_data ?? [];
+        $signedAtStr = $signedAt->toDateTimeString();
+        $report->loadMissing('reportType.sections');
+        foreach ($report->reportType->sections as $sec) {
+            $headerData['section_ttd_supervisor'][(string) $sec->id][(string) $userId] = $signedAtStr;
+        }
+        $report->update(['header_data' => $headerData]);
 
         // Create step 3 approval for manajer
         $manager = User::where('role', 'manajer')->first();
