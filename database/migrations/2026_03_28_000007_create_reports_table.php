@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('status', 30)->default('pending');
             $table->json('header_data')->nullable();
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('locked_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('batch_number');
             $table->index('status');
             $table->timestamps();

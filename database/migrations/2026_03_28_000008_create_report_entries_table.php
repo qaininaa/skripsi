@@ -12,16 +12,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('report_id')->constrained()->cascadeOnDelete();
             $table->foreignId('report_section_id')->constrained('report_section')->cascadeOnDelete();
+            $table->unsignedTinyInteger('instance_number')->default(1);
             $table->unsignedTinyInteger('period_number')->default(1);
             $table->unsignedTinyInteger('shift');
             $table->foreignId('analyst_id')->constrained('users')->cascadeOnDelete();
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
-            $table->decimal('cfu_bacteria', 8, 2)->nullable();
-            $table->decimal('cfu_fungi', 8, 2)->nullable();
+            $table->string('cfu_bacteria', 20)->nullable();
+            $table->string('cfu_fungi', 20)->nullable();
             $table->timestamps();
 
-            $table->unique(['report_id', 'report_section_id', 'period_number', 'shift'], 'entry_unique');
+            $table->unique(['report_id', 'report_section_id', 'instance_number', 'period_number', 'shift'], 'entry_unique');
         });
     }
 
