@@ -110,15 +110,8 @@
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
                     @if ($hasSharedTime)
                     @php
-                        $msJamMulai = null; $msJamSelesai = null;
-                        foreach ($section->locations as $loc2) {
-                            $e0 = $entryMap[$loc2->id][$instance][0][$myShift] ?? null;
-                            if ($e0 && ($e0->start_time || $e0->end_time)) {
-                                $msJamMulai   = $e0->start_time;
-                                $msJamSelesai = $e0->end_time;
-                                break;
-                            }
-                        }
+                        $msJamMulai   = $hd['exposure_times'][$section->id][0]['start_time'] ?? null;
+                        $msJamSelesai = $hd['exposure_times'][$section->id][0]['end_time'] ?? null;
                     @endphp
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100" colspan="3">
                         <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
