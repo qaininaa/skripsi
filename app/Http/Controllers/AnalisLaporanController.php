@@ -191,8 +191,18 @@ class AnalisLaporanController extends Controller
                 ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC. Nilai nol, desimal, dan negatif tidak diperbolehkan.']);
         }
 
-        $this->processEntries($request, $report);
+        $savedSectionIds = $this->processEntries($request, $report);
         $action = $request->input('action', 'save');
+
+        // Stamp per-section timestamps only on final actions (not on plain draft saves)
+        if ($action !== 'save' && !empty($savedSectionIds)) {
+            $sectHd   = $report->fresh()->header_data ?? [];
+            $secTsKey = $report->status === 'reading' ? 'section_ttd_reading' : 'section_ttd_monitoring';
+            foreach (array_keys($savedSectionIds) as $_sid) {
+                $sectHd[$secTsKey][$_sid][(string) Auth::id()] = now()->toDateTimeString();
+            }
+            $report->update(['header_data' => $sectHd]);
+        }
 
         if ($action === 'submit') {
             abort_unless($report->status === 'reading', 403);
@@ -263,7 +273,7 @@ class AnalisLaporanController extends Controller
         }
     }
 
-    private function processEntries(Request $request, Report $report): void
+    private function processEntries(Request $request, Report $report): array
     {
         $myShift = 1;
 
@@ -452,15 +462,7 @@ class AnalisLaporanController extends Controller
         }
         }
 
-        // Stamp per-section timestamps for every section this analyst saved entries in
-        if (!empty($savedSectionIds)) {
-            $sectHd   = $report->fresh()->header_data ?? [];
-            $secTsKey = $report->status === 'reading' ? 'section_ttd_reading' : 'section_ttd_monitoring';
-            foreach (array_keys($savedSectionIds) as $_sid) {
-                $sectHd[$secTsKey][$_sid][(string) Auth::id()] = now()->toDateTimeString();
-            }
-            $report->update(['header_data' => $sectHd]);
-        }
+        return $savedSectionIds;
     }
 
     /**
