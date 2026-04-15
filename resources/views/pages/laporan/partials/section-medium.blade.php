@@ -1,5 +1,11 @@
 {{-- ── Section 3: Identitas Medium ─────────────────────── --}}
-@php $mediumGroups = $report->reportType->medium_groups ?? []; @endphp
+@php
+    $mediumGroups = $report->reportType->medium_groups ?? [];
+    // Show swab kit last (rightmost column)
+    uksort($mediumGroups, fn($a, $b) =>
+        str_contains(strtolower($a), 'swab') <=> str_contains(strtolower($b), 'swab')
+    );
+@endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
         <h3 class="font-semibold text-sm text-gray-700">3. Identitas Medium</h3>
