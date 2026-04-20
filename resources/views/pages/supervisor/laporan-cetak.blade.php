@@ -585,7 +585,30 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     </div>
 
     {{-- KESIMPULAN --}}
-    @php $secKesp = $secNote['conclusion'] ?? ''; @endphp
+    @php
+        $secKesp = $secNote['conclusion'] ?? '';
+        // Auto-compute from entries if stored value is empty
+        if ($secKesp === '') {
+            $_ckHasTMS   = false;
+            $_ckAllEmpty = true;
+            foreach ($section->locations as $_loc) {
+                foreach ($entryMap[$_loc->pivot->id] ?? [] as $_period => $_shifts) {
+                    foreach ($_shifts as $_shift => $_e) {
+                        $_ckAllEmpty = false;
+                        $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
+                        $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
+                        if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
+                            || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
+                            $_ckHasTMS = true;
+                        }
+                    }
+                }
+            }
+            if (!$_ckAllEmpty) {
+                $secKesp = $_ckHasTMS ? 'TMS' : 'MS';
+            }
+        }
+    @endphp
     <div style="margin-top:8px">
         <span class="fw">KESIMPULAN</span>
         &ensp;: &ensp;
