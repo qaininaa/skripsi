@@ -105,6 +105,7 @@ Route::middleware(['auth', 'password.check', 'role:supervisor'])
         Route::get('supervisor/laporan/{report}/preview', [AnalisLaporanController::class, 'lihat'])->name('supervisor.laporan.preview');
         Route::get('supervisor/laporan/{report}', [SupervisorLaporanController::class, 'show'])->name('supervisor.laporan.show');
         Route::get('supervisor/laporan/{report}/cetak', [SupervisorLaporanController::class, 'cetak'])->name('supervisor.laporan.cetak');
+        Route::post('supervisor/laporan/{report}/save', [SupervisorLaporanController::class, 'save'])->name('supervisor.laporan.save');
         Route::post('supervisor/laporan/{report}/approve', [SupervisorLaporanController::class, 'approve'])->name('supervisor.laporan.approve');
         Route::post('supervisor/laporan/{report}/return', [SupervisorLaporanController::class, 'returnReport'])->name('supervisor.laporan.return');
     });

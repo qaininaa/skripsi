@@ -189,6 +189,70 @@ class SupervisorLaporanController extends Controller
             ->with('success', 'Laporan telah dikembalikan ke analis.');
     }
 
+    public function save(Request $request, Report $report)
+    {
+        $userId = Auth::id();
+        ReportApproval::where('report_id', $report->id)
+            ->where('step', 2)
+            ->where('user_id', $userId)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $report->loadMissing('reportType');
+        $incoming = $request->input('header_data', []);
+        $hd = $report->header_data ?? [];
+
+        // Only update allowed keys: sections 2 (air_sampler), 3 (medium groups), 4 (inkubator)
+        $allowedKeys = ['air_sampler', 'inkubator_20_25', 'inkubator_30_35'];
+        foreach ($report->reportType->medium_groups ?? [] as $key => $_) {
+            $allowedKeys[] = $key;
+        }
+
+        foreach ($allowedKeys as $key) {
+            if (array_key_exists($key, $incoming)) {
+                $hd[$key] = array_merge($hd[$key] ?? [], $incoming[$key]);
+            }
+        }
+
+        // Time fields: exposure_times, settle_times, swab_times (merged deeply per section)
+        foreach (['exposure_times', 'settle_times', 'swab_times'] as $timeKey) {
+            $incomingTime = $request->input($timeKey);
+            if (is_array($incomingTime)) {
+                foreach ($incomingTime as $secId => $colData) {
+                    foreach ($colData as $colKey => $slotData) {
+                        if ($timeKey === 'settle_times') {
+                            // settle_times[secId][col][a/b][start_time/end_time]
+                            foreach ($slotData as $ab => $times) {
+                                $hd[$timeKey][$secId][$colKey][$ab] = array_merge(
+                                    $hd[$timeKey][$secId][$colKey][$ab] ?? [],
+                                    $times
+                                );
+                            }
+                        } elseif ($timeKey === 'swab_times') {
+                            // swab_times[secId][col][s1/s1_2/s1_3][mulai/selesai]
+                            foreach ($slotData as $swabKey => $times) {
+                                $hd[$timeKey][$secId][$colKey][$swabKey] = array_merge(
+                                    $hd[$timeKey][$secId][$colKey][$swabKey] ?? [],
+                                    $times
+                                );
+                            }
+                        } else {
+                            // exposure_times[secId][col][start_time/end_time]
+                            $hd[$timeKey][$secId][$colKey] = array_merge(
+                                $hd[$timeKey][$secId][$colKey] ?? [],
+                                $slotData
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        $report->update(['header_data' => $hd]);
+
+        return back()->with('success', 'Data berhasil disimpan.');
+    }
+
     public function cetak(Report $report)
     {
         $userId = Auth::id();
