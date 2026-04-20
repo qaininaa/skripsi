@@ -573,10 +573,8 @@
             array_intersect($_secAnalystIds, $_allMonIds),
             array_intersect(array_keys($_secMonTs), $_allMonIds)
         )));
-        $_secReadIds = array_values(array_unique(array_merge(
-            array_intersect($_secAnalystIds, $_allReadIds),
-            array_intersect(array_keys($_secReadTs), $_allReadIds)
-        )));
+        // Reading: only analysts who actually have CFU entries in this section
+        $_secReadIds = array_values(array_intersect($_secAnalystIds, $_allReadIds));
         // Supervisor & Manager approvals (same for all sections)
         $_supApproval = $report->approvals->firstWhere('step', 2);
         $_mngrApproval = $report->approvals->firstWhere('step', 3);

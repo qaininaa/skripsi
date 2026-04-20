@@ -558,7 +558,30 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1.5">Kesimpulan</label>
-                @php $sk = $secNote['conclusion'] ?? ''; @endphp
+                @php
+                    $sk = $secNote['conclusion'] ?? '';
+                    // Auto-compute from entries if stored value is empty
+                    if ($sk === '') {
+                        $_sHasTMS   = false;
+                        $_sAllEmpty = true;
+                        foreach ($section->locations as $_loc) {
+                            foreach ($entryMap[$_loc->pivot->id] ?? [] as $_period => $_shifts) {
+                                foreach ($_shifts as $_shift => $_e) {
+                                    $_sAllEmpty = false;
+                                    $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
+                                    $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
+                                    if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
+                                        || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
+                                        $_sHasTMS = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (!$_sAllEmpty) {
+                            $sk = $_sHasTMS ? 'TMS' : 'MS';
+                        }
+                    }
+                @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
                         <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
