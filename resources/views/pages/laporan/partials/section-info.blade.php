@@ -105,9 +105,16 @@
                 @foreach($readIds as $rid)
                     <input type="hidden" name="analyst_reading[]" value="{{ $rid }}">
                 @endforeach
-                <div class="px-3 py-2 rounded-lg bg-gray-100 border border-dashed border-gray-200 text-sm text-gray-400 italic">
-                    Diisi setelah monitoring selesai
-                </div>
+                @if(!empty($readIds))
+                    @php $existingReadNames = \App\Models\User::whereIn('id', $readIds)->pluck('name'); @endphp
+                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
+                        {{ $existingReadNames->join(', ') }}
+                    </div>
+                @else
+                    <div class="px-3 py-2 rounded-lg bg-gray-100 border border-dashed border-gray-200 text-sm text-gray-400 italic">
+                        Diisi setelah monitoring selesai
+                    </div>
+                @endif
             @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name'); @endphp

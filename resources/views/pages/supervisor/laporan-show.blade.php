@@ -949,9 +949,10 @@
                         class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
                         <option value="">-- Pilih Analis Tujuan --</option>
                         @php
-                            $monitoringUsers = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->get();
+                            $allReturnableIds = array_unique(array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []));
+                            $returnableUsers = \App\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
                         @endphp
-                        @foreach ($monitoringUsers as $analyst)
+                        @foreach ($returnableUsers as $analyst)
                         <option value="{{ $analyst->id }}">{{ $analyst->name }}</option>
                         @endforeach
                     </select>
