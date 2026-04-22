@@ -83,7 +83,7 @@
                             <td class="px-6 py-3.5 text-gray-600">{{ $room->locations_count }} lokasi</td>
                             <td class="px-6 py-3.5 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <x-buttons.edit-button :href="route('master.ruangan.edit', $room)" />
+                                    <x-buttons.edit-button onclick="window.location.href='{{ route('master.ruangan.edit', $room) }}'" />
                                     <x-buttons.delete-button
                                         :action="route('master.ruangan.destroy', $room)"
                                         :name="$room->room_name"

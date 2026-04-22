@@ -13,7 +13,7 @@
             Kembali ke daftar
         </a>
         <div class="flex items-center gap-2">
-            <x-buttons.edit-button :href="route('report-types.edit', $reportType)" size="md"/>
+            <x-buttons.edit-button onclick="window.location.href='{{ route('report-types.edit', $reportType) }}'" size="md"/>
             <x-buttons.delete-button :action="route('report-types.destroy', $reportType)" :name="$reportType->name" size="md" />
         </div>
     </div>
@@ -167,7 +167,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="editSection = !editSection" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Edit</button>
+                        <x-buttons.edit-button @click="editSection = !editSection" size="sm" />
                         <x-buttons.delete-button :action="route('report-types.sections.destroy', [$reportType, $section])" name="seksi" size="sm" />
                     </div>
                 </div>
