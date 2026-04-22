@@ -299,7 +299,7 @@
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_fungi ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_fungi ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-right">
-                                        <x-buttons.delete-button :action="route('report-types.sections.locations.destroy', [$reportType, $section, $loc])" name="lokasi" size="xs" />
+                                        <x-buttons.delete-button :action="route('report-types.sections.locations.destroy', [$reportType, $section, $loc])" name="lokasi" size="xs" :showLabel="false" />
                                     </td>
                                 </tr>
                                 @endforeach
