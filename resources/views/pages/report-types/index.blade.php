@@ -40,6 +40,8 @@
                     <tr class="bg-gray-50 border-b border-gray-100">
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-10">#</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Annex</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Kode SOP</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Versi SOP</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Seksi</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -49,11 +51,13 @@
                     @forelse ($reportTypes as $reportType)
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-3.5 text-gray-400 text-xs">{{ $loop->iteration }}</td>
-                            <td class="px-6 py-3.5">
+                            <td class="px-3 py-3.5">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
-                                    {{ $reportType->annex_number }}
+                                    Annex {{ $reportType->annex_number }}
                                 </span>
                             </td>
+                            <td class="px-6 py-3.5 font-medium text-gray-800">{{ $reportType->sop_code }}</td>
+                            <td class="px-6 py-3.5 font-medium text-gray-800">{{ $reportType->sop_version }}</td>
                             <td class="px-6 py-3.5 font-medium text-gray-800">{{ $reportType->name }}</td>
                             <td class="px-6 py-3.5 text-center text-gray-600">{{ $reportType->sections_count }}</td>
                             <td class="px-6 py-3.5 text-center">
