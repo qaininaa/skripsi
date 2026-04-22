@@ -90,15 +90,15 @@
                                 <p class="text-xs text-gray-400">{{ $loc->room->room_number ?? '' }} &middot; Kelas {{ $loc->room->class ?? '' }}</p>
                             </td>
                             <td class="px-4 py-3.5 text-gray-600">{{ $loc->location_number ?? '-' }}</td>
-                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->measurement_type ? ucfirst(str_replace('_', ' ', $loc->measurement_type)) : '-' }}</td>
-                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->frequency->name ?? '-' }}</td>
+                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->getFormattedMeasurementType() }}</td>
+                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->frequency?->getIndonesianLabel() ?? '-' }}</td>
                             <td class="px-4 py-3.5">
-                                <p class="text-xs text-gray-600">Alert limit: {{ $loc->alert_limit_total ?? '-' }}</p>
-                                <p class="text-xs text-gray-500">Action limit: {{ $loc->alert_action_total ?? '-' }}</p>
+                                <p class="text-xs text-gray-600">Batas Alert: {{ $loc->alert_limit_total ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">Batas Aksi: {{ $loc->alert_action_total ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3.5">
-                                <p class="text-xs text-gray-600">Alert limit: {{ $loc->alert_limit_fungi ?? '-' }}</p>
-                                <p class="text-xs text-gray-500">Action limit: {{ $loc->alert_action_fungi ?? '-' }}</p>
+                                <p class="text-xs text-gray-600">Batas Alert: {{ $loc->alert_limit_fungi ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">Batas Aksi: {{ $loc->alert_action_fungi ?? '-' }}</p>
                             </td>
                             <td class="px-4 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-2">

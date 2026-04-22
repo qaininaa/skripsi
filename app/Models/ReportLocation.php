@@ -26,4 +26,15 @@ class ReportLocation extends Model
     {
         return $this->belongsTo(Frequency::class, 'frequency_id');
     }
+
+    public function getFormattedMeasurementType(): string
+    {
+        return match($this->measurement_type) {
+            'settle_plate' => 'Settle Plate',
+            'air_sampler' => 'Air Sampler',
+            'contact_plate' => 'Contact Plate',
+            'swab' => 'Swab',
+            default => ucfirst(str_replace('_', ' ', $this->measurement_type ?? '-')),
+        };
+    }
 }

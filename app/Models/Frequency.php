@@ -15,4 +15,16 @@ class Frequency extends Model
     {
         return $this->hasMany(ReportLocation::class, 'frequency_id');
     }
+
+    public function getIndonesianLabel(): string
+    {
+        return match($this->name) {
+            'operational' => 'Operasional',
+            'daily' => 'Harian',
+            'weekly' => 'Mingguan',
+            'monthly' => 'Bulanan',
+            'semi_annual' => '6 Bulan',
+            default => ucfirst($this->name),
+        };
+    }
 }

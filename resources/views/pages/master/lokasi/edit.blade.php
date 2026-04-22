@@ -75,7 +75,7 @@
                         <option value="">— Tidak Ditentukan —</option>
                         @foreach ($frequencies as $freq)
                             <option value="{{ $freq->id }}" {{ old('frequency_id', $lokasi->frequency_id) == $freq->id ? 'selected' : '' }}>
-                                {{ $freq->name }}
+                                {{ $freq->getIndonesianLabel() }}
                             </option>
                         @endforeach
                     </select>
