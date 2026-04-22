@@ -32,7 +32,7 @@ class ReportSection extends Model
 
     public function locations()
     {
-        return $this->belongsToMany(ReportLocation::class, 'report_section', 'id_section', 'id_location')
+        return $this->belongsToMany(ReportLocation::class, 'report_section', 'section_id', 'location_id')
             ->withPivot('id')
             ->withTimestamps()
             ->orderBy('report_section.id');

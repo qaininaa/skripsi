@@ -71,7 +71,7 @@ class ReportTypeManagementController extends Controller
     public function show(ReportType $reportType): View
     {
         $reportType->load(['sections.locations.room']);
-        $locations = ReportLocation::with('room')->orderBy('id_room')->orderBy('location_number')->get();
+        $locations = ReportLocation::with('room')->orderBy('room_id')->orderBy('location_number')->get();
 
         return view('pages.report-types.show', compact('reportType', 'locations'));
     }
@@ -211,8 +211,8 @@ class ReportTypeManagementController extends Controller
             'location_id' => ['required', 'exists:locations,id'],
         ]);
 
-        if (! $section->locations()->where('id_location', $validated['location_id'])->exists()) {
-            $section->locations()->attach($validated['location_id']);
+        if (! $section->locations()->where('location_id', $validated['location_id'])->exists()) {
+            $section->locations()->attach($validated['location_id'], ['id' => (string) Str::uuid()]);
         }
 
         return redirect()

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Detail Jenis Laporan')
-@section('page-title', $reportType->annex_number)
+@section('page-title','Annex '.$reportType->annex_number)
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6">
 
