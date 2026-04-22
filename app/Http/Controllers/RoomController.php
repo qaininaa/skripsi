@@ -42,6 +42,16 @@ class RoomController extends Controller
             'class' => ['required', 'string', 'max:50'],
         ]);
 
+        $existing = Room::where('room_name', $validated['room_name'])
+            ->where('room_number', $validated['room_number'])
+            ->first();
+
+        if ($existing) {
+            return redirect()
+                ->route('master.ruangan.edit', $existing)
+                ->with('info', 'Ruangan dengan nama dan nomor yang sama sudah ada. Anda dapat mengubahnya di sini.');
+        }
+
         Room::create($validated);
 
         return redirect()
