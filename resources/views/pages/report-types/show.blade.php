@@ -6,12 +6,7 @@
 <div class="max-w-5xl mx-auto space-y-6" x-data="{ showDeleteModal: false, deleteAction: null, itemName: null }">
 
     <div class="flex items-center justify-between">
-        <a href="{{ route('report-types.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700">
-            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Kembali ke daftar
-        </a>
+        <x-buttons.back-to-list :href="route('report-types.index')" />
         <div class="flex items-center gap-2">
             <x-buttons.edit-button onclick="window.location.href='{{ route('report-types.edit', $reportType) }}'" size="md"/>
             <x-buttons.delete-button :action="route('report-types.destroy', $reportType)" :name="$reportType->name" size="md" />
@@ -19,14 +14,15 @@
     </div>
 
     @if (session('success'))
-    <div class="px-4 py-3 bg-green-50 border border-green-100 rounded-xl text-sm text-green-700 flex items-center gap-2">
-        <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        {{ session('success') }}
-    </div>
+        <x-messages.success-message>
+            {{ session('success') }}
+        </x-messages.success-message>
     @endif
 
     @if (session('error'))
-    <div class="px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700">{{ session('error') }}</div>
+        <x-messages.error-message>
+            {{ session('error') }}
+        </x-messages.error-message>
     @endif
 
     {{-- Info Dasar --}}
