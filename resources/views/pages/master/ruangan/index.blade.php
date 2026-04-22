@@ -7,15 +7,15 @@
 <div>
 
     @if (session('success'))
-        <div class="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 text-sm">
+        <x-messages.success-message>
             {{ session('success') }}
-        </div>
+        </x-messages.success-message>
     @endif
 
     @if (session('error'))
-        <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+        <x-messages.error-message>
             {{ session('error') }}
-        </div>
+        </x-messages.error-message>
     @endif
 
     {{-- Header + Tombol Tambah --}}
