@@ -79,7 +79,7 @@ class RoomSeeder extends Seeder
         ];
 
         DB::table('rooms')->insert(
-            array_map(fn($r) => ['id' => (string) Str::uuid(), ...$r], $rooms)
+            array_map(fn ($r) => ['id' => (string) Str::uuid(), ...$r], $rooms)
         );
     }
 }

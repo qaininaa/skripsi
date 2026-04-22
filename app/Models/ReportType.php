@@ -10,7 +10,7 @@ class ReportType extends Model
     use HasUuids;
 
     protected $fillable = [
-        'name', 'annex_number', 'sop_code', 'sop_version'
+        'name', 'annex_number', 'sop_code', 'sop_version',
     ];
 
     public function sections()

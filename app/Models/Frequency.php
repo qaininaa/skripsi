@@ -18,7 +18,7 @@ class Frequency extends Model
 
     public function getIndonesianLabel(): string
     {
-        return match($this->name) {
+        return match ($this->name) {
             'operational' => 'Operasional',
             'daily' => 'Harian',
             'weekly' => 'Mingguan',

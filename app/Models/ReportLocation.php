@@ -29,7 +29,7 @@ class ReportLocation extends Model
 
     public function getFormattedMeasurementType(): string
     {
-        return match($this->measurement_type) {
+        return match ($this->measurement_type) {
             'settle_plate' => 'Settle Plate',
             'air_sampler' => 'Air Sampler',
             'contact_plate' => 'Contact Plate',

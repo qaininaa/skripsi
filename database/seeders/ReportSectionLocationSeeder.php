@@ -116,11 +116,11 @@ class ReportSectionLocationSeeder extends Seeder
             }
 
             $pivotRows[] = [
-                'id'          => (string) Str::uuid(),
-                'section_id'  => $sectionId,
+                'id' => (string) Str::uuid(),
+                'section_id' => $sectionId,
                 'location_id' => $loc->id,
-                'created_at'  => $now,
-                'updated_at'  => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
 

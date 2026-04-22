@@ -33,6 +33,10 @@
     {{-- Navigation --}}
     <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
 
+    <div class="pt-2 pb-1 px-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Dashboard</p>
+        </div>
+
         {{-- Dashboard --}}
         @if(Auth::user()->role === 'super')
         <a href="{{ route('dashboard.super-admin') }}"
@@ -91,18 +95,11 @@
         @elseif(Auth::user()->role === 'admin')
 
          {{-- Data Master dropdown --}}
-        <div x-data="{ openMaster: {{ request()->routeIs('master.*') ? 'true' : 'false' }} }">
-            <button type="button" @click="openMaster = !openMaster"
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('master.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-                </svg>
-                <span class="flex-1 text-left">Data Master</span>
-                <svg class="w-4 h-4 transition-transform duration-200" :class="openMaster ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div x-show="openMaster" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="mt-0.5 ml-4 pl-4 border-l-2 border-gray-100 space-y-0.5">
+
+         <div class="pt-2 pb-1 px-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Master Data</p>
+        </div>
+            
                 <a href="{{ route('master.ruangan.index') }}"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg {{ request()->routeIs('master.ruangan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} text-sm transition-colors">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,9 +122,11 @@
                     </svg>
                     Manajemen Laporan
                 </a>
-            </div>
-        </div>
 
+
+        <div class="pt-2 pb-1 px-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Laporan</p>
+        </div>
         <a href="{{ route('tugas-pelaporan.index') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('tugas-pelaporan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
