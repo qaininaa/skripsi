@@ -3,7 +3,7 @@
 @section('title', 'Detail Jenis Laporan')
 @section('page-title','Annex '.$reportType->annex_number)
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
+<div class="max-w-5xl mx-auto space-y-6" x-data="{ showDeleteModal: false, deleteAction: null, itemName: null }">
 
     <div class="flex items-center justify-between">
         <a href="{{ route('report-types.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700">
@@ -13,18 +13,8 @@
             Kembali ke daftar
         </a>
         <div class="flex items-center gap-2">
-            <a href="{{ route('report-types.edit', $reportType) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                Edit
-            </a>
-            <form action="{{ route('report-types.destroy', $reportType) }}" method="POST" onsubmit="return confirm('Hapus jenis laporan ini?')">
-                @csrf
-                @method('DELETE')
-                <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 border border-red-200">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    Hapus
-                </button>
-            </form>
+            <x-buttons.edit-button :href="route('report-types.edit', $reportType)" size="md"/>
+            <x-buttons.delete-button :action="route('report-types.destroy', $reportType)" :name="$reportType->name" size="md" />
         </div>
     </div>
 
@@ -178,11 +168,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" @click="editSection = !editSection" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Edit</button>
-                        <form action="{{ route('report-types.sections.destroy', [$reportType, $section]) }}" method="POST" onsubmit="return confirm('Hapus seksi ini beserta semua lokasinya?')" class="inline-flex items-center">
-                            @csrf
-                            @method('DELETE')
-                            <button class="text-xs text-red-500 hover:text-red-700 font-medium">Hapus</button>
-                        </form>
+                        <x-buttons.delete-button :action="route('report-types.sections.destroy', [$reportType, $section])" name="seksi" size="sm" />
                     </div>
                 </div>
 
@@ -313,13 +299,7 @@
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_limit_fungi ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-center text-gray-600">{{ $loc->alert_action_fungi ?? '-' }}</td>
                                     <td class="px-2 py-1.5 text-right">
-                                        <form action="{{ route('report-types.sections.locations.destroy', [$reportType, $section, $loc]) }}" method="POST" onsubmit="return confirm('Hapus lokasi ini?')" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="text-red-400 hover:text-red-600">
-                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            </button>
-                                        </form>
+                                        <x-buttons.delete-button :action="route('report-types.sections.locations.destroy', [$reportType, $section, $loc])" name="lokasi" size="xs" />
                                     </td>
                                 </tr>
                                 @endforeach
@@ -336,5 +316,6 @@
         <p class="text-sm text-gray-400 italic">Belum ada seksi. Klik "Tambah Seksi" untuk memulai.</p>
         @endforelse
     </div>
+    <x-delete-modal />
 </div>
 @endsection
