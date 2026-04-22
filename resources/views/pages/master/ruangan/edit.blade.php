@@ -17,6 +17,12 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Edit Ruangan</h2>
 
+            @if (session('info'))
+                <div class="mb-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 text-sm">
+                    {{ session('info') }}
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
                     <p class="font-semibold mb-1">Terjadi kesalahan:</p>
