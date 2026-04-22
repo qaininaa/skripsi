@@ -12,8 +12,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->integer('annex_number');
-            $table->string('sop_code')->nullable();
-            $table->string('sop_version')->nullable();
+            $table->string('sop_code');
+            $table->string('sop_version');
             $table->timestamps();
         });
     }
