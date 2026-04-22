@@ -33,7 +33,7 @@ class LocationController extends Controller
 
     public function create(): View
     {
-        $rooms = Room::orderBy('room_name')->get();
+        $rooms = Room::orderBy('class', 'asc')->orderBy('room_name', 'asc')->get();
         $frequencies = Frequency::orderBy('name')->get();
 
         return view('pages.master.lokasi.create', compact('rooms', 'frequencies'));
@@ -61,7 +61,7 @@ class LocationController extends Controller
 
     public function edit(ReportLocation $lokasi): View
     {
-        $rooms = Room::orderBy('room_name')->get();
+        $rooms = Room::orderBy('class', 'asc')->orderBy('room_name', 'asc')->get();
         $frequencies = Frequency::orderBy('name')->get();
 
         return view('pages.master.lokasi.edit', compact('lokasi', 'rooms', 'frequencies'));
