@@ -3,7 +3,7 @@
 @section('title', 'Detail Jenis Laporan')
 @section('page-title','Annex '.$reportType->annex_number)
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6" x-data="{ showDeleteModal: false, deleteAction: null, itemName: null }">
+<div class="max-w-5xl mx-auto space-y-6">
 
     <div class="flex items-center justify-between">
         <x-buttons.back-to-list :href="route('report-types.index')" />
@@ -316,6 +316,5 @@
         <p class="text-sm text-gray-400 italic">Belum ada seksi. Klik "Tambah Seksi" untuk memulai.</p>
         @endforelse
     </div>
-    <x-delete-modal />
 </div>
 @endsection

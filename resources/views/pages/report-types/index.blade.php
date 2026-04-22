@@ -4,7 +4,7 @@
 @section('page-title', 'Jenis Laporan')
 @section('content')
 <style>[x-cloak]{display:none!important}</style>
-<div x-data="{ showDeleteModal: false, deleteAction: '', itemName: '' }">
+<div>
 
     @if (session('success'))
         <div class="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 text-sm">
@@ -89,9 +89,5 @@
         @endif
     </div>
 
-    <x-delete-modal
-        title="Hapus Jenis Laporan"
-        warning="Data jenis laporan akan dihapus permanen dan tidak dapat dikembalikan."
-    />
 </div>
 @endsection

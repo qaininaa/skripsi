@@ -10,7 +10,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-gray-100">
-    <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
+    <div x-data="{ sidebarOpen: false, showDeleteModal: false, deleteAction: null, itemName: null }">
+
+    <div class="flex h-screen overflow-hidden">
 
         {{-- Mobile backdrop --}}
         <div
@@ -46,6 +48,11 @@
 
         </div>
     </div>
+
+    {{-- Global delete modal: di luar overflow-hidden agar fixed inset-0 cover full screen --}}
+    <x-delete-modal />
+
+    </div>{{-- end x-data wrapper --}}
     @stack('scripts')
 </body>
 </html>
