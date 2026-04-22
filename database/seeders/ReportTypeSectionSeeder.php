@@ -20,6 +20,8 @@ class ReportTypeSectionSeeder extends Seeder
             'id'            => $annex18,
             'name'          => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.1 B Filling Line 2',
             'annex_number'  => 18,
+            'sop_code'     => 'SOP-QC035-A18',
+            'sop_version'  => '11',
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -75,6 +77,8 @@ class ReportTypeSectionSeeder extends Seeder
             'id'            => $annex24,
             'name'          => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5',
             'annex_number'  => 24,
+            'sop_code'     => 'SOP-QC035-A24',
+            'sop_version'  => '11',
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -120,6 +124,8 @@ class ReportTypeSectionSeeder extends Seeder
             'id'            => $annex3,
             'name'          => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 3',
             'annex_number'  => 3,
+            'sop_code'     => 'SOP-QC035-A3',
+            'sop_version'  => '11',
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -165,6 +171,8 @@ class ReportTypeSectionSeeder extends Seeder
             'id'            => $annex4,
             'name'          => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 4',
             'annex_number'  => 4,
+            'sop_code'     => 'SOP-QC035-A4',
+            'sop_version'  => '11',
             'created_at' => $now,
             'updated_at' => $now,
         ]);
