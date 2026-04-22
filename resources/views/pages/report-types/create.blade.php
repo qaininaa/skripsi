@@ -35,12 +35,16 @@
             {{-- Info Dasar --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode <span class="text-red-500">*</span></label>
-                    <input type="text" name="code" value="{{ old('code') }}" placeholder="cth: HVAC-6.1.1-B-FL2" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode SOP <span class="text-red-500">*</span></label>
+                    <input type="text" name="sop_code" value="{{ old('sop_code') }}" placeholder="cth: SOP-QC035-A18" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Versi SOP <span class="text-red-500">*</span></label>
+                    <input type="text" name="sop_version" value="{{ old('sop_version') }}" placeholder="cth: 11" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Annex <span class="text-red-500">*</span></label>
-                    <input type="text" name="annex_number" value="{{ old('annex_number') }}" placeholder="cth: Annex 18" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <input type="number" name="annex_number" value="{{ old('annex_number') }}" placeholder="cth: 18" min="1" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
             </div>
 

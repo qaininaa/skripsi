@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('incubators', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
-            $table->string('temperature');          // '20_25' or '30_35'
+            $table->foreignUuid('report_type_incubator_id')->constrained('report_type_incubators')->cascadeOnDelete();
             $table->string('no_id')->nullable();
             $table->date('calibration_date')->nullable();
             $table->date('due_date_calibration')->nullable();
@@ -25,9 +25,6 @@ return new class extends Migration
             $table->date('date_out')->nullable();
             $table->string('time_out')->nullable();
             $table->timestamps();
-
-            // One incubator record per temperature per report
-            $table->unique(['report_id', 'temperature']);
         });
     }
 

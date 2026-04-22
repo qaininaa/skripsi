@@ -30,8 +30,12 @@
         <h3 class="text-base font-semibold text-gray-800 mb-4">Informasi Dasar</h3>
         <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
             <div>
-                <dt class="text-gray-500">Kode</dt>
-                <dd class="font-medium text-gray-800">{{ $reportType->code }}</dd>
+                <dt class="text-gray-500">Kode SOP</dt>
+                <dd class="font-medium text-gray-800">{{ $reportType->sop_code }}</dd>
+            </div>
+            <div>
+                <dt class="text-gray-500">Versi SOP</dt>
+                <dd class="font-medium text-gray-800">{{ $reportType->sop_version }}</dd>
             </div>
             <div>
                 <dt class="text-gray-500">Annex</dt>
@@ -44,13 +48,13 @@
         </dl>
 
         {{-- Medium Groups --}}
-        @if ($reportType->medium_groups)
+        @if ($reportType->media->isNotEmpty())
         <div class="mt-5 pt-4 border-t border-gray-100">
             <h4 class="text-sm font-semibold text-gray-700 mb-2">Medium Groups</h4>
             <div class="flex flex-wrap gap-2">
-                @foreach ($reportType->medium_groups as $key => $label)
+                @foreach ($reportType->media as $medium)
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                    {{ $label }}</span>
+                    {{ $medium->name }}
                 </span>
                 @endforeach
             </div>
@@ -58,13 +62,13 @@
         @endif
 
         {{-- Incubators --}}
-        @if ($reportType->incubators)
+        @if ($reportType->incubatorConfigs->isNotEmpty())
         <div class="mt-4 pt-4 border-t border-gray-100">
             <h4 class="text-sm font-semibold text-gray-700 mb-2">Inkubator</h4>
             <div class="flex flex-wrap gap-2">
-                @foreach ($reportType->incubators as $key => $inc)
+                @foreach ($reportType->incubatorConfigs as $inc)
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                    {{ $inc['label'] }} - min {{ $inc['min_days'] }} hari
+                    {{ $inc->temperature_label }} — min {{ $inc->min_days }} hari
                 </span>
                 @endforeach
             </div>

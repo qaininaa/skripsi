@@ -36,12 +36,16 @@
             {{-- Info Dasar --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode <span class="text-red-500">*</span></label>
-                    <input type="text" name="code" value="{{ old('code', $reportType->code) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode SOP <span class="text-red-500">*</span></label>
+                    <input type="text" name="sop_code" value="{{ old('sop_code', $reportType->sop_code) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Versi SOP <span class="text-red-500">*</span></label>
+                    <input type="text" name="sop_version" value="{{ old('sop_version', $reportType->sop_version) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Annex <span class="text-red-500">*</span></label>
-                    <input type="text" name="annex_number" value="{{ old('annex_number', $reportType->annex_number) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <input type="number" name="annex_number" value="{{ old('annex_number', $reportType->annex_number) }}" min="1" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
             </div>
 
@@ -132,8 +136,8 @@
 </div>
 
 @php
-    $mediumsJson    = json_encode(collect($reportType->medium_groups ?? [])->map(fn($label, $key) => ['key' => $key, 'label' => $label])->values());
-    $incubatorsJson = json_encode(collect($reportType->incubators ?? [])->map(fn($val, $key) => ['key' => $key, 'label' => $val['label'] ?? '', 'min_days' => $val['min_days'] ?? 3])->values());
+    $mediumsJson    = json_encode($reportType->media->map(fn($m) => ['label' => $m->name])->values());
+    $incubatorsJson = json_encode($reportType->incubatorConfigs->map(fn($inc) => ['label' => $inc->temperature_label, 'min_days' => $inc->min_days])->values());
 @endphp
 <script>
 function reportTypeForm() {

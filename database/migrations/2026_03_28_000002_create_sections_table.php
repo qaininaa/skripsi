@@ -17,7 +17,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('max_column')->default(1);
             $table->string('column_label', 50)->default('Exposure');
             $table->string('time_slot_type', 20)->default('none');
-            $table->boolean('has_machine_setup')->default(false); // awalanya has_shared_time
+            $table->boolean('has_machine_setup')->default(false);
+            $table->boolean('has_shift_toggle')->default(true);
             $table->unsignedTinyInteger('order')->default(0);
             $table->timestamps();
         });

@@ -14,14 +14,11 @@ return new class extends Migration
         Schema::create('medium_identities', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
-            $table->string('name');                    // medium key, e.g. 'pha', 'tsa'
+            $table->foreignUuid('medium_id')->constrained('report_type_mediums')->cascadeOnDelete();
             $table->string('batch_number')->nullable();
             $table->string('gpt_number')->nullable();
             $table->date('expiration_date')->nullable();
             $table->timestamps();
-
-            // One record per medium type per report
-            $table->unique(['report_id', 'name']);
         });
     }
 
