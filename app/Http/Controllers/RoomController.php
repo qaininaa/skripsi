@@ -7,7 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class RuanganController extends Controller
+class RoomController extends Controller
 {
     public function index(Request $request): View
     {

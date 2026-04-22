@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class ManajerLaporanController extends Controller
+class ManagerReportController extends Controller
 {
     public function dashboard()
     {
@@ -53,14 +53,11 @@ class ManajerLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user']);
 
         // Supervisor (step 2 user) for the return dropdown
         $supervisorApproval = $report->approvals->firstWhere('step', 2);
-        $supervisor = $supervisorApproval?->user;
-
-        // Monitoring analysts (step 1) for return-to-analyst option
-        $monitoringUsers = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->get();
+        $returnSupervisor   = $supervisorApproval?->user;
 
         $entryMap = [];
         foreach ($report->entries as $entry) {
@@ -72,9 +69,12 @@ class ManajerLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('pages.manajer.laporan-show', compact(
-            'report', 'approval', 'entryMap', 'supervisor', 'monitoringUsers',
-            'needsAirSampler', 'needsInkubator', 'needsMedium'
+        $reviewRole = 'manajer';
+
+        return view('pages.review.laporan-show', compact(
+            'report', 'approval', 'entryMap', 'returnSupervisor',
+            'needsAirSampler', 'needsInkubator', 'needsMedium',
+            'reviewRole'
         ));
     }
 
@@ -112,6 +112,15 @@ class ManajerLaporanController extends Controller
         foreach ($report->reportType->sections as $sec) {
             $headerData['section_ttd_manager'][(string) $sec->id][(string) $userId] = $signedAtStr;
         }
+
+        // Snapshot report type structure so archived reports are immutable
+        $headerData['_snapshot_section_ids'] = $report->reportType->sections->pluck('id')->toArray();
+        $headerData['_snapshot_report_type'] = [
+            'annex_number'  => $report->reportType->annex_number,
+            'name'          => $report->reportType->name,
+            'medium_groups' => $report->reportType->medium_groups,
+        ];
+
         $report->update(['header_data' => $headerData]);
 
         $report->update(['status' => 'approved']);
@@ -199,6 +208,65 @@ class ManajerLaporanController extends Controller
             ->with('success', 'Laporan telah dikembalikan ke Supervisor.');
     }
 
+    public function save(Request $request, Report $report)
+    {
+        $userId = Auth::id();
+        ReportApproval::where('report_id', $report->id)
+            ->where('step', 3)
+            ->where('user_id', $userId)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        $report->loadMissing('reportType');
+        $incoming = $request->input('header_data', []);
+        $hd = $report->header_data ?? [];
+
+        $allowedKeys = ['air_sampler', 'inkubator_20_25', 'inkubator_30_35'];
+        foreach ($report->reportType->medium_groups ?? [] as $key => $_) {
+            $allowedKeys[] = $key;
+        }
+
+        foreach ($allowedKeys as $key) {
+            if (array_key_exists($key, $incoming)) {
+                $hd[$key] = array_merge($hd[$key] ?? [], $incoming[$key]);
+            }
+        }
+
+        foreach (['exposure_times', 'settle_times', 'swab_times'] as $timeKey) {
+            $incomingTime = $request->input($timeKey);
+            if (is_array($incomingTime)) {
+                foreach ($incomingTime as $secId => $colData) {
+                    foreach ($colData as $colKey => $slotData) {
+                        if ($timeKey === 'settle_times') {
+                            foreach ($slotData as $ab => $times) {
+                                $hd[$timeKey][$secId][$colKey][$ab] = array_merge(
+                                    $hd[$timeKey][$secId][$colKey][$ab] ?? [],
+                                    $times
+                                );
+                            }
+                        } elseif ($timeKey === 'swab_times') {
+                            foreach ($slotData as $swabKey => $times) {
+                                $hd[$timeKey][$secId][$colKey][$swabKey] = array_merge(
+                                    $hd[$timeKey][$secId][$colKey][$swabKey] ?? [],
+                                    $times
+                                );
+                            }
+                        } else {
+                            $hd[$timeKey][$secId][$colKey] = array_merge(
+                                $hd[$timeKey][$secId][$colKey] ?? [],
+                                $slotData
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        $report->update(['header_data' => $hd]);
+
+        return back()->with('success', 'Data berhasil disimpan.');
+    }
+
     public function cetak(Report $report)
     {
         $userId = Auth::id();
@@ -207,7 +275,8 @@ class ManajerLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user']);
+        $report->applyReportTypeSnapshot();
         foreach ($report->entries as $entry) {
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }

@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class SupervisorLaporanController extends Controller
+class SupervisorReportController extends Controller
 {
     public function dashboard()
     {
@@ -71,7 +71,7 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user']);
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];
@@ -84,9 +84,13 @@ class SupervisorLaporanController extends Controller
         $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('pages.supervisor.laporan-show', compact(
+        $reviewRole      = 'supervisor';
+        $returnSupervisor = null;
+
+        return view('pages.review.laporan-show', compact(
             'report', 'approval', 'entryMap',
-            'needsAirSampler', 'needsInkubator', 'needsMedium'
+            'needsAirSampler', 'needsInkubator', 'needsMedium',
+            'reviewRole', 'returnSupervisor'
         ));
     }
 
@@ -126,12 +130,19 @@ class SupervisorLaporanController extends Controller
         }
         $report->update(['header_data' => $headerData]);
 
-        // Create step 3 approval for manajer
+        // Create or reset step 3 approval for manajer
         $manager = User::where('role', 'manajer')->first();
         if ($manager) {
-            ReportApproval::firstOrCreate(
+            ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 3],
-                ['role_label' => 'manajer', 'user_id' => $manager->id, 'status' => 'pending']
+                [
+                    'role_label'          => 'manajer',
+                    'user_id'             => $manager->id,
+                    'status'              => 'pending',
+                    'signed_at'           => null,
+                    'notes'               => null,
+                    'returned_to_user_id' => null,
+                ]
             );
             $report->update(['status' => 'pending_manager']);
         } else {
@@ -180,9 +191,15 @@ class SupervisorLaporanController extends Controller
             'returned_to_user_id'  => $returnedToUserId,
         ]);
 
-        // Reset signature timestamps
+        // Reset signature timestamps — clear all per-section and legacy TTD keys
         $hd = $report->header_data ?? [];
-        unset($hd['ttd_monitoring_signed_at'], $hd['ttd_dibaca_signed_at']);
+        unset(
+            $hd['section_ttd_monitoring'],
+            $hd['section_ttd_reading'],
+            $hd['section_ttd_supervisor'],
+            $hd['ttd_monitoring_signed_at'],
+            $hd['ttd_dibaca_signed_at']
+        );
         $report->update(['status' => 'returned', 'locked_by' => null, 'header_data' => $hd]);
 
         return redirect()->route('supervisor.laporan-masuk')
@@ -261,7 +278,8 @@ class SupervisorLaporanController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user']);
+        $report->applyReportTypeSnapshot();
 
         // entryMap[$pivot_id][$period_number][$shift] = entry
         $entryMap = [];

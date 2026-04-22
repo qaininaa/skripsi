@@ -7,7 +7,7 @@ use App\Models\ReportType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class TugasPelaporanController extends Controller
+class ReportAssignmentController extends Controller
 {
     public function index(Request $request)
     {

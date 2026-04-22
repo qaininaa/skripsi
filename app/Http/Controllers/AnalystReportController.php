@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
-class AnalisLaporanController extends Controller
+class AnalystReportController extends Controller
 {
     public function index(Request $request)
     {
@@ -79,7 +79,7 @@ class AnalisLaporanController extends Controller
         $report->refresh();
         $this->migrateFieldOwners($report);
 
-        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user', 'lockedByUser']);
+        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user', 'lockedByUser']);
 
         // entryMap[$pivot_id][$instance][$period_number][$shift] = entry
         $entryMap = [];
@@ -111,17 +111,22 @@ class AnalisLaporanController extends Controller
         // Analysts that can receive a handover (all analysts except current user)
         $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
 
+        // True when the report already went through step-2 (revision scenario)
+        $isRevision = \App\Models\ReportApproval::where('report_id', $report->id)
+            ->where('step', 2)
+            ->exists();
+
         return view('pages.laporan.isi', compact(
             'report', 'myShift', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
-            'sectionInstances', 'returnedApproval'
+            'sectionInstances', 'returnedApproval', 'isRevision'
         ));
     }
 
     public function lihat(Report $report)
     {
-        $report->load(['reportType.sections.locations.room', 'entries', 'approvals.user', 'lockedByUser']);
+        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user', 'lockedByUser']);
 
         $entryMap = [];
         foreach ($report->entries as $entry) {
@@ -234,6 +239,27 @@ class AnalisLaporanController extends Controller
                 ->with('success', 'Monitoring selesai. Laporan masuk ke tahap pembacaan.');
         }
 
+        if ($action === 'submit_revision') {
+            abort_unless($report->status === 'monitoring', 403);
+            // Must be a revision — step-2 approval must already exist
+            $existingStep2 = \App\Models\ReportApproval::where('report_id', $report->id)
+                ->where('step', 2)
+                ->firstOrFail();
+
+            $freshHd = $this->markAnalystSignaturesAsSigned($report->fresh()->header_data ?? [], $report);
+            $report->update(['header_data' => $freshHd, 'status' => 'submitted', 'locked_by' => null]);
+
+            $existingStep2->update([
+                'status'              => 'pending',
+                'signed_at'           => null,
+                'notes'               => null,
+                'returned_to_user_id' => null,
+            ]);
+
+            return redirect()->route('laporan.index')
+                ->with('success', 'Revisi berhasil dikirim ke supervisor.');
+        }
+
         if ($action === 'handover') {
             // Release the lock — any analyst can pick it up next
             Report::where('id', $report->id)->update(['locked_by' => null]);
@@ -243,6 +269,70 @@ class AnalisLaporanController extends Controller
 
         // default: save draft — keep locked_by
         return back()->with('success', 'Data berhasil disimpan sebagai draft.');
+    }
+
+    public function duplicateSection(Report $report, $sectionId)
+    {
+        abort_unless(
+            in_array($report->status, ['monitoring', 'reading']) && $report->locked_by === Auth::id(),
+            403
+        );
+        abort_unless(
+            $report->reportType->sections->contains('id', (int) $sectionId),
+            404
+        );
+
+        $hd      = $report->header_data ?? [];
+        $counts  = $hd['_section_counts'] ?? [];
+        $current = (int) ($counts[$sectionId] ?? 1);
+
+        if ($current >= 5) {
+            return request()->wantsJson()
+                ? response()->json(['ok' => false, 'message' => 'Maksimum 5 instance per seksi.'], 422)
+                : back()->with('error', 'Maksimum 5 instance per seksi.');
+        }
+
+        $counts[(int) $sectionId] = $current + 1;
+        $hd['_section_counts']    = $counts;
+        $report->update(['header_data' => $hd]);
+
+        return request()->wantsJson()
+            ? response()->json(['ok' => true])
+            : back()->with('success', 'Seksi berhasil diduplikat.');
+    }
+
+    public function removeSection(Report $report, $sectionId)
+    {
+        abort_unless(
+            in_array($report->status, ['monitoring', 'reading']) && $report->locked_by === Auth::id(),
+            403
+        );
+        abort_unless(
+            $report->reportType->sections->contains('id', (int) $sectionId),
+            404
+        );
+
+        $hd      = $report->header_data ?? [];
+        $counts  = $hd['_section_counts'] ?? [];
+        $current = (int) ($counts[$sectionId] ?? 1);
+
+        if ($current <= 2) {
+            unset($counts[(int) $sectionId]);
+        } else {
+            $counts[(int) $sectionId] = $current - 1;
+        }
+
+        if (empty($counts)) {
+            unset($hd['_section_counts']);
+        } else {
+            $hd['_section_counts'] = $counts;
+        }
+
+        $report->update(['header_data' => empty($hd) ? null : $hd]);
+
+        return request()->wantsJson()
+            ? response()->json(['ok' => true])
+            : back()->with('success', 'Duplikasi seksi berhasil dihapus.');
     }
 
     private function migrateFieldOwners(Report $report): void

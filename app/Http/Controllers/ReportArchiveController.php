@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use Illuminate\Http\Request;
 
-class ArsipLaporanController extends Controller
+class ReportArchiveController extends Controller
 {
     public function index(Request $request)
     {
@@ -25,6 +25,9 @@ class ArsipLaporanController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        // Apply snapshot so renamed/deleted annex/type name doesn't affect listing
+        $reports->each(fn ($r) => $r->applyReportTypeSnapshot());
+
         return view('pages.arsip.index', compact('reports', 'search'));
     }
 
@@ -35,7 +38,8 @@ class ArsipLaporanController extends Controller
         $managerApproval = $report->approvals->where('step', 3)->where('status', 'approved')->first();
         abort_unless($managerApproval, 404);
 
-        $report->load(['reportType.sections.locations.room', 'entries']);
+        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries']);
+        $report->applyReportTypeSnapshot();
 
         $entryMap = [];
         foreach ($report->entries as $entry) {
