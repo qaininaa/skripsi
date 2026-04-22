@@ -32,9 +32,9 @@ class Report extends Model
         return $this->belongsTo(User::class, 'locked_by');
     }
 
-    public function entries()
+    public function environmentalEntries()
     {
-        return $this->hasMany(ReportEntry::class);
+        return $this->hasMany(ReportEnvironmentalEntry::class);
     }
 
     public function approvals()

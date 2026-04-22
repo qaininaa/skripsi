@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Analyst;
 use App\Models\Report;
-use App\Models\ReportEntry;
+use App\Models\ReportEnvironmentalEntry;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -611,7 +611,7 @@ class AnalystReportController extends Controller
         }
 
         // Pre-load entries owned by other analysts — these must not be overwritten
-        $lockedEntryKeys = ReportEntry::where('report_id', $report->id)
+        $lockedEntryKeys = ReportEnvironmentalEntry::where('report_id', $report->id)
             ->where('analyst_id', '!=', Auth::id())
             ->whereNotNull('analyst_id')
             ->where(function ($q) {
@@ -649,7 +649,7 @@ class AnalystReportController extends Controller
                         continue;
                     }
 
-                    ReportEntry::updateOrCreate(
+                    ReportEnvironmentalEntry::updateOrCreate(
                         [
                             'report_id' => $report->id,
                             'report_section_id' => (int) $pivotId,

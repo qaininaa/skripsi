@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class ReportEntry extends Model
+class ReportEnvironmentalEntry extends Model
 {
     use HasUuids;
+
+    protected $table = 'report_environmental_entries';
 
     protected $fillable = [
         'report_id', 'report_section_id', 'instance_number', 'period_number',
@@ -20,8 +22,18 @@ class ReportEntry extends Model
         return $this->belongsTo(Report::class);
     }
 
-    public function analis()
+    public function section()
+    {
+        return $this->belongsTo(ReportSection::class, 'report_section_id');
+    }
+
+    public function analyst()
     {
         return $this->belongsTo(User::class, 'analyst_id');
+    }
+
+    public function personnel()
+    {
+        return $this->hasMany(ReportPersonnel::class, 'report_environmental_entry_id');
     }
 }
