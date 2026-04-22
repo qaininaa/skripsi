@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class ReportEntry extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'report_id', 'report_section_id', 'instance_number', 'period_number',
         'shift', 'analyst_id',

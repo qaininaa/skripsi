@@ -14,7 +14,7 @@ class ManagerReportController extends Controller
     {
         $userId = Auth::id();
 
-        $pending  = $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count();
+        $pending = $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count();
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
         $rejected = $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count();
 
@@ -24,10 +24,10 @@ class ManagerReportController extends Controller
     public function laporanMasuk(Request $request)
     {
         $userId = Auth::id();
-        $tab    = $request->query('tab', 'pending');
+        $tab = $request->query('tab', 'pending');
 
         $counts = [
-            'pending'  => $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count(),
+            'pending' => $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count(),
             'approved' => $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count(),
             'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
         ];
@@ -57,17 +57,17 @@ class ManagerReportController extends Controller
 
         // Supervisor (step 2 user) for the return dropdown
         $supervisorApproval = $report->approvals->firstWhere('step', 2);
-        $returnSupervisor   = $supervisorApproval?->user;
+        $returnSupervisor = $supervisorApproval?->user;
 
         $entryMap = [];
         foreach ($report->entries as $entry) {
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
-        $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
+        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
         $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         $reviewRole = 'manajer';
 
@@ -86,7 +86,7 @@ class ManagerReportController extends Controller
         ]);
 
         $user = Auth::user();
-        if ($user->username !== $request->username || !Hash::check($request->password, $user->password)) {
+        if ($user->username !== $request->username || ! Hash::check($request->password, $user->password)) {
             return back()
                 ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
                 ->withInput($request->except('password'));
@@ -101,7 +101,7 @@ class ManagerReportController extends Controller
 
         $signedAt = now();
         $approval->update([
-            'status'    => 'approved',
+            'status' => 'approved',
             'signed_at' => $signedAt,
         ]);
 
@@ -116,8 +116,8 @@ class ManagerReportController extends Controller
         // Snapshot report type structure so archived reports are immutable
         $headerData['_snapshot_section_ids'] = $report->reportType->sections->pluck('id')->toArray();
         $headerData['_snapshot_report_type'] = [
-            'annex_number'  => $report->reportType->annex_number,
-            'name'          => $report->reportType->name,
+            'annex_number' => $report->reportType->annex_number,
+            'name' => $report->reportType->name,
             'medium_groups' => $report->reportType->medium_groups,
         ];
 
@@ -137,7 +137,7 @@ class ManagerReportController extends Controller
         ]);
 
         $user = Auth::user();
-        if ($user->username !== $request->username || !Hash::check($request->password, $user->password)) {
+        if ($user->username !== $request->username || ! Hash::check($request->password, $user->password)) {
             return back()
                 ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
                 ->withInput($request->except('password'));
@@ -162,14 +162,14 @@ class ManagerReportController extends Controller
         );
 
         $isToSupervisor = $supervisorApproval && $supervisorApproval->user_id === $returnedToUserId;
-        $isToAnalyst    = in_array($returnedToUserId, $allowedAnalysts);
+        $isToAnalyst = in_array($returnedToUserId, $allowedAnalysts);
 
         abort_unless($isToSupervisor || $isToAnalyst, 422, 'Penerima pengembalian tidak valid.');
 
         $approval->update([
-            'status'               => 'returned',
-            'notes'                => $request->input('notes'),
-            'returned_to_user_id'  => $returnedToUserId,
+            'status' => 'returned',
+            'notes' => $request->input('notes'),
+            'returned_to_user_id' => $returnedToUserId,
         ]);
 
         if ($isToAnalyst) {
@@ -281,10 +281,10 @@ class ManagerReportController extends Controller
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
-        $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
+        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
         $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         return view('pages.supervisor.laporan-cetak', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'

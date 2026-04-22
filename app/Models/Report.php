@@ -2,20 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+
+// Model-model hasil normalisasi JSON header_data
+// (MediumIdentity, Incubator, InstrumentIdentity, Analyst, ReportSignature
+//  semuanya ada di namespace yang sama — tidak perlu import tambahan)
 
 class Report extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'report_type_id', 'product_name', 'batch_number',
-        'analyst_monitoring', 'analyst_reading',
         'status', 'created_by', 'locked_by', 'header_data',
     ];
 
     protected $casts = [
-        'header_data'       => 'array',
-        'analyst_monitoring' => 'array',
-        'analyst_reading'    => 'array',
+        'header_data' => 'array',
     ];
 
     public function reportType()
@@ -46,5 +50,94 @@ class Report extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // -------------------------------------------------------------------------
+    // Relasi ke tabel normalisasi (dipindah dari JSON header_data)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Daftar medium (agar) yang digunakan dalam laporan ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function mediumIdentities()
+    {
+        return $this->hasMany(MediumIdentity::class);
+    }
+
+    /**
+     * Daftar incubator yang digunakan dalam laporan ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function incubators()
+    {
+        return $this->hasMany(Incubator::class);
+    }
+
+    /**
+     * Daftar instrumen (Air Sampler) yang digunakan dalam laporan ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function instrumentIdentities()
+    {
+        return $this->hasMany(InstrumentIdentity::class);
+    }
+
+    /**
+     * Daftar analis yang mengerjakan laporan ini (monitoring dan reading).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function analysts()
+    {
+        return $this->hasMany(Analyst::class);
+    }
+
+    /**
+     * Daftar TTD (tanda tangan) per seksi dalam laporan ini.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function signatures()
+    {
+        return $this->hasMany(ReportSignature::class);
+    }
+
+    /**
+     * Apply the snapshot saved at manager approval time. This prevents template
+     * changes (new sections, renamed annex, etc.) from altering archived reports.
+     *
+     * No-op when no snapshot exists (backward compat) or relations not loaded.
+     */
+    public function applyReportTypeSnapshot(): void
+    {
+        $hd = $this->header_data ?? [];
+        $snapshotRt = $hd['_snapshot_report_type'] ?? null;
+        $snapshotIds = $hd['_snapshot_section_ids'] ?? null;
+
+        if (! $this->relationLoaded('reportType') || ! $this->reportType) {
+            return;
+        }
+
+        if ($snapshotRt) {
+            $rt = $this->reportType;
+            if (array_key_exists('annex_number', $snapshotRt)) {
+                $rt->annex_number = $snapshotRt['annex_number'];
+            }
+            if (array_key_exists('name', $snapshotRt)) {
+                $rt->name = $snapshotRt['name'];
+            }
+
+        }
+
+        if ($snapshotIds !== null && $this->reportType->relationLoaded('sections')) {
+            $filtered = $this->reportType->sections
+                ->filter(fn ($s) => in_array($s->id, $snapshotIds))
+                ->values();
+            $this->reportType->setRelation('sections', $filtered);
+        }
     }
 }

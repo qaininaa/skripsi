@@ -304,27 +304,27 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         @php $ink = $hd[$inkKey] ?? []; @endphp
         <tr><td style="width:35%">Nama Alat</td><td colspan="3" class="fw">{{ $inkInfo['label'] }}</td></tr>
         <tr><td>No. ID Inkubator</td><td colspan="3">{{ $ink['no_id'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Kalibrasi Inkubator</td><td colspan="3">{{ $ink['calibration_date'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Due Date Kalibrasi Inkubator</td><td colspan="3">{{ $ink['due_date'] ?? '' }}</td></tr>
+        <tr><td>Tanggal Kalibrasi Inkubator</td><td colspan="3">{{ isset($ink['calibration_date']) ? \Carbon\Carbon::parse($ink['calibration_date'])->format('d/m/Y') : '' }}</td></tr>
+        <tr><td>Tanggal Due Date Kalibrasi Inkubator</td><td colspan="3">{{ isset($ink['due_date']) ? \Carbon\Carbon::parse($ink['due_date'])->format('d/m/Y') : '' }}</td></tr>
         {{-- Medium Monitoring --}}
         <tr>
             <td rowspan="8" style="vertical-align:middle">Tanggal Inkubasi Medium (min {{ $inkInfo['min_days'] }} hari)</td>
             <td rowspan="4" class="tc" style="vertical-align:middle;width:14%">Medium<br>Monitoring</td>
-            <td>Tanggal Masuk Inkubator: {{ $ink['date_in'] ?? '' }}</td>
+            <td>Tanggal Masuk Inkubator: {{ isset($ink['date_in']) ? \Carbon\Carbon::parse($ink['date_in'])->format('d/m/Y') : '' }}</td>
             <td style="width:14%">Jam: {{ $ink['time_in'] ?? '' }}</td>
         </tr>
-        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . $ink['incubated_date'] : '' }}</td></tr>
-        <tr><td>Tanggal Keluar Inkubator: {{ $ink['date_out'] ?? '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
-        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . $ink['removed_date'] : '' }}</td></tr>
+        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . \Carbon\Carbon::parse($ink['incubated_date'])->format('d/m/Y') : '' }}</td></tr>
+        <tr><td>Tanggal Keluar Inkubator: {{ isset($ink['date_out']) ? \Carbon\Carbon::parse($ink['date_out'])->format('d/m/Y') : '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
+        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . \Carbon\Carbon::parse($ink['removed_date'])->format('d/m/Y') : '' }}</td></tr>
         {{-- Swab --}}
         <tr>
             <td rowspan="4" class="tc" style="vertical-align:middle">Swab</td>
-            <td>Tanggal Masuk Inkubator: {{ $ink['date_in'] ?? '' }}</td>
+            <td>Tanggal Masuk Inkubator: {{ isset($ink['date_in']) ? \Carbon\Carbon::parse($ink['date_in'])->format('d/m/Y') : '' }}</td>
             <td>Jam: {{ $ink['time_in'] ?? '' }}</td>
         </tr>
-        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . $ink['incubated_date'] : '' }}</td></tr>
-        <tr><td>Tanggal Keluar Inkubator: {{ $ink['date_out'] ?? '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
-        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . $ink['removed_date'] : '' }}</td></tr>
+        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . \Carbon\Carbon::parse($ink['incubated_date'])->format('d/m/Y') : '' }}</td></tr>
+        <tr><td>Tanggal Keluar Inkubator: {{ isset($ink['date_out']) ? \Carbon\Carbon::parse($ink['date_out'])->format('d/m/Y') : '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
+        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . \Carbon\Carbon::parse($ink['removed_date'])->format('d/m/Y') : '' }}</td></tr>
         @if (!$loop->last)
         <tr><td colspan="4" style="border:none;padding:5px"></td></tr>
         @endif
@@ -355,7 +355,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         return (string)($bn + $fn);
     };
     // Config-driven flags (matching analis view)
-    $hasSharedTime  = (bool) $section->has_shared_time;
+    $hasMachineSetup  = (bool) $section->has_machine_setup;
     $hasJam         = $section->time_slot_type === 'single';
     $isPerLocation  = $section->time_slot_type === 'per_location';
     $isDualAB       = $section->time_slot_type === 'dual_ab';
@@ -363,7 +363,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     $hasShiftToggle = (bool) $section->has_shift_toggle;
     $colLabel       = $section->column_label ?? 'Exposure';
 
-    $maxCols       = $section->max_exposure;
+    $maxCols       = $section->max_column;
     $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
     $savedAsgn     = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
     $secAssignments = [];
@@ -372,8 +372,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     }
     $secNote  = $hd['section_notes'][$section->id] ?? [];
     $subColsPerExp = $isPerLocation ? 4 : 3;
-    $totalCols = 5 + ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp + 4 + 1;
-    $pageOrientation = ($hasSharedTime && $maxCols >= 4) ? 'landscape' : 'portrait';
+    $totalCols = 5 + ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp + 4 + 1;
+    $pageOrientation = ($hasMachineSetup && $maxCols >= 4) ? 'landscape' : 'portrait';
 @endphp
 <div class="doc-page {{ $pageOrientation }}">
     {{-- Page header --}}
@@ -393,7 +393,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 <th class="vt" rowspan="3" style="width:25px">Class</th>
                 <th class="vt" rowspan="3">Room Number</th>
                 <th class="vt" rowspan="3">Location Number</th>
-                <th colspan="{{ ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp }}">
+                <th colspan="{{ ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp }}">
                     {{ $section->measurement_unit }}
                 </th>
                 <th colspan="2" rowspan="2">Alert<br>Limit</th>
@@ -403,7 +403,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
             {{-- Row 2: Machine set-up / Column labels --}}
             <tr>
-                @if ($hasSharedTime)
+                @if ($hasMachineSetup)
                 @php
                     $msJamMulai = null; $msJamSelesai = null;
                     foreach ($section->locations as $loc2) {
@@ -476,7 +476,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
             {{-- Row 3: B / F / T sub-headers --}}
             <tr>
-                @if ($hasSharedTime)
+                @if ($hasMachineSetup)
                 <th>B</th><th>F</th><th>T</th>
                 @endif
                 @for ($col = 1; $col <= $maxCols; $col++)
@@ -491,10 +491,31 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         </thead>
 
         <tbody>
-            @foreach ($section->locations as $loc)
+            @php
+                $_freqOrderP   = ['Operasional', 'Harian', 'Mingguan', 'Bulanan', '6 Bulan'];
+                $_locsByFreqP  = $section->locations->groupBy(fn($loc) => $loc->frequency?->name ?? '__');
+                $_freqKeysP    = collect($_freqOrderP)
+                                    ->filter(fn($f) => $_locsByFreqP->has($f))
+                                    ->merge($_locsByFreqP->keys()->filter(fn($k) => !in_array($k, $_freqOrderP) && $k !== '__'))
+                                    ->values();
+                if ($_locsByFreqP->has('__')) $_freqKeysP->push('__');
+                $_showFHdrP    = $_freqKeysP->count() > 1 || ($_freqKeysP->count() === 1 && $_freqKeysP->first() !== '__');
+                $_totalColsP   = 5 + ($hasMachineSetup ? 3 : 0) + ($maxCols * $subColsPerExp) + 5;
+                $_rowNumP      = 0;
+            @endphp
+            @foreach ($_freqKeysP as $_freqNameP)
+            @if ($_showFHdrP)
+            <tr>
+                <td colspan="{{ $_totalColsP }}" style="font-weight:700;text-align:left;padding:3px 4px;font-size:7.5pt;border-top:1.5px solid #444;letter-spacing:0.05em">
+                    FREQUENCY : {{ $_freqNameP === '__' ? 'TIDAK DITENTUKAN' : strtoupper($_freqNameP) }}
+                </td>
+            </tr>
+            @endif
+            @foreach ($_locsByFreqP[$_freqNameP] as $loc)
+            @php $_rowNumP++; @endphp
             @php
                 $locEntries = collect();
-                for ($p = 1; $p <= $section->max_exposure; $p++) {
+                for ($p = 1; $p <= $section->max_column; $p++) {
                     for ($s = 1; $s <= 2; $s++) {
                         if (isset($entryMap[$loc->pivot->id][$p][$s])) $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
                     }
@@ -506,17 +527,17 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 $hasAlt = !$hasTMS && (
                             ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                          || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
-                $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
+                $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : 'MS');
             @endphp
             <tr>
-                <td class="tc">{{ $loop->iteration }}</td>
+                <td class="tc">{{ $_rowNumP }}</td>
                 <td class="tl">{{ $loc->room->room_name }}</td>
                 <td class="tc">{{ $loc->room->class }}</td>
                 <td class="tc" style="font-family:monospace;font-size:7.5pt">{{ $loc->room->room_number }}</td>
                 <td class="tc" style="font-family:monospace;font-size:7.5pt;{{ str_starts_with($loc->location_number, '*)') ? 'font-style:italic;' : '' }}">{{ $loc->location_number }}</td>
 
                 {{-- Machine set-up --}}
-                @if ($hasSharedTime)
+                @if ($hasMachineSetup)
                 @php
                     $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
                     $msTVal  = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
@@ -552,13 +573,13 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 {{-- Kesimpulan --}}
                 <td class="tc fw">
                     @if ($konklusi === 'TMS') TMS
-                    @elseif ($konklusi === 'Alert') Alert
                     @elseif ($konklusi === 'MS') MS
                     @else MS / TMS*
                     @endif
                 </td>
             </tr>
-            @endforeach
+            @endforeach {{-- locations in frequency group --}}
+            @endforeach {{-- frequency groups --}}
         </tbody>
     </table>
 

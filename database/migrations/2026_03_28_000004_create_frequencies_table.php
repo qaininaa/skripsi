@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('frequencies', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->uuid('id')->primary();
+            $table->enum('name', ['operational', 'daily', 'weekly', 'monthly', 'semi_annual']);
             $table->timestamps();
         });
     }

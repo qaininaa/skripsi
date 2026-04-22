@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, HasUuids, Notifiable;
 
     protected $fillable = [
         'name',
@@ -40,7 +41,7 @@ class User extends Authenticatable
     {
         $expirationDays = (int) PasswordSetting::getValue('password_expiration_days', 90);
 
-        if (!$this->last_password_changed_at) {
+        if (! $this->last_password_changed_at) {
             return true;
         }
 

@@ -2,18 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class ReportType extends Model
 {
-    protected $fillable = [
-        'code', 'name', 'annex_number',
-        'medium_groups', 'incubators',
-    ];
+    use HasUuids;
 
-    protected $casts = [
-        'medium_groups' => 'array',
-        'incubators'    => 'array',
+    protected $fillable = [
+        'name', 'annex_number',
     ];
 
     public function sections()

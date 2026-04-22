@@ -12,16 +12,17 @@ class RoomController extends Controller
     public function index(Request $request): View
     {
         $search = $request->input('search');
-        $class  = $request->input('class');
+        $class = $request->input('class');
 
-        $rooms = Room::when($search, fn($q) => $q->where(function ($q) use ($search) {
-                $q->where('room_name', 'like', "%{$search}%")
-                  ->orWhere('room_number', 'like', "%{$search}%")
-                  ->orWhere('class', 'like', "%{$search}%");
-            }))
-            ->when($class, fn($q) => $q->where('class', $class))
+        $rooms = Room::when($search, fn ($q) => $q->where(function ($q) use ($search) {
+            $q->where('room_name', 'like', "%{$search}%")
+                ->orWhere('room_number', 'like', "%{$search}%")
+                ->orWhere('class', 'like', "%{$search}%");
+        }))
+            ->when($class, fn ($q) => $q->where('class', $class))
             ->withCount('locations')
-            ->latest()
+            ->orderBy('class', 'asc')
+            ->orderBy('room_name', 'asc')
             ->paginate(15)
             ->withQueryString();
 
@@ -36,9 +37,9 @@ class RoomController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'room_name'   => ['required', 'string', 'max:255'],
+            'room_name' => ['required', 'string', 'max:255'],
             'room_number' => ['required', 'string', 'max:100'],
-            'class'       => ['required', 'string', 'max:50'],
+            'class' => ['required', 'string', 'max:50'],
         ]);
 
         Room::create($validated);
@@ -56,9 +57,9 @@ class RoomController extends Controller
     public function update(Request $request, Room $ruangan): RedirectResponse
     {
         $validated = $request->validate([
-            'room_name'   => ['required', 'string', 'max:255'],
+            'room_name' => ['required', 'string', 'max:255'],
             'room_number' => ['required', 'string', 'max:100'],
-            'class'       => ['required', 'string', 'max:50'],
+            'class' => ['required', 'string', 'max:50'],
         ]);
 
         $ruangan->update($validated);

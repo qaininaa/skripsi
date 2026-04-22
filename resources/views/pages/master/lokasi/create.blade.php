@@ -34,11 +34,11 @@
                 {{-- Ruangan --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ruangan <span class="text-red-500">*</span></label>
-                    <select name="id_room"
+                    <select name="room_id"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
-                        <option value="" disabled {{ old('id_room') ? '' : 'selected' }}>Pilih ruangan</option>
+                        <option value="" disabled {{ old('room_id') ? '' : 'selected' }}>Pilih ruangan</option>
                         @foreach ($rooms as $room)
-                            <option value="{{ $room->id }}" {{ old('id_room') == $room->id ? 'selected' : '' }}>
+                            <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }}>
                                 {{ $room->room_name }} ({{ $room->room_number }}) — Kelas {{ $room->class }}
                             </option>
                         @endforeach

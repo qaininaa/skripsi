@@ -3,14 +3,31 @@
 @section('title', 'Tinjau Laporan')
 @section('page-title', 'Tinjau Laporan')
 @section('content')
-@php $hd = $report->header_data ?? []; @endphp
+@php
+    $hd = $report->header_data ?? [];
+    // Role-specific route & label config
+    $routeBack    = $reviewRole . '.laporan-masuk';
+    $routeCetak   = $reviewRole . '.laporan.cetak';
+    $routeSave    = $reviewRole . '.laporan.save';
+    $routeApprove = $reviewRole . '.laporan.approve';
+    $routeReturn  = $reviewRole . '.laporan.return';
+    $isEditable   = $approval->isPending();
+    // Users that can receive the return:
+    $allReturnableIds = array_unique(array_merge(
+        $report->analyst_monitoring ?? [],
+        $report->analyst_reading    ?? []
+    ));
+    $returnableAnalysts = \App\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
+    // For manajer: also supervisor
+    $returnSupervisor = $returnSupervisor ?? null; // passed from controller for manajer only
+@endphp
 
 <div class="space-y-4">
 
     {{-- Back link + Header --}}
     <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3">
-        <a href="{{ route('manajer.laporan-masuk') }}"
+        <a href="{{ route($routeBack) }}"
            class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -24,11 +41,11 @@
             </h2>
             <p class="text-sm text-gray-500 mt-0.5">
                 {{ $report->product_name }} · Batch <span>{{ $report->batch_number }}</span>
-                ·  {{ $report->created_at->isoFormat('D MMM Y') }}
+                · {{ $report->created_at->isoFormat('D MMM Y') }}
             </p>
         </div>
         </div>
-        <a href="{{ route('manajer.laporan.cetak', $report->id) }}" target="_blank"
+        <a href="{{ route($routeCetak, $report->id) }}" target="_blank"
            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm flex-shrink-0">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -37,7 +54,6 @@
             Generate Dokumen
         </a>
     </div>
-
 
     {{-- Approval status strip --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex flex-wrap items-center gap-3">
@@ -50,7 +66,9 @@
                 <span class="text-xs text-gray-400">pada {{ $approval->signed_at->isoFormat('D MMM Y, HH:mm') }}</span>
             @endif
         @elseif ($approval->isReturned())
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Dikembalikan ke Supervisor</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                Dikembalikan{{ $reviewRole === 'manajer' ? ' ke Supervisor' : '' }}
+            </span>
         @else
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Ditolak</span>
         @endif
@@ -74,18 +92,14 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    @php
-                        $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
-                    @endphp
+                    @php $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name'); @endphp
                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dibaca Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    @php
-                        $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
-                    @endphp
+                    @php $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name'); @endphp
                     {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                 </div>
             </div>
@@ -99,6 +113,19 @@
             </div>
         </div>
     </div>
+
+    {{-- Flash message --}}
+    @if (session('success'))
+    <div class="px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+        {{ session('success') }}
+    </div>
+    @endif
+
+    {{-- Edit form opens here (only when pending) --}}
+    @if ($isEditable)
+    <form method="POST" action="{{ route($routeSave, $report) }}" class="space-y-4">
+    @csrf
+    @endif
 
     {{-- ── 2. Identitas Instrumen — Air Sampler ──────────── --}}
     @if ($needsAirSampler)
@@ -114,15 +141,30 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
+                @if ($isEditable)
+                <input type="text" name="header_data[air_sampler][no_id]" value="{{ $as['no_id'] ?? '' }}"
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['no_id'] ?? '—' }}</div>
+                @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
+                @if ($isEditable)
+                <input type="date" name="header_data[air_sampler][calibration_date]" value="{{ $as['calibration_date'] ?? '' }}"
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['calibration_date'] ?? '—' }}</div>
+                @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
+                @if ($isEditable)
+                <input type="date" name="header_data[air_sampler][due_date]" value="{{ $as['due_date'] ?? '' }}"
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['due_date'] ?? '—' }}</div>
+                @endif
             </div>
         </div>
     </div>
@@ -143,17 +185,32 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
+                        @if ($isEditable)
+                        <input type="text" name="header_data[{{ $medKey }}][nomor_batch]" value="{{ $med['nomor_batch'] ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['nomor_batch'] ?? '—' }}</div>
+                        @endif
                     </div>
                     @if ($medKey !== 'medium_swab')
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
+                        @if ($isEditable)
+                        <input type="text" name="header_data[{{ $medKey }}][nomor_gpt]" value="{{ $med['nomor_gpt'] ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['nomor_gpt'] ?? '—' }}</div>
+                        @endif
                     </div>
                     @endif
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medKey === 'medium_swab' ? 'Swab Kit' : 'Medium' }}</label>
+                        @if ($isEditable)
+                        <input type="date" name="header_data[{{ $medKey }}][expiry_date]" value="{{ $med['expiry_date'] ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['expiry_date'] ?? '—' }}</div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -175,6 +232,8 @@
         @php $ink = $hd[$inkKey] ?? []; $inkLabel = $inkInfo['label']; $inkMin = $inkInfo['min_days']; @endphp
         <div class="p-5 space-y-4 @if(!$loop->last) border-b border-gray-100 @endif">
             <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{{ $inkLabel }}</p>
+
+            {{-- Row 1: Alat + Kalibrasi --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nama Alat</label>
@@ -182,51 +241,106 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['no_id'] ?? '—' }}</div>
+                    @if ($isEditable)
+                    <input type="text" name="header_data[{{ $inkKey }}][no_id]" value="{{ $ink['no_id'] ?? '' }}"
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['no_id'] ?? '—' }}</div>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['calibration_date'] ?? '—' }}</div>
+                    @if ($isEditable)
+                    <input type="date" name="header_data[{{ $inkKey }}][calibration_date]" value="{{ $ink['calibration_date'] ?? '' }}"
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                        {{ isset($ink['calibration_date']) ? \Carbon\Carbon::parse($ink['calibration_date'])->format('d/m/Y') : '—' }}
+                    </div>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['due_date'] ?? '—' }}</div>
+                    @if ($isEditable)
+                    <input type="date" name="header_data[{{ $inkKey }}][due_date]" value="{{ $ink['due_date'] ?? '' }}"
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                    @else
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                        {{ isset($ink['due_date']) ? \Carbon\Carbon::parse($ink['due_date'])->format('d/m/Y') : '—' }}
+                    </div>
+                    @endif
                 </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-gray-50">
-                <div class="lg:col-span-2">
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['incubation_date'] ?? '—' }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['date_in'] ?? '—' }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['time_in'] ?? '—' }}</div>
-                </div>
-                <div class="hidden lg:block lg:col-span-2"></div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['date_out'] ?? '—' }}</div>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
-                    <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $ink['time_out'] ?? '—' }}</div>
-                </div>
-                <div class="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                    @foreach ([
-                        ['key' => 'incubated',  'label' => 'Diinkubasi oleh'],
-                        ['key' => 'removed', 'label' => 'Dikeluarkan oleh'],
-                    ] as $field)
-                    @php $fKey = $field['key']; @endphp
-                    <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-3 space-y-2">
-                        <p class="text-xs font-semibold text-gray-500">{{ $field['label'] }}</p>
-                        <div class="text-sm text-gray-700">{{ $ink[$fKey . '_by'] ?? '—' }}</div>
-                        <div class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700">{{ $ink[$fKey . '_date'] ?? '—' }}</div>
+
+            {{-- Row 2: Inkubasi & Keluar --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-50">
+                {{-- Masuk / Diinkubasi --}}
+                <div class="space-y-3">
+                    <p class="text-xs font-semibold text-emerald-600">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</p>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
+                        @if ($isEditable)
+                        <input type="text" name="header_data[{{ $inkKey }}][incubated_by]" value="{{ $ink['incubated_by'] ?? '' }}"
+                               placeholder="Nama analis"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['incubated_by'] ?? '—' }}</div>
+                        @endif
                     </div>
-                    @endforeach
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
+                        @if ($isEditable)
+                        <input type="date" name="header_data[{{ $inkKey }}][date_in]" value="{{ $ink['date_in'] ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                            {{ isset($ink['date_in']) ? \Carbon\Carbon::parse($ink['date_in'])->format('d/m/Y') : '—' }}
+                        </div>
+                        @endif
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
+                        @if ($isEditable)
+                        <input type="time" name="header_data[{{ $inkKey }}][time_in]" value="{{ $ink['time_in'] ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['time_in'] ?? '—' }}</div>
+                        @endif
+                    </div>
+                </div>
+                {{-- Keluar / Dikeluarkan --}}
+                <div class="space-y-3">
+                    <p class="text-xs font-semibold text-emerald-600">&nbsp;</p>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
+                        @if ($isEditable)
+                        <input type="text" name="header_data[{{ $inkKey }}][removed_by]" value="{{ $ink['removed_by'] ?? '' }}"
+                               placeholder="Nama analis"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['removed_by'] ?? '—' }}</div>
+                        @endif
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
+                        @if ($isEditable)
+                        <input type="date" name="header_data[{{ $inkKey }}][date_out]" value="{{ $ink['date_out'] ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
+                            {{ isset($ink['date_out']) ? \Carbon\Carbon::parse($ink['date_out'])->format('d/m/Y') : '—' }}
+                        </div>
+                        @endif
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
+                        @if ($isEditable)
+                        <input type="time" name="header_data[{{ $inkKey }}][time_out]" value="{{ $ink['time_out'] ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        @else
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['time_out'] ?? '—' }}</div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -237,7 +351,6 @@
     {{-- ── Tabel Pengukuran per Seksi ────────────────────── --}}
     @foreach ($report->reportType->sections as $section)
     @php
-        // CFU helpers (values are varchar: '<1', 'TNTC', or integer string)
         $cfuNum = function(?string $v): ?int {
             if ($v === null || $v === '') return null;
             if (strtoupper($v) === 'TNTC') return PHP_INT_MAX;
@@ -265,15 +378,15 @@
         $hasShiftToggle = (bool) $section->has_shift_toggle;
         $colLabel       = $section->column_label ?? 'Exposure';
 
-        $maxCols       = $section->max_column;
-        $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-        $secNum        = $loop->index + 5;
-        $savedAsgn     = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
+        $maxCols        = $section->max_column;
+        $romanNums      = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+        $secNum         = $loop->index + 5;
+        $savedAsgn      = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
         $secAssignments = [];
         for ($c = 1; $c <= $maxCols; $c++) {
             $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
         }
-        $secNote = $hd['section_notes'][$section->id] ?? [];
+        $secNote       = $hd['section_notes'][$section->id] ?? [];
         $subColsPerExp = $isPerLocation ? 4 : 3;
     @endphp
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -319,9 +432,25 @@
                         @endphp
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100" colspan="3">
                             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
+                            @if ($isEditable)
+                            @php
+                                $msHdMulai   = $hd['exposure_times'][$section->id][0]['start_time'] ?? $msJamMulai;
+                                $msHdSelesai = $hd['exposure_times'][$section->id][0]['end_time']   ?? $msJamSelesai;
+                            @endphp
+                            <div class="flex justify-center items-center gap-1">
+                                <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
+                                       value="{{ $msHdMulai }}"
+                                       class="rounded border border-emerald-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                <span class="text-gray-400 text-[10px] font-normal">–</span>
+                                <input type="time" name="exposure_times[{{ $section->id }}][0][end_time]"
+                                       value="{{ $msHdSelesai }}"
+                                       class="rounded border border-emerald-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                            </div>
+                            @else
                             <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
                                 {{ $msJamMulai ? $msJamMulai . ' – ' . ($msJamSelesai ?? '—') : '—' }}
                             </div>
+                            @endif
                         </th>
                         @endif
                         @for ($col = 1; $col <= $maxCols; $col++)
@@ -329,8 +458,27 @@
                         <th class="px-2 py-1.5 text-center font-semibold border-r border-emerald-100 whitespace-nowrap"
                             colspan="{{ $subColsPerExp }}">
                             {{ $colLabel }} {{ $maxCols > 1 ? ($romanNums[$col - 1] ?? $col) : '' }}
+
+                            {{-- Swab time slots --}}
                             @if ($isSwabTime)
                             @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
+                            @if ($isEditable)
+                            <div class="space-y-0.5 mt-1">
+                                @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
+                                @php $st = $swabColTimes[$swabKey] ?? []; @endphp
+                                <div class="flex items-center justify-center gap-0.5">
+                                    <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
+                                    <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][mulai]"
+                                           value="{{ $st['mulai'] ?? '' }}"
+                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                    <span class="text-gray-400 text-[10px]">–</span>
+                                    <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][selesai]"
+                                           value="{{ $st['selesai'] ?? '' }}"
+                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                </div>
+                                @endforeach
+                            </div>
+                            @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                                 @php $st = $swabColTimes[$swabKey] ?? []; @endphp
@@ -338,7 +486,27 @@
                                 @endforeach
                             </div>
                             @endif
+                            @endif
+
+                            {{-- Dual A/B settle times --}}
                             @if ($isDualAB)
+                            @if ($isEditable)
+                            <div class="space-y-0.5 mt-1">
+                                @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
+                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                <div class="flex items-center justify-center gap-0.5">
+                                    <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][start_time]"
+                                           value="{{ $stAB['start_time'] ?? '' }}"
+                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                    <span class="text-gray-400 text-[10px]">–</span>
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][end_time]"
+                                           value="{{ $stAB['end_time'] ?? '' }}"
+                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                </div>
+                                @endforeach
+                            </div>
+                            @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
                                 @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
@@ -346,17 +514,39 @@
                                 @endforeach
                             </div>
                             @endif
+                            @endif
+
+                            {{-- Single time slot (Mulai/Selesai in header) --}}
                             @if ($hasJam)
                             @php
-                                $expJam = $hd['exposure_times'][$section->id][$col] ?? [];
+                                $expJam        = $hd['exposure_times'][$section->id][$col] ?? [];
                                 $expJamMulai   = $expJam['start_time'] ?? null;
                                 $expJamSelesai = $expJam['end_time'] ?? null;
                             @endphp
+                            @if ($isEditable)
+                            <div class="space-y-0.5 mt-1">
+                                <div class="flex items-center justify-center gap-0.5">
+                                    <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
+                                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][start_time]"
+                                           value="{{ $expJamMulai }}"
+                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                </div>
+                                <div class="flex items-center justify-center gap-0.5">
+                                    <span class="text-[9px] text-gray-500 w-10 shrink-0">Selesai:</span>
+                                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][end_time]"
+                                           value="{{ $expJamSelesai }}"
+                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                </div>
+                            </div>
+                            @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 <div>Mulai: {{ $expJamMulai ?: '—' }}</div>
                                 <div>Selesai: {{ $expJamSelesai ?: '—' }}</div>
                             </div>
                             @endif
+                            @endif
+
+                            {{-- Shift assignment badge --}}
                             @if ($hasShiftToggle)
                             <div class="flex justify-center mt-1.5">
                                 <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
@@ -388,7 +578,28 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @foreach ($section->locations as $loc)
+                    @php
+                        $_freqOrderR   = ['Operasional', 'Harian', 'Mingguan', 'Bulanan', '6 Bulan'];
+                        $_locsByFreqR  = $section->locations->groupBy(fn($loc) => $loc->frequency?->name ?? '__');
+                        $_freqKeysR    = collect($_freqOrderR)
+                                            ->filter(fn($f) => $_locsByFreqR->has($f))
+                                            ->merge($_locsByFreqR->keys()->filter(fn($k) => !in_array($k, $_freqOrderR) && $k !== '__'))
+                                            ->values();
+                        if ($_locsByFreqR->has('__')) $_freqKeysR->push('__');
+                        $_showFHdrR    = $_freqKeysR->count() > 1 || ($_freqKeysR->count() === 1 && $_freqKeysR->first() !== '__');
+                        $_totalColsR   = 5 + ($hasMachineSetup ? 3 : 0) + ($maxCols * $subColsPerExp) + 5;
+                        $_rowNumR      = 0;
+                    @endphp
+                    @foreach ($_freqKeysR as $_freqNameR)
+                    @if ($_showFHdrR)
+                    <tr class="bg-emerald-50 border-t border-emerald-200">
+                        <td colspan="{{ $_totalColsR }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
+                            FREKUENSI : {{ $_freqNameR === '__' ? 'Tidak Ditentukan' : strtoupper($_freqNameR) }}
+                        </td>
+                    </tr>
+                    @endif
+                    @foreach ($_locsByFreqR[$_freqNameR] as $loc)
+                    @php $_rowNumR++; @endphp
                     @php
                         $locEntries = collect();
                         for ($p = 1; $p <= $section->max_column; $p++) {
@@ -405,8 +616,7 @@
                         $hasAlt = !$hasTMS && (
                                     ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                                  || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
-                        $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
-
+                        $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : 'MS');
                         $classBadge = match($loc->room->class) {
                             'A' => 'bg-purple-100 text-purple-700',
                             'B' => 'bg-blue-100 text-blue-700',
@@ -415,7 +625,7 @@
                         };
                     @endphp
                     <tr class="hover:bg-emerald-50/20 transition-colors">
-                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loop->iteration }}</td>
+                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $_rowNumR }}</td>
                         <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room->room_name }}</td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">{{ $loc->room->class }}</span>
@@ -432,7 +642,7 @@
                         @if ($hasMachineSetup)
                         @php
                             $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
-                            $msTVal = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
+                            $msTVal  = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
@@ -455,9 +665,8 @@
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
                             $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
-                            $tVal = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
+                            $tVal       = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
-
                         @if ($isPerLocation)
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-gray-{{ $existEntry?->start_time ? '600' : '300' }} text-[11px]">
@@ -465,7 +674,6 @@
                             </span>
                         </td>
                         @endif
-
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $existEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
                                 {{ $existEntry?->cfu_bacteria ?? '—' }}
@@ -506,8 +714,6 @@
                         <td class="px-2 py-2.5 text-center">
                             @if ($konklusi === 'TMS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
-                            @elseif ($konklusi === 'Alert')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700">Alert</span>
                             @elseif ($konklusi === 'MS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">MS</span>
                             @else
@@ -515,7 +721,8 @@
                             @endif
                         </td>
                     </tr>
-                    @endforeach
+                    @endforeach {{-- locations in frequency group --}}
+                    @endforeach {{-- frequency groups --}}
                 </tbody>
             </table>
         </div>
@@ -538,7 +745,27 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1.5">Kesimpulan</label>
-                @php $sk = $secNote['conclusion'] ?? ''; @endphp
+                @php
+                    $sk = $secNote['conclusion'] ?? '';
+                    if ($sk === '') {
+                        $_sHasTMS   = false;
+                        $_sAllEmpty = true;
+                        foreach ($section->locations as $_loc) {
+                            foreach ($entryMap[$_loc->pivot->id] ?? [] as $_period => $_shifts) {
+                                foreach ($_shifts as $_shift => $_e) {
+                                    $_sAllEmpty = false;
+                                    $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
+                                    $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
+                                    if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
+                                        || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
+                                        $_sHasTMS = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (!$_sAllEmpty) { $sk = $_sHasTMS ? 'TMS' : 'MS'; }
+                    }
+                @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
                         <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
@@ -571,10 +798,9 @@
                 array_intersect($_secAnalystIds, $_allMonIds),
                 array_intersect(array_keys($_secMonTs), $_allMonIds)
             )));
-            $_secReadIds = array_values(array_unique(array_merge(
-                array_intersect($_secAnalystIds, $_allReadIds),
+            $_secReadIds = array_values(array_unique(
                 array_intersect(array_keys($_secReadTs), $_allReadIds)
-            )));
+            ));
             $_supApproval  = $report->approvals->firstWhere('step', 2);
             $_mngrApproval = $report->approvals->firstWhere('step', 3);
             $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
@@ -682,6 +908,20 @@
     </div>
     @endforeach
 
+    {{-- Save button + close form (after all sections) --}}
+    @if ($isEditable)
+    <div class="flex justify-end">
+        <button type="submit"
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl shadow hover:bg-emerald-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Simpan Perubahan
+        </button>
+    </div>
+    </form>
+    @endif
+
     {{-- ── Aksi: Setujui / Kembalikan ──────────────────────────── --}}
     @if ($approval->isPending())
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -705,7 +945,13 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-emerald-800">Setujui Laporan</p>
-                        <p class="text-xs text-emerald-600">Laporan akan ditandai sebagai disetujui (final)</p>
+                        <p class="text-xs text-emerald-600">
+                            @if ($reviewRole === 'manajer')
+                                Laporan akan ditandai sebagai disetujui (final)
+                            @else
+                                Laporan akan ditandai sebagai disetujui
+                            @endif
+                        </p>
                     </div>
                 </div>
                 <button type="button" onclick="openConfirmModal('approve')"
@@ -717,8 +963,7 @@
                 </button>
             </div>
 
-            {{-- Return to Supervisor / Analyst --}}
-            @if ($supervisor || $monitoringUsers->isNotEmpty())
+            {{-- Return --}}
             <div class="rounded-xl border-2 border-orange-200 bg-orange-50 p-4 flex flex-col gap-3">
                 <div class="flex items-center gap-3">
                     <div class="h-9 w-9 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
@@ -728,18 +973,24 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-orange-800">Kembalikan Laporan</p>
-                        <p class="text-xs text-orange-600">Kirim kembali ke Supervisor atau Analis untuk diperbaiki</p>
+                        <p class="text-xs text-orange-600">
+                            @if ($reviewRole === 'manajer')
+                                Kirim kembali ke Supervisor atau Analis untuk diperbaiki
+                            @else
+                                Kirim kembali ke analis untuk diperbaiki
+                            @endif
+                        </p>
                     </div>
                 </div>
                 <div class="flex gap-2">
                     <select id="return-target-select"
                         class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
-                        <option value="">-- Pilih Supervisor/Analis --</option>
-                        @if ($supervisor)
-                        <option value="supervisor:{{ $supervisor->id }}">{{ $supervisor->name }} (Supervisor)</option>
+                        <option value="">-- Pilih Tujuan Pengembalian --</option>
+                        @if ($reviewRole === 'manajer' && $returnSupervisor)
+                        <option value="{{ $returnSupervisor->id }}">{{ $returnSupervisor->name }} (Supervisor)</option>
                         @endif
-                        @foreach ($monitoringUsers as $analyst)
-                        <option value="analyst:{{ $analyst->id }}">{{ $analyst->name }} (Analis)</option>
+                        @foreach ($returnableAnalysts as $analyst)
+                        <option value="{{ $analyst->id }}">{{ $analyst->name }} (Analis)</option>
                         @endforeach
                     </select>
                     <textarea id="return-notes-input" placeholder="Catatan / alasan pengembalian (opsional)"
@@ -754,7 +1005,6 @@
                     </button>
                 </div>
             </div>
-            @endif
 
         </div>
     </div>
@@ -765,8 +1015,7 @@
 {{-- ── Modal Konfirmasi Kredensial ──────────────────────────────── --}}
 <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
-
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <div class="relative bg-white rounded-2xl shadow-2xl shadow-black ring-1 ring-black/10 w-full max-w-md p-6">
         <div id="modal-icon-approve" class="hidden flex items-center gap-3 mb-5">
             <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -774,7 +1023,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-base font-semibold text-gray-800">Konfirmasi Persetujuan Final</p>
+                <p class="text-base font-semibold text-gray-800">Konfirmasi Persetujuan</p>
                 <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk menyetujui laporan ini</p>
             </div>
         </div>
@@ -786,15 +1035,14 @@
             </div>
             <div>
                 <p class="text-base font-semibold text-gray-800">Konfirmasi Pengembalian</p>
-                <p id="modal-return-subtitle" class="text-xs text-gray-500">Masukkan kredensial Anda untuk mengembalikan laporan</p>
+                <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk mengembalikan laporan ini</p>
             </div>
         </div>
 
         <form id="confirm-form" method="POST" action="">
             @csrf
-            <input type="hidden" name="returned_to_user_id" id="modal-returned-to-user-id" value="{{ $supervisor?->id }}">
+            <input type="hidden" name="returned_to_user_id" id="modal-returned-to-user-id" value="">
             <input type="hidden" name="notes" id="modal-notes" value="">
-
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">Username</label>
@@ -809,7 +1057,6 @@
                         placeholder="Masukkan password Anda" required>
                 </div>
             </div>
-
             <div class="flex gap-3 mt-6">
                 <button type="button" onclick="closeConfirmModal()"
                     class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
@@ -826,8 +1073,8 @@
 
 <script>
 function openConfirmModal(action) {
-    const modal = document.getElementById('confirm-modal');
-    const form  = document.getElementById('confirm-form');
+    const modal     = document.getElementById('confirm-modal');
+    const form      = document.getElementById('confirm-form');
     const iconApprove = document.getElementById('modal-icon-approve');
     const iconReturn  = document.getElementById('modal-icon-return');
     const submitBtn   = document.getElementById('modal-submit-btn');
@@ -836,26 +1083,24 @@ function openConfirmModal(action) {
     document.getElementById('modal-password').value = '';
 
     if (action === 'approve') {
-        form.action = '{{ route('manajer.laporan.approve', $report->id) }}';
+        form.action = '{{ route($routeApprove, $report->id) }}';
         iconApprove.classList.remove('hidden');
         iconReturn.classList.add('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700';
+        document.getElementById('modal-returned-to-user-id').value = '';
         document.getElementById('modal-notes').value = '';
-    } else if (action === 'return') {
-        const select = document.getElementById('return-target-select');
-        if (!select.value) {
-            alert('Pilih tujuan pengembalian terlebih dahulu.');
+    } else {
+        const targetVal = document.getElementById('return-target-select').value;
+        if (!targetVal) {
+            alert('Silakan pilih tujuan pengembalian terlebih dahulu.');
             return;
         }
-        const [type, id] = select.value.split(':');
-        const label = type === 'analyst' ? 'Analis' : 'Supervisor';
-        form.action = '{{ route('manajer.laporan.return', $report->id) }}';
+        form.action = '{{ route($routeReturn, $report->id) }}';
         iconApprove.classList.add('hidden');
         iconReturn.classList.remove('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700';
-        document.getElementById('modal-returned-to-user-id').value = id;
-        document.getElementById('modal-return-subtitle').textContent = 'Masukkan kredensial Anda untuk mengembalikan laporan ke ' + label;
-        document.getElementById('modal-notes').value = document.getElementById('return-notes-input')?.value ?? '';
+        document.getElementById('modal-returned-to-user-id').value = targetVal;
+        document.getElementById('modal-notes').value = document.getElementById('return-notes-input').value;
     }
 
     modal.classList.remove('hidden');

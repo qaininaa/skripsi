@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             AuditLog::create([
                 'user_id' => $user->id,
                 'action' => 'login',
-                'description' => 'User login: ' . $user->name . ' (' . $user->email . ')',
+                'description' => 'User login: '.$user->name.' ('.$user->email.')',
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
             ]);

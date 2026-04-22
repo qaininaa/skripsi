@@ -346,7 +346,7 @@
     @endphp
     @php
         // Config-driven flags (matching analis view)
-        $hasSharedTime  = (bool) $section->has_shared_time;
+        $hasMachineSetup  = (bool) $section->has_machine_setup;
         $hasJam         = $section->time_slot_type === 'single';
         $isPerLocation  = $section->time_slot_type === 'per_location';
         $isDualAB       = $section->time_slot_type === 'dual_ab';
@@ -354,7 +354,7 @@
         $hasShiftToggle = (bool) $section->has_shift_toggle;
         $colLabel       = $section->column_label ?? 'Exposure';
 
-        $maxCols       = $section->max_exposure;
+        $maxCols       = $section->max_column;
         $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
         $secNum        = $loop->index + 5;
         $savedAsgn     = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
@@ -389,7 +389,7 @@
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No. Ruangan</th>
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No.<br>Lokasi</th>
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100"
-                            colspan="{{ ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp }}">
+                            colspan="{{ ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp }}">
                             {{ $section->measurement_unit }}
                         </th>
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Alert</th>
@@ -398,7 +398,7 @@
                     </tr>
                     {{-- Row 2: period/shift labels --}}
                     <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
-                        @if ($hasSharedTime)
+                        @if ($hasMachineSetup)
                         @php
                             $msJamMulai = null; $msJamSelesai = null;
                             foreach ($section->locations as $loc2) {
@@ -539,7 +539,7 @@
                     </tr>
                     {{-- Row 3: sub-column headers --}}
                     <tr class="bg-emerald-50/60 text-gray-500 border-b border-gray-200">
-                        @if ($hasSharedTime)
+                        @if ($hasMachineSetup)
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
@@ -559,10 +559,31 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @foreach ($section->locations as $loc)
+                    @php
+                        $_freqOrder2   = ['Operasional', 'Harian', 'Mingguan', 'Bulanan', '6 Bulan'];
+                        $_locsByFreq2  = $section->locations->groupBy(fn($loc) => $loc->frequency?->name ?? '__');
+                        $_freqKeys2    = collect($_freqOrder2)
+                                            ->filter(fn($f) => $_locsByFreq2->has($f))
+                                            ->merge($_locsByFreq2->keys()->filter(fn($k) => !in_array($k, $_freqOrder2) && $k !== '__'))
+                                            ->values();
+                        if ($_locsByFreq2->has('__')) $_freqKeys2->push('__');
+                        $_showFHdr2    = $_freqKeys2->count() > 1 || ($_freqKeys2->count() === 1 && $_freqKeys2->first() !== '__');
+                        $_totalCols2   = 5 + ($hasMachineSetup ? 3 : 0) + ($maxCols * $subColsPerExp) + 5;
+                        $_rowNum2      = 0;
+                    @endphp
+                    @foreach ($_freqKeys2 as $_freqName2)
+                    @if ($_showFHdr2)
+                    <tr class="bg-emerald-50 border-t border-emerald-200">
+                        <td colspan="{{ $_totalCols2 }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
+                            FREKUENSI : {{ $_freqName2 === '__' ? 'Tidak Ditentukan' : strtoupper($_freqName2) }}
+                        </td>
+                    </tr>
+                    @endif
+                    @foreach ($_locsByFreq2[$_freqName2] as $loc)
+                    @php $_rowNum2++; @endphp
                     @php
                         $locEntries = collect();
-                        for ($p = 1; $p <= $section->max_exposure; $p++) {
+                        for ($p = 1; $p <= $section->max_column; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
                                 if (isset($entryMap[$loc->pivot->id][$p][$s])) {
                                     $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
@@ -576,7 +597,7 @@
                         $hasAlt = !$hasTMS && (
                                     ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                                  || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
-                        $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS'));
+                        $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : 'MS');
 
                         $classBadge = match($loc->room->class) {
                             'A' => 'bg-purple-100 text-purple-700',
@@ -586,7 +607,7 @@
                         };
                     @endphp
                     <tr class="hover:bg-emerald-50/20 transition-colors">
-                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loop->iteration }}</td>
+                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $_rowNum2 }}</td>
                         <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room->room_name }}</td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">{{ $loc->room->class }}</span>
@@ -600,8 +621,8 @@
                             @endif
                         </td>
 
-                        {{-- Machine Set-up (hasSharedTime) --}}
-                        @if ($hasSharedTime)
+                        {{-- Machine Set-up (hasMachineSetup) --}}
+                        @if ($hasMachineSetup)
                         @php
                             $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
                             $msTVal = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
@@ -682,8 +703,6 @@
                         <td class="px-2 py-2.5 text-center">
                             @if ($konklusi === 'TMS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
-                            @elseif ($konklusi === 'Alert')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700">Alert</span>
                             @elseif ($konklusi === 'MS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">MS</span>
                             @else
@@ -691,7 +710,8 @@
                             @endif
                         </td>
                     </tr>
-                    @endforeach
+                    @endforeach {{-- locations in frequency group --}}
+                    @endforeach {{-- frequency groups --}}
                 </tbody>
             </table>
         </div>

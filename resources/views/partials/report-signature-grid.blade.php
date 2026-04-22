@@ -6,13 +6,12 @@
 
     $hd = $report->header_data ?? [];
 
-    // All monitoring analysts
-    $monitoringUsers = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->get()->keyBy('id');
-    $monitoringUsersSorted = collect($report->analyst_monitoring ?? [])->map(fn($id) => $monitoringUsers->get($id))->filter();
-
-    // All reading analysts
-    $readingUsers = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->get()->keyBy('id');
-    $readingUsersSorted = collect($report->analyst_reading ?? [])->map(fn($id) => $readingUsers->get($id))->filter();
+    // All monitoring analysts — load relation if not already loaded
+    if (!$report->relationLoaded('analysts')) {
+        $report->load('analysts.user');
+    }
+    $monitoringUsersSorted = $report->analysts->where('type', 'monitoring')->map->user->filter()->values();
+    $readingUsersSorted    = $report->analysts->where('type', 'reading')->map->user->filter()->values();
 
     // Per-analyst timestamps (associative: userId => datetime string)
     $monTimestamps  = $hd['ttd_monitoring_timestamps'] ?? [];

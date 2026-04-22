@@ -70,7 +70,7 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dimonitoring Oleh</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dibaca Oleh</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
+                            <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -113,13 +113,31 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5">
-                                    <a href="{{ route('supervisor.laporan.show', $report->id) }}"
-                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition-colors">
-                                        Tinjau
-                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </a>
+                                    @if ($report->status === 'returned_to_supervisor')
+                                        @php $mngrApproval = $report->approvals->firstWhere('step', 3); @endphp
+                                        <div class="flex flex-col items-center gap-1">
+                                            <a href="{{ route('supervisor.laporan.show', $report->id) }}"
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-xs font-medium hover:bg-orange-600 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Revisi
+                                            </a>
+                                            @if ($mngrApproval?->notes)
+                                                <p class="text-xs text-orange-600 italic max-w-[160px] leading-snug">
+                                                    &ldquo;{{ $mngrApproval->notes }}&rdquo;
+                                                </p>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <a href="{{ route('supervisor.laporan.show', $report->id) }}"
+                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition-colors">
+                                            Tinjau
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

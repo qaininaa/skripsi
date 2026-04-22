@@ -6,8 +6,8 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class UserManagementController extends Controller
 {
@@ -17,13 +17,13 @@ class UserManagementController extends Controller
     public function index(Request $request): View
     {
         $search = $request->input('search');
-        $role   = $request->input('role');
+        $role = $request->input('role');
 
-        $users = User::when($search, fn($q) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%");
-            }))
-            ->when($role, fn($q) => $q->where('role', $role))
+        $users = User::when($search, fn ($q) => $q->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('username', 'like', "%{$search}%");
+        }))
+            ->when($role, fn ($q) => $q->where('role', $role))
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -45,9 +45,9 @@ class UserManagementController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
-            'role'     => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
+            'role' => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
             'password' => ['required', 'string', 'confirmed'],
         ]);
 
@@ -65,7 +65,7 @@ class UserManagementController extends Controller
         AuditLog::create([
             'user_id' => $request->user()?->id,
             'action' => 'create_user',
-            'description' => 'Membuat pengguna baru: ' . $user->name . ' (' . $user->username . ')',
+            'description' => 'Membuat pengguna baru: '.$user->name.' ('.$user->username.')',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -96,7 +96,7 @@ class UserManagementController extends Controller
                 'max:255',
                 Rule::unique('users', 'username')->ignore($user->id),
             ],
-            'role'     => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
+            'role' => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
             'password' => ['nullable', 'string', 'confirmed'],
         ]);
 
@@ -121,7 +121,7 @@ class UserManagementController extends Controller
         AuditLog::create([
             'user_id' => $request->user()?->id,
             'action' => 'update_user',
-            'description' => 'Memperbarui pengguna: ' . $user->name . ' (' . $user->username . ')',
+            'description' => 'Memperbarui pengguna: '.$user->name.' ('.$user->username.')',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
@@ -143,14 +143,14 @@ class UserManagementController extends Controller
                 ->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
-        $deletedUserInfo = $user->name . ' (' . $user->username . ')';
+        $deletedUserInfo = $user->name.' ('.$user->username.')';
 
         $user->delete();
 
         AuditLog::create([
             'user_id' => auth()->id(),
             'action' => 'delete_user',
-            'description' => 'Menghapus pengguna: ' . $deletedUserInfo,
+            'description' => 'Menghapus pengguna: '.$deletedUserInfo,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
         ]);

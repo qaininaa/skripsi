@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ReportTypeSectionSeeder extends Seeder
 {
@@ -14,230 +15,201 @@ class ReportTypeSectionSeeder extends Seeder
         // ---------------------------------------------------------------
         // Annex 18: HVAC 6.1.1 B Filling Line 2
         // ---------------------------------------------------------------
-        $annex18 = DB::table('report_types')->insertGetId([
-            'code'         => 'HVAC-6.1.1-B-FL2',
-            'name'         => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.1 B Filling Line 2',
-            'annex_number' => 'Annex 18',
-            'medium_groups' => json_encode([
-                'medium_tsp_60' => 'Medium TSP 60mm',
-                'medium_tsp_90' => 'Medium TSP 90mm',
-                'medium_swab'   => 'Swab Kit',
-            ]),
-            'incubators' => json_encode([
-                '20_25' => ['label' => '20-25°C', 'min_days' => 5],
-                '30_35' => ['label' => '30-35°C', 'min_days' => 3],
-            ]),
+        $annex18 = (string) Str::uuid();
+        DB::table('report_types')->insert([
+            'id'            => $annex18,
+            'name'          => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.1 B Filling Line 2',
+            'annex_number'  => 18,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
-        DB::table('sections')->insert([
+        DB::table('sections')->insert(array_map(fn($r) => ['id' => (string) Str::uuid(), ...$r], [
             [
-                'report_type_id'   => $annex18,
-                'name'             => 'Settle Plate',
+                'report_type_id' => $annex18,
+                'name' => 'Settle Plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
-                'max_exposure'     => 4,
-                'order'            => 1,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 4,
+                'order' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex18,
-                'name'             => 'Air Sampler',
+                'report_type_id' => $annex18,
+                'name' => 'Air Sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
-                'max_exposure'     => 2,
-                'order'            => 2,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 2,
+                'order' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex18,
-                'name'             => 'Contact Plate',
+                'report_type_id' => $annex18,
+                'name' => 'Contact Plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
-                'max_exposure'     => 1,
-                'order'            => 3,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 1,
+                'order' => 3,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex18,
-                'name'             => 'Swab',
+                'report_type_id' => $annex18,
+                'name' => 'Swab',
                 'measurement_unit' => 'CFU/25cm2/plate',
                 'measurement_type' => 'swab',
-                'max_exposure'     => 2,
-                'order'            => 4,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 2,
+                'order' => 4,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
-        ]);
+        ]));
 
         // ---------------------------------------------------------------
         // Annex 24: HVAC 6.1.5
         // ---------------------------------------------------------------
-        $annex24 = DB::table('report_types')->insertGetId([
-            'code'         => 'HVAC-6.1.5',
-            'name'         => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5',
-            'annex_number' => 'Annex 24',
-            'medium_groups' => json_encode([
-                'medium_tsp_65' => 'Medium TSP 65mm',
-                'medium_tsp_90' => 'Medium TSP 90mm',
-            ]),
-            'incubators' => json_encode([
-                '20_25' => ['label' => '20-25°C', 'min_days' => 5],
-                '30_35' => ['label' => '30-35°C', 'min_days' => 3],
-            ]),
+        $annex24 = (string) Str::uuid();
+        DB::table('report_types')->insert([
+            'id'            => $annex24,
+            'name'          => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5',
+            'annex_number'  => 24,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
-        DB::table('sections')->insert([
+        DB::table('sections')->insert(array_map(fn($r) => ['id' => (string) Str::uuid(), ...$r], [
             [
-                'report_type_id'   => $annex24,
-                'name'             => 'Settle Plate',
+                'report_type_id' => $annex24,
+                'name' => 'Settle Plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
-                'max_exposure'     => 3,
-                'order'            => 1,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 3,
+                'order' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex24,
-                'name'             => 'Air Sampler',
+                'report_type_id' => $annex24,
+                'name' => 'Air Sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
-                'max_exposure'     => 2,
-                'order'            => 2,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 2,
+                'order' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex24,
-                'name'             => 'Contact Plate',
+                'report_type_id' => $annex24,
+                'name' => 'Contact Plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
-                'max_exposure'     => 2,
-                'order'            => 3,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 2,
+                'order' => 3,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
-        ]);
+        ]));
 
         // ---------------------------------------------------------------
         // Annex 3
         // ---------------------------------------------------------------
-        $annex3 = DB::table('report_types')->insertGetId([
-            'code'         => 'HVAC-ANNEX3',
-            'name'         => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 3',
-            'annex_number' => 'Annex 3',
-            'medium_groups' => json_encode([
-                'medium_tsp_60' => 'Medium TSP 60mm',
-                'medium_tsp_90' => 'Medium TSP 90mm',
-            ]),
-            'incubators' => json_encode([
-                '20_25' => ['label' => '20-25°C', 'min_days' => 5],
-                '30_35' => ['label' => '30-35°C', 'min_days' => 3],
-            ]),
+        $annex3 = (string) Str::uuid();
+        DB::table('report_types')->insert([
+            'id'            => $annex3,
+            'name'          => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 3',
+            'annex_number'  => 3,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
-        DB::table('sections')->insert([
+        DB::table('sections')->insert(array_map(fn($r) => ['id' => (string) Str::uuid(), ...$r], [
             [
-                'report_type_id'   => $annex3,
-                'name'             => 'Settle Plate',
+                'report_type_id' => $annex3,
+                'name' => 'Settle Plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
-                'max_exposure'     => 1,
-                'order'            => 1,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 1,
+                'order' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex3,
-                'name'             => 'Air Sampler',
+                'report_type_id' => $annex3,
+                'name' => 'Air Sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
-                'max_exposure'     => 1,
-                'order'            => 2,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 1,
+                'order' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex3,
-                'name'             => 'Contact Plate',
+                'report_type_id' => $annex3,
+                'name' => 'Contact Plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
-                'max_exposure'     => 1,
-                'order'            => 3,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 1,
+                'order' => 3,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
-        ]);
+        ]));
 
         // ---------------------------------------------------------------
         // Annex 4
         // ---------------------------------------------------------------
-        $annex4 = DB::table('report_types')->insertGetId([
-            'code'         => 'HVAC-ANNEX4',
-            'name'         => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 4',
-            'annex_number' => 'Annex 4',
-            'medium_groups' => json_encode([
-                'medium_tsp_60' => 'Medium TSP 60mm',
-                'medium_tsp_90' => 'Medium TSP 90mm',
-            ]),
-            'incubators' => json_encode([
-                '20_25' => ['label' => '20-25°C', 'min_days' => 5],
-                '30_35' => ['label' => '30-35°C', 'min_days' => 3],
-            ]),
+        $annex4 = (string) Str::uuid();
+        DB::table('report_types')->insert([
+            'id'            => $annex4,
+            'name'          => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 4',
+            'annex_number'  => 4,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
-        DB::table('sections')->insert([
+        DB::table('sections')->insert(array_map(fn($r) => ['id' => (string) Str::uuid(), ...$r], [
             [
-                'report_type_id'   => $annex4,
-                'name'             => 'Settle Plate',
+                'report_type_id' => $annex4,
+                'name' => 'Settle Plate',
                 'measurement_unit' => 'CFU/4hours/plate',
                 'measurement_type' => 'settle_plate',
-                'max_exposure'     => 1,
-                'order'            => 1,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 1,
+                'order' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex4,
-                'name'             => 'Air Sampler',
+                'report_type_id' => $annex4,
+                'name' => 'Air Sampler',
                 'measurement_unit' => 'CFU/10min/m3',
                 'measurement_type' => 'air_sampler',
-                'max_exposure'     => 1,
-                'order'            => 2,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 1,
+                'order' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
             [
-                'report_type_id'   => $annex4,
-                'name'             => 'Contact Plate',
+                'report_type_id' => $annex4,
+                'name' => 'Contact Plate',
                 'measurement_unit' => 'CFU/plate D=55mm/15sec',
                 'measurement_type' => 'contact_plate',
-                'max_exposure'     => 1,
-                'order'            => 3,
-                'created_at'       => $now,
-                'updated_at'       => $now,
+                'max_column' => 1,
+                'order' => 3,
+                'created_at' => $now,
+                'updated_at' => $now,
             ],
-        ]);
+        ]));
 
         // ---------------------------------------------------------------
         // Populate config columns based on measurement_type
         // ---------------------------------------------------------------
         $configMap = [
-            'settle_plate'  => ['column_label' => 'Exposure', 'time_slot_type' => 'dual_ab',  'has_shared_time' => true,  'has_shift_toggle' => true],
-            'air_sampler'   => ['column_label' => 'Shift',    'time_slot_type' => 'single',   'has_shared_time' => false, 'has_shift_toggle' => true],
-            'contact_plate' => ['column_label' => 'Shift',    'time_slot_type' => 'none',     'has_shared_time' => false, 'has_shift_toggle' => true],
-            'swab'          => ['column_label' => 'Shift',    'time_slot_type' => 'swab',     'has_shared_time' => false, 'has_shift_toggle' => true],
+            'settle_plate'  => ['column_label' => 'Exposure', 'time_slot_type' => 'dual_ab', 'has_machine_setup' => true],
+            'air_sampler'   => ['column_label' => 'Shift',    'time_slot_type' => 'single',  'has_machine_setup' => false],
+            'contact_plate' => ['column_label' => 'Shift',    'time_slot_type' => 'none',    'has_machine_setup' => false],
+            'swab'          => ['column_label' => 'Shift',    'time_slot_type' => 'swab',    'has_machine_setup' => false],
         ];
 
         foreach ($configMap as $type => $cfg) {

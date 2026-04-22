@@ -18,7 +18,7 @@ class ReportArchiveController extends Controller
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q2) use ($search) {
                     $q2->where('product_name', 'like', "%{$search}%")
-                       ->orWhere('batch_number', 'like', "%{$search}%");
+                        ->orWhere('batch_number', 'like', "%{$search}%");
                 });
             })
             ->orderByDesc('created_at')
@@ -46,10 +46,10 @@ class ReportArchiveController extends Controller
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
-        $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
+        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
         $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         return view('pages.arsip.show', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'

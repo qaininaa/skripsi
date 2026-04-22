@@ -121,7 +121,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom</label>
-                        <input type="number" name="max_exposure" value="1" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                        <input type="number" name="max_column" value="1" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
@@ -139,7 +139,7 @@
                     </div>
                     <div class="flex items-end gap-4 md:col-span-2 lg:col-span-2">
                         <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                            <input type="checkbox" name="has_shared_time" value="1" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                            <input type="checkbox" name="has_machine_setup" value="1" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                             <span>Machine Set-up (waktu bersama)</span>
                         </label>
                         <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
@@ -167,11 +167,11 @@
                             <h4 class="text-sm font-semibold text-gray-800">{{ $section->name }}</h4>
                             <p class="text-xs text-gray-500">
                                 {{ $section->measurement_unit }} ·
-                                {{ $section->max_exposure }}x {{ $section->column_label }}
+                                {{ $section->max_column }}x {{ $section->column_label }}
                                 @if ($section->time_slot_type !== 'none')
                                     · Waktu: {{ ['single' => '1 slot', 'per_location' => 'Per Lokasi', 'dual_ab' => 'A/B', 'swab' => 'S1/S1-2/S1-3'][$section->time_slot_type] ?? $section->time_slot_type }}
                                 @endif
-                                @if ($section->has_shared_time) · Machine Set-up @endif
+                                @if ($section->has_machine_setup) · Machine Set-up @endif
                                 @if ($section->has_shift_toggle) · Shift Toggle @endif
                             </p>
                         </div>
@@ -211,7 +211,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom</label>
-                                <input type="number" name="max_exposure" value="{{ $section->max_exposure }}" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                                <input type="number" name="max_column" value="{{ $section->max_column }}" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
@@ -233,7 +233,7 @@
                             </div>
                             <div class="flex items-end gap-4">
                                 <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                                    <input type="checkbox" name="has_shared_time" value="1" {{ $section->has_shared_time ? 'checked' : '' }} class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                    <input type="checkbox" name="has_machine_setup" value="1" {{ $section->has_machine_setup ? 'checked' : '' }} class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                                     <span>Machine Set-up</span>
                                 </label>
                                 <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">

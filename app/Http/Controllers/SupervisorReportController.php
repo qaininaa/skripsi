@@ -15,7 +15,7 @@ class SupervisorReportController extends Controller
     {
         $userId = Auth::id();
 
-        $pending  = $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count();
+        $pending = $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count();
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
         $rejected = $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count();
 
@@ -23,13 +23,13 @@ class SupervisorReportController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $pendingReports    = Report::with('reportType', 'lockedByUser')
+        $pendingReports = Report::with('reportType', 'lockedByUser')
             ->where('status', 'pending')
             ->latest()->take(5)->get();
         $monitoringReports = Report::with('reportType', 'lockedByUser')
             ->where('status', 'monitoring')
             ->latest()->take(5)->get();
-        $readingReports    = Report::with('reportType', 'lockedByUser')
+        $readingReports = Report::with('reportType', 'lockedByUser')
             ->where('status', 'reading')
             ->latest()->take(5)->get();
 
@@ -42,10 +42,10 @@ class SupervisorReportController extends Controller
     public function laporanMasuk(Request $request)
     {
         $userId = Auth::id();
-        $tab    = $request->query('tab', 'pending');
+        $tab = $request->query('tab', 'pending');
 
         $counts = [
-            'pending'  => $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count(),
+            'pending' => $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count(),
             'approved' => $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count(),
             'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
         ];
@@ -79,12 +79,12 @@ class SupervisorReportController extends Controller
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
-        $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
+        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
         $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        $reviewRole      = 'supervisor';
+        $reviewRole = 'supervisor';
         $returnSupervisor = null;
 
         return view('pages.review.laporan-show', compact(
@@ -102,7 +102,7 @@ class SupervisorReportController extends Controller
         ]);
 
         $user = Auth::user();
-        if ($user->username !== $request->username || !Hash::check($request->password, $user->password)) {
+        if ($user->username !== $request->username || ! Hash::check($request->password, $user->password)) {
             return back()
                 ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
                 ->withInput($request->except('password'));
@@ -117,7 +117,7 @@ class SupervisorReportController extends Controller
 
         $signedAt = now();
         $approval->update([
-            'status'    => 'approved',
+            'status' => 'approved',
             'signed_at' => $signedAt,
         ]);
 
@@ -136,11 +136,11 @@ class SupervisorReportController extends Controller
             ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 3],
                 [
-                    'role_label'          => 'manajer',
-                    'user_id'             => $manager->id,
-                    'status'              => 'pending',
-                    'signed_at'           => null,
-                    'notes'               => null,
+                    'role_label' => 'manajer',
+                    'user_id' => $manager->id,
+                    'status' => 'pending',
+                    'signed_at' => null,
+                    'notes' => null,
                     'returned_to_user_id' => null,
                 ]
             );
@@ -161,7 +161,7 @@ class SupervisorReportController extends Controller
         ]);
 
         $user = Auth::user();
-        if ($user->username !== $request->username || !Hash::check($request->password, $user->password)) {
+        if ($user->username !== $request->username || ! Hash::check($request->password, $user->password)) {
             return back()
                 ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
                 ->withInput($request->except('password'));
@@ -186,9 +186,9 @@ class SupervisorReportController extends Controller
         );
 
         $approval->update([
-            'status'               => 'returned',
-            'notes'                => $request->input('notes'),
-            'returned_to_user_id'  => $returnedToUserId,
+            'status' => 'returned',
+            'notes' => $request->input('notes'),
+            'returned_to_user_id' => $returnedToUserId,
         ]);
 
         // Reset signature timestamps — clear all per-section and legacy TTD keys
@@ -287,10 +287,10 @@ class SupervisorReportController extends Controller
             $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
         }
 
-        $sectionTypes    = $report->reportType->sections->pluck('measurement_type')->unique();
+        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
         $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator  = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium     = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         return view('pages.supervisor.laporan-cetak', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'

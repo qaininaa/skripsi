@@ -1,17 +1,17 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserManagementController;
-use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\ReportTypeManagementController;
-use App\Http\Controllers\ReportAssignmentController;
 use App\Http\Controllers\AnalystReportController;
-use App\Http\Controllers\SupervisorReportController;
-use App\Http\Controllers\ManagerReportController;
-use App\Http\Controllers\ReportArchiveController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\ManagerReportController;
 use App\Http\Controllers\PasswordSettingController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportArchiveController;
+use App\Http\Controllers\ReportAssignmentController;
+use App\Http\Controllers\ReportTypeManagementController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\SupervisorReportController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +33,7 @@ Route::get('/dashboard', function () {
     } elseif ($role === 'manajer') {
         return redirect()->route('dashboard.manajer');
     }
+
     return redirect('/');
 })->middleware(['auth', 'password.check'])->name('dashboard');
 

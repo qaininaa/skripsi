@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class RoomSeeder extends Seeder
 {
@@ -11,7 +12,7 @@ class RoomSeeder extends Seeder
     {
         $now = now();
 
-        DB::table('rooms')->insert([
+        $rooms = [
 
             // Annex 2
             ['room_name' => 'LAF Mesin Filling 2',    'room_number' => '061P075', 'class' => 'A', 'created_at' => $now, 'updated_at' => $now],
@@ -28,10 +29,9 @@ class RoomSeeder extends Seeder
             ['room_name' => 'LAF Sampling Room',     'room_number' => '061P116', 'class' => 'C', 'created_at' => $now, 'updated_at' => $now],
             ['room_name' => 'Sampling Room',         'room_number' => '061P116', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
             ['room_name' => 'Material Airlock In 3', 'room_number' => '061C112', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
-            ['room_name' => 'Material Airlock Out 3','room_number' => '061C113', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
+            ['room_name' => 'Material Airlock Out 3', 'room_number' => '061C113', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
             ['room_name' => 'Change Room 5',         'room_number' => '061C114', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
             ['room_name' => 'Personnel Airlock 5',   'room_number' => '061C115', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
-
 
             // Annex 3
             ['room_name' => 'LAF Washing Machine (Laundry)',   'room_number' => '', 'class' => 'C', 'created_at' => $now, 'updated_at' => $now],
@@ -76,6 +76,10 @@ class RoomSeeder extends Seeder
             ['room_name' => 'Material Airlock 6',   'room_number' => '', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
             ['room_name' => 'Grade D Corridor 2',   'room_number' => '', 'class' => 'D', 'created_at' => $now, 'updated_at' => $now],
 
-        ]);
+        ];
+
+        DB::table('rooms')->insert(
+            array_map(fn($r) => ['id' => (string) Str::uuid(), ...$r], $rooms)
+        );
     }
 }

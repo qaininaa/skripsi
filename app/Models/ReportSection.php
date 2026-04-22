@@ -2,24 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class ReportSection extends Model
 {
+    use HasUuids;
+
     protected $table = 'sections';
 
     protected $fillable = [
         'report_type_id', 'name', 'measurement_unit',
-        'measurement_type', 'max_exposure', 'column_label',
-        'time_slot_type', 'has_shared_time', 'has_shift_toggle',
+        'measurement_type', 'max_column', 'column_label',
+        'time_slot_type', 'has_machine_setup',
         'order',
     ];
 
     protected function casts(): array
     {
         return [
-            'has_shared_time'  => 'boolean',
-            'has_shift_toggle' => 'boolean',
+            'has_machine_setup' => 'boolean',
         ];
     }
 
@@ -31,8 +33,8 @@ class ReportSection extends Model
     public function locations()
     {
         return $this->belongsToMany(ReportLocation::class, 'report_section', 'id_section', 'id_location')
-                    ->withPivot('id')
-                    ->withTimestamps()
-                    ->orderBy('report_section.id');
+            ->withPivot('id')
+            ->withTimestamps()
+            ->orderBy('report_section.id');
     }
 }

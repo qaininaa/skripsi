@@ -16,7 +16,7 @@
                 @php
                     $myId = auth()->id();
                     $myName = auth()->user()->name;
-                    $monIds = $report->analyst_monitoring ?? [];
+                    $monIds = $monitoringAnalysts->pluck('user_id')->toArray();
                     $otherMonIds = array_values(array_filter($monIds, fn($id) => $id != $myId));
                     $myInMon = in_array($myId, $monIds);
                 @endphp
@@ -44,7 +44,7 @@
                 @endif
             @elseif ($isEditable && !$isMonitoringPhase)
                 {{-- Read-only during reading phase: monitoring is already finalized --}}
-                @php $monIds = $report->analyst_monitoring ?? []; @endphp
+                @php $monIds = $monitoringAnalysts->pluck('user_id')->toArray(); @endphp
                 @foreach($monIds as $mid)
                     <input type="hidden" name="analyst_monitoring[]" value="{{ $mid }}">
                 @endforeach
@@ -54,8 +54,7 @@
                 </div>
             @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    @php $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name'); @endphp
-                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
+                    {{ $monitoringAnalysts->map->user->filter()->pluck('name')->join(', ') ?: '—' }}
                 </div>
             @endif
         </div>
@@ -65,7 +64,7 @@
                 @php
                     $myId = auth()->id();
                     $myName = auth()->user()->name;
-                    $readIds = $report->analyst_reading ?? [];
+                    $readIds = $readingAnalysts->pluck('user_id')->toArray();
                     // Pad to 2 slots
                     $slot0 = $readIds[0] ?? null;
                     $slot1 = $readIds[1] ?? null;
@@ -101,12 +100,12 @@
                 @endforeach
             @elseif($isEditable && $isMonitoringPhase)
                 {{-- Disabled during monitoring phase --}}
-                @php $readIds = $report->analyst_reading ?? []; @endphp
+                @php $readIds = $readingAnalysts->pluck('user_id')->toArray(); @endphp
                 @foreach($readIds as $rid)
                     <input type="hidden" name="analyst_reading[]" value="{{ $rid }}">
                 @endforeach
                 @if(!empty($readIds))
-                    @php $existingReadNames = \App\Models\User::whereIn('id', $readIds)->pluck('name'); @endphp
+                    @php $existingReadNames = $readingAnalysts->map->user->filter()->pluck('name'); @endphp
                     <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                         {{ $existingReadNames->join(', ') }}
                     </div>
@@ -117,8 +116,7 @@
                 @endif
             @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    @php $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name'); @endphp
-                    {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
+                    {{ $readingAnalysts->map->user->filter()->pluck('name')->join(', ') ?: '—' }}
                 </div>
             @endif
         </div>

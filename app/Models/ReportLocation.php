@@ -2,21 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class ReportLocation extends Model
 {
+    use HasUuids;
+
     protected $table = 'locations';
 
     protected $fillable = [
-        'id_room', 'frequency_id', 'location_number', 'measurement_type',
+        'room_id', 'frequency_id', 'location_number', 'measurement_type',
         'alert_limit_total', 'alert_limit_fungi',
         'alert_action_total', 'alert_action_fungi',
     ];
 
     public function room()
     {
-        return $this->belongsTo(Room::class, 'id_room');
+        return $this->belongsTo(Room::class, 'room_id');
     }
 
     public function frequency()

@@ -30,16 +30,16 @@ class ReportTypeManagementController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'code'         => ['required', 'string', 'max:100', 'unique:report_types,code'],
-            'name'         => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:100', 'unique:report_types,code'],
+            'name' => ['required', 'string', 'max:255'],
             'annex_number' => ['required', 'string', 'max:50'],
             // Medium groups
-            'medium_labels'   => ['nullable', 'array'],
+            'medium_labels' => ['nullable', 'array'],
             'medium_labels.*' => ['nullable', 'string', 'max:255'],
             // Incubators
-            'incubator_labels'    => ['nullable', 'array'],
-            'incubator_labels.*'  => ['nullable', 'string', 'max:255'],
-            'incubator_min_days'  => ['nullable', 'array'],
+            'incubator_labels' => ['nullable', 'array'],
+            'incubator_labels.*' => ['nullable', 'string', 'max:255'],
+            'incubator_min_days' => ['nullable', 'array'],
             'incubator_min_days.*' => ['nullable', 'integer', 'min:1'],
         ]);
 
@@ -47,20 +47,20 @@ class ReportTypeManagementController extends Controller
         $incubators = $this->buildIncubators($request);
 
         $reportType = ReportType::create([
-            'code'          => $validated['code'],
-            'name'          => $validated['name'],
-            'annex_number'  => $validated['annex_number'],
-            'is_active'     => true,
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+            'annex_number' => $validated['annex_number'],
+            'is_active' => true,
             'medium_groups' => $mediumGroups ?: null,
-            'incubators'    => $incubators ?: null,
+            'incubators' => $incubators ?: null,
         ]);
 
         AuditLog::create([
-            'user_id'     => $request->user()?->id,
-            'action'      => 'create_report_type',
-            'description' => 'Membuat jenis laporan: ' . $reportType->name . ' (' . $reportType->annex_number . ')',
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'user_id' => $request->user()?->id,
+            'action' => 'create_report_type',
+            'description' => 'Membuat jenis laporan: '.$reportType->name.' ('.$reportType->annex_number.')',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()
@@ -84,14 +84,14 @@ class ReportTypeManagementController extends Controller
     public function update(Request $request, ReportType $reportType): RedirectResponse
     {
         $validated = $request->validate([
-            'code'         => ['required', 'string', 'max:100', 'unique:report_types,code,' . $reportType->id],
-            'name'         => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:100', 'unique:report_types,code,'.$reportType->id],
+            'name' => ['required', 'string', 'max:255'],
             'annex_number' => ['required', 'string', 'max:50'],
-            'medium_labels'   => ['nullable', 'array'],
+            'medium_labels' => ['nullable', 'array'],
             'medium_labels.*' => ['nullable', 'string', 'max:255'],
-            'incubator_labels'    => ['nullable', 'array'],
-            'incubator_labels.*'  => ['nullable', 'string', 'max:255'],
-            'incubator_min_days'  => ['nullable', 'array'],
+            'incubator_labels' => ['nullable', 'array'],
+            'incubator_labels.*' => ['nullable', 'string', 'max:255'],
+            'incubator_min_days' => ['nullable', 'array'],
             'incubator_min_days.*' => ['required', 'integer', 'min:1'],
         ]);
 
@@ -99,19 +99,19 @@ class ReportTypeManagementController extends Controller
         $incubators = $this->buildIncubators($request);
 
         $reportType->update([
-            'code'          => $validated['code'],
-            'name'          => $validated['name'],
-            'annex_number'  => $validated['annex_number'],
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+            'annex_number' => $validated['annex_number'],
             'medium_groups' => $mediumGroups ?: null,
-            'incubators'    => $incubators ?: null,
+            'incubators' => $incubators ?: null,
         ]);
 
         AuditLog::create([
-            'user_id'     => $request->user()?->id,
-            'action'      => 'update_report_type',
-            'description' => 'Memperbarui jenis laporan: ' . $reportType->name . ' (' . $reportType->annex_number . ')',
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'user_id' => $request->user()?->id,
+            'action' => 'update_report_type',
+            'description' => 'Memperbarui jenis laporan: '.$reportType->name.' ('.$reportType->annex_number.')',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()
@@ -130,11 +130,11 @@ class ReportTypeManagementController extends Controller
         $reportType->delete();
 
         AuditLog::create([
-            'user_id'     => request()->user()?->id,
-            'action'      => 'delete_report_type',
-            'description' => 'Menghapus jenis laporan: ' . $name . ' (' . $annex . ')',
-            'ip_address'  => request()->ip(),
-            'user_agent'  => request()->userAgent(),
+            'user_id' => request()->user()?->id,
+            'action' => 'delete_report_type',
+            'description' => 'Menghapus jenis laporan: '.$name.' ('.$annex.')',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
 
         return redirect()
@@ -147,20 +147,20 @@ class ReportTypeManagementController extends Controller
     public function storeSection(Request $request, ReportType $reportType): RedirectResponse
     {
         $validated = $request->validate([
-            'name'             => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'measurement_unit' => ['required', 'string', 'max:50'],
             'measurement_type' => ['required', 'string', 'max:50'],
-            'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
-            'column_label'     => ['required', 'string', 'max:50'],
-            'time_slot_type'   => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
-            'has_shared_time'  => ['boolean'],
+            'max_column' => ['required', 'integer', 'min:1', 'max:20'],
+            'column_label' => ['required', 'string', 'max:50'],
+            'time_slot_type' => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
+            'has_machine_setup' => ['boolean'],
             'has_shift_toggle' => ['boolean'],
         ]);
 
         $maxOrder = $reportType->sections()->max('order') ?? 0;
         $validated['report_type_id'] = $reportType->id;
         $validated['order'] = $maxOrder + 1;
-        $validated['has_shared_time'] = $request->boolean('has_shared_time');
+        $validated['has_machine_setup'] = $request->boolean('has_machine_setup');
         $validated['has_shift_toggle'] = $request->boolean('has_shift_toggle');
 
         ReportSection::create($validated);
@@ -173,18 +173,18 @@ class ReportTypeManagementController extends Controller
     public function updateSection(Request $request, ReportType $reportType, ReportSection $section): RedirectResponse
     {
         $validated = $request->validate([
-            'name'             => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'measurement_unit' => ['required', 'string', 'max:50'],
             'measurement_type' => ['required', 'string', 'max:50'],
-            'max_exposure'     => ['required', 'integer', 'min:1', 'max:20'],
-            'column_label'     => ['required', 'string', 'max:50'],
-            'time_slot_type'   => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
-            'has_shared_time'  => ['boolean'],
+            'max_column' => ['required', 'integer', 'min:1', 'max:20'],
+            'column_label' => ['required', 'string', 'max:50'],
+            'time_slot_type' => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
+            'has_machine_setup' => ['boolean'],
             'has_shift_toggle' => ['boolean'],
-            'order'            => ['required', 'integer', 'min:0'],
+            'order' => ['required', 'integer', 'min:0'],
         ]);
 
-        $validated['has_shared_time'] = $request->boolean('has_shared_time');
+        $validated['has_machine_setup'] = $request->boolean('has_machine_setup');
         $validated['has_shift_toggle'] = $request->boolean('has_shift_toggle');
 
         $section->update($validated);
@@ -211,7 +211,7 @@ class ReportTypeManagementController extends Controller
             'location_id' => ['required', 'exists:locations,id'],
         ]);
 
-        if (!$section->locations()->where('id_location', $validated['location_id'])->exists()) {
+        if (! $section->locations()->where('id_location', $validated['location_id'])->exists()) {
             $section->locations()->attach($validated['location_id']);
         }
 
@@ -241,23 +241,25 @@ class ReportTypeManagementController extends Controller
                 $result[Str::snake($label)] = $label;
             }
         }
+
         return $result;
     }
 
     private function buildIncubators(Request $request): array
     {
-        $labels  = $request->input('incubator_labels', []);
+        $labels = $request->input('incubator_labels', []);
         $minDays = $request->input('incubator_min_days', []);
-        $result  = [];
+        $result = [];
         foreach ($labels as $i => $label) {
             $label = trim($label);
             if ($label !== '') {
                 $result[Str::snake($label)] = [
-                    'label'    => $label,
+                    'label' => $label,
                     'min_days' => (int) ($minDays[$i] ?? 3),
                 ];
             }
         }
+
         return $result;
     }
 }

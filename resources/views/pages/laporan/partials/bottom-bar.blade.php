@@ -14,6 +14,11 @@
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
         Kirim Laporan
     </button>
+    @elseif($isRevision ?? false)
+    <button type="button" onclick="openRevisionSubmitFlow()"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition-colors shadow-sm">
+        Kirim ke Supervisor
+    </button>
     @endif
 </div>
 @endif

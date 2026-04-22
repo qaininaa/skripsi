@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class ReportApproval extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
         'report_id', 'step', 'role_label', 'user_id',
         'signed_at', 'signature_path', 'status', 'notes', 'returned_to_user_id',
@@ -15,10 +18,25 @@ class ReportApproval extends Model
         'signed_at' => 'datetime',
     ];
 
-    public function isPending(): bool   { return $this->status === 'pending'; }
-    public function isApproved(): bool  { return $this->status === 'approved'; }
-    public function isRejected(): bool  { return $this->status === 'rejected'; }
-    public function isReturned(): bool  { return $this->status === 'returned'; }
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
+    }
+
+    public function isReturned(): bool
+    {
+        return $this->status === 'returned';
+    }
 
     public function returnedTo()
     {

@@ -129,6 +129,12 @@ const _modalConfig = {
         btnText: 'Kirim Laporan',
         btnClass: 'bg-sky-500 hover:bg-sky-600',
     },
+    submit_revision: {
+        title: 'Konfirmasi Kirim Revisi ke Supervisor',
+        desc:  'Laporan akan langsung dikirim ke supervisor tanpa melalui tahap pembacaan. Masukkan username dan password Anda untuk melanjutkan.',
+        btnText: 'Kirim ke Supervisor',
+        btnClass: 'bg-emerald-500 hover:bg-emerald-600',
+    },
 };
 
 function openSaveModal()    { openConfirmModal('save'); }
@@ -328,10 +334,8 @@ document.addEventListener('input', function (e) {
         let label = '—', cls = 'text-gray-300 text-[11px]';
         if (hasAny) {
             const isTMS = (actionT !== null && maxT >= actionT) || (actionF !== null && maxF >= actionF);
-            const isAlert = !isTMS && ((alertT !== null && maxT >= alertT) || (alertF !== null && maxF >= alertF));
-            if (isTMS)       { label = 'TMS';   cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700'; }
-            else if (isAlert){ label = 'Alert'; cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700'; }
-            else             { label = 'MS';    cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700'; }
+            if (isTMS) { label = 'TMS'; cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700'; }
+            else       { label = 'MS';  cls = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700'; }
         }
         konklusiCell.innerHTML = `<span class="${cls}">${label}</span>`;
 
@@ -351,7 +355,7 @@ function recalcSectionKonklusi(sectionInstance) {
         const span = cell.querySelector('span');
         if (!span) return;
         const txt = span.textContent.trim();
-        if (txt === 'TMS' || txt === 'Alert' || txt === 'MS') hasAny = true;
+        if (txt === 'TMS' || txt === 'MS') hasAny = true;
         if (txt === 'TMS') hasTMS = true;
     });
     if (!hasAny) {
@@ -429,6 +433,20 @@ function getMissingCols(checkShift) {
         bInputs.forEach(bi => { if (!bi.dataset.optional && bi.value === '') missing.add('Exposure ' + col); });
     });
     return missing;
+}
+
+// Kirim Revisi langsung ke Supervisor (skip reading phase)
+function openRevisionSubmitFlow() {
+    const myShift = {{ $myShift }};
+    const missing = getMissingCols(myShift);
+    if (missing.size > 0) {
+        showAlertModal(
+            'Data Belum Lengkap',
+            'Kolom Shift ' + myShift + ' berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.'
+        );
+        return;
+    }
+    openConfirmModal('submit_revision');
 }
 
 // Kirim Laporan: validate then open password modal

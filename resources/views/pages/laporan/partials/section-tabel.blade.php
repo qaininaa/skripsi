@@ -24,7 +24,7 @@
 @php
     // Config-driven flags dari tabel sections
     $instance       = $instance ?? 1;
-    $hasSharedTime  = (bool) $section->has_shared_time;
+    $hasMachineSetup  = (bool) $section->has_machine_setup;
     $hasJam         = $section->time_slot_type === 'single';
     $isPerLocation  = $section->time_slot_type === 'per_location';
     $isDualAB       = $section->time_slot_type === 'dual_ab';
@@ -32,7 +32,7 @@
     $hasShiftToggle = (bool) $section->has_shift_toggle;
     $colLabel       = $section->column_label ?? 'Exposure';
 
-    $maxCols       = $section->max_exposure;
+    $maxCols       = $section->max_column;
     $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
     $secNum        = $loop->index + 5;
     $savedAsgn     = ($hd['shift_assignments'][$section->id] ?? []);
@@ -85,11 +85,31 @@
             </button>
             @endif
         </div>
+        @elseif ($isEditable ?? false)
+        {{-- Analis: tombol duplikat / hapus duplikat seksi --}}
+        <div class="ml-auto flex items-center gap-2 shrink-0">
+            @if ($instance === 1)
+            <button type="button"
+                    onclick="adminSectionAction('POST', '{{ route('laporan.sections.duplicate', [$report->id, $section->id]) }}')"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Duplikat Seksi
+            </button>
+            @endif
+            @if ($instance > 1 && $instance === ($totalInstances ?? $instance))
+            <button type="button"
+                    onclick="if(confirm('Hapus duplikat seksi ini?')) adminSectionAction('DELETE', '{{ route('laporan.sections.remove', [$report->id, $section->id]) }}')"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                Hapus Duplikat
+            </button>
+            @endif
+        </div>
         @endif
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + ($hasSharedTime ? 130 : 0) + ($maxCols * ($isSwabTime ? 220 : ($isDualAB ? 130 : ($isPerLocation ? 220 : 160)))) }}px">
+        <table class="w-full text-xs border-collapse" style="min-width: {{ 480 + ($hasMachineSetup ? 130 : 0) + ($maxCols * ($isSwabTime ? 220 : ($isDualAB ? 130 : ($isPerLocation ? 220 : 160)))) }}px">
             <thead>
                 {{-- Row 1: group headers --}}
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
@@ -99,7 +119,7 @@
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">No. Ruangan</th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">No.<br>Lokasi</th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100"
-                    colspan="{{ ($hasSharedTime ? 3 : 0) + $maxCols * $subColsPerExp }}">
+                    colspan="{{ ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp }}">
                         {{ $section->measurement_unit }}
                     </th>
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Alert<br>Limit</th>
@@ -108,7 +128,7 @@
                 </tr>
                 {{-- Row 2: period/shift labels --}}
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
-                    @if ($hasSharedTime)
+                    @if ($hasMachineSetup)
                     @php
                         $msJamMulai   = $hd['exposure_times'][$section->id][0]['start_time'] ?? null;
                         $msJamSelesai = $hd['exposure_times'][$section->id][0]['end_time'] ?? null;
@@ -239,7 +259,7 @@
                 </tr>
                 {{-- Row 3: sub-column headers --}}
                 <tr class="bg-sky-50/60 text-gray-500 border-b border-gray-200">
-                    @if ($hasSharedTime)
+                    @if ($hasMachineSetup)
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
                         <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
@@ -259,10 +279,31 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-                @foreach ($section->locations as $loc)
+                @php
+                    $_freqOrder    = ['Operasional', 'Harian', 'Mingguan', 'Bulanan', '6 Bulan'];
+                    $_locsByFreq   = $section->locations->groupBy(fn($loc) => $loc->frequency?->name ?? '__');
+                    $_freqKeys     = collect($_freqOrder)
+                                        ->filter(fn($f) => $_locsByFreq->has($f))
+                                        ->merge($_locsByFreq->keys()->filter(fn($k) => !in_array($k, $_freqOrder) && $k !== '__'))
+                                        ->values();
+                    if ($_locsByFreq->has('__')) $_freqKeys->push('__');
+                    $_showFreqHdr  = $_freqKeys->count() > 1 || ($_freqKeys->count() === 1 && $_freqKeys->first() !== '__');
+                    $_totalCols    = 5 + ($hasMachineSetup ? 3 : 0) + ($maxCols * $subColsPerExp) + 5;
+                    $_rowNum       = 0;
+                @endphp
+                @foreach ($_freqKeys as $_freqName)
+                @if ($_showFreqHdr)
+                <tr class="bg-sky-50 border-t border-sky-200">
+                    <td colspan="{{ $_totalCols }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-sky-700 uppercase">
+                        FREKUENSI : {{ $_freqName === '__' ? 'Tidak Ditentukan' : strtoupper($_freqName) }}
+                    </td>
+                </tr>
+                @endif
+                @foreach ($_locsByFreq[$_freqName] as $loc)
+                @php $_rowNum++; @endphp
                 @php
                     $locEntries = collect();
-                    for ($p = 1; $p <= $section->max_exposure; $p++) {
+                    for ($p = 1; $p <= $section->max_column; $p++) {
                         for ($s = 1; $s <= 2; $s++) {
                             if (isset($entryMap[$loc->pivot->id][$instance][$p][$s])) {
                                 $locEntries->push($entryMap[$loc->pivot->id][$instance][$p][$s]);
@@ -286,7 +327,7 @@
                     };
                 @endphp
                 <tr class="hover:bg-blue-50/20 transition-colors">
-                    <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loop->iteration }}</td>
+                    <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $_rowNum }}</td>
                     <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room->room_name }}</td>
                     <td class="px-2 py-2.5 text-center border-r border-gray-100">
                         <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">
@@ -301,7 +342,7 @@
                             <span class="text-[11px] text-gray-500">{{ $loc->location_number }}</span>
                         @endif
                     </td>
-                    @if ($hasSharedTime)
+                    @if ($hasMachineSetup)
                     @php
                         $msEntry = $entryMap[$loc->pivot->id][$instance][0][$myShift] ?? null;
                         $msTVal = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
@@ -466,7 +507,8 @@
                         @endif
                     </td>
                 </tr>
-                @endforeach
+                @endforeach {{-- locations in frequency group --}}
+                @endforeach {{-- frequency groups --}}
             </tbody>
         </table>
     </div>
@@ -491,7 +533,7 @@
         for ($_inst = 1; $_inst <= $totalInstances; $_inst++) {
             foreach ($section->locations as $_loc) {
                 $locEntries2 = collect();
-                for ($p = 1; $p <= $section->max_exposure; $p++) {
+                for ($p = 1; $p <= $section->max_column; $p++) {
                     for ($s = 1; $s <= 2; $s++) {
                         if (isset($entryMap[$_loc->pivot->id][$_inst][$p][$s])) {
                             $locEntries2->push($entryMap[$_loc->pivot->id][$_inst][$p][$s]);
