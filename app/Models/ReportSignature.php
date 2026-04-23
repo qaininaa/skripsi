@@ -24,6 +24,7 @@ class ReportSignature extends Model
     protected $fillable = [
         'report_id',
         'section_id',
+        'instance_number',
         'user_id',
         'role',
         'signed_at',

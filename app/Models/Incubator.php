@@ -16,7 +16,7 @@ class Incubator extends Model
 
     protected $fillable = [
         'report_id',
-        'temperature',
+        'report_type_incubator_id',
         'no_id',
         'calibration_date',
         'due_date_calibration',

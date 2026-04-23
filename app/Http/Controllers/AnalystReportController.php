@@ -91,6 +91,7 @@ class AnalystReportController extends Controller
             'incubators.incubatedBy',
             'incubators.removedBy',
             'analysts.user',
+            'signatures.user',
         ]);
 
         // entryMap[$pivot_id][$instance][$period_number][$shift] = entry
@@ -126,6 +127,9 @@ class AnalystReportController extends Controller
         $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
         $readingAnalysts = $report->analysts->where('type', 'reading');
 
+        // Group signatures by "section_id|instance_number" for fast lookup in the view
+        $sectionSignatures = $report->signatures->groupBy(fn ($s) => "{$s->section_id}|{$s->instance_number}");
+
         $analis = User::where('role', 'analis')->orderBy('name')->get();
         // Analysts that can receive a handover (all analysts except current user)
         $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
@@ -141,7 +145,7 @@ class AnalystReportController extends Controller
             'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
             'sectionInstances', 'returnedApproval', 'isRevision',
             'instrument', 'incubators', 'incubatorConfigs', 'mediums',
-            'monitoringAnalysts', 'readingAnalysts'
+            'monitoringAnalysts', 'readingAnalysts', 'sectionSignatures'
         ));
     }
 
@@ -159,6 +163,7 @@ class AnalystReportController extends Controller
             'incubators.incubatedBy',
             'incubators.removedBy',
             'analysts.user',
+            'signatures.user',
         ]);
 
         $entryMap = [];
@@ -191,6 +196,9 @@ class AnalystReportController extends Controller
         $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
         $readingAnalysts = $report->analysts->where('type', 'reading');
 
+        // Group signatures by "section_id|instance_number" for fast lookup in the view
+        $sectionSignatures = $report->signatures->groupBy(fn ($s) => "{$s->section_id}|{$s->instance_number}");
+
         $analis = User::where('role', 'analis')->orderBy('name')->get();
         $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
         $isAdminPreview = auth()->user()->role === 'admin';
@@ -201,7 +209,7 @@ class AnalystReportController extends Controller
             'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
             'sectionInstances', 'isAdminPreview',
             'instrument', 'incubators', 'incubatorConfigs', 'mediums',
-            'monitoringAnalysts', 'readingAnalysts'
+            'monitoringAnalysts', 'readingAnalysts', 'sectionSignatures'
         ));
     }
 
@@ -249,14 +257,30 @@ class AnalystReportController extends Controller
         $savedSectionIds = $this->processEntries($request, $report);
         $action = $request->input('action', 'save');
 
-        // Stamp per-section timestamps only on final actions (not on plain draft saves)
+        // Record analyst participation in the analysts table (idempotent)
+        $analystType = $report->status === 'reading' ? 'reading' : 'monitoring';
+        Analyst::updateOrCreate([
+            'report_id' => $report->id,
+            'user_id'   => Auth::id(),
+            'type'      => $analystType,
+        ]);
+
+        // Stamp per-section per-instance signatures only on final actions (not on plain draft saves)
         if ($action !== 'save' && ! empty($savedSectionIds)) {
-            $sectHd = $report->fresh()->header_data ?? [];
-            $secTsKey = $report->status === 'reading' ? 'section_ttd_reading' : 'section_ttd_monitoring';
-            foreach (array_keys($savedSectionIds) as $_sid) {
-                $sectHd[$secTsKey][$_sid][(string) Auth::id()] = now()->toDateTimeString();
+            $role = $report->status === 'reading' ? 'reading' : 'monitoring';
+            foreach (array_keys($savedSectionIds) as $_sidInst) {
+                [$_secId, $_instNum] = explode('|', $_sidInst, 2);
+                \App\Models\ReportSignature::updateOrCreate(
+                    [
+                        'report_id'       => $report->id,
+                        'section_id'      => $_secId,
+                        'instance_number' => (int) $_instNum,
+                        'user_id'         => Auth::id(),
+                        'role'            => $role,
+                    ],
+                    ['signed_at' => now()]
+                );
             }
-            $report->update(['header_data' => $sectHd]);
         }
 
         if ($action === 'submit') {
@@ -546,49 +570,64 @@ class AnalystReportController extends Controller
 
         $settleTimes = $request->input('settle_times', []);
         if (! empty($settleTimes)) {
-            foreach ($settleTimes as $secId => $data) {
-                $ownerKey = "settle_times_{$secId}";
-                if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+            foreach ($settleTimes as $secId => $instanceData) {
+                if (! is_array($instanceData)) {
                     continue;
                 }
-                $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if ($hasVal) {
-                    $owners[$ownerKey] = Auth::id();
-                    $savedSectionIds[(string) $secId] = true;
+                foreach ($instanceData as $instNum => $data) {
+                    $ownerKey = "settle_times_{$secId}_{$instNum}";
+                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                        continue;
+                    }
+                    $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                    if ($hasVal) {
+                        $owners[$ownerKey] = Auth::id();
+                        $savedSectionIds["{$secId}|{$instNum}"] = true;
+                    }
+                    $hd['settle_times'][$secId][$instNum] = array_replace_recursive($hd['settle_times'][$secId][$instNum] ?? [], $data);
                 }
-                $hd['settle_times'][$secId] = array_replace_recursive($hd['settle_times'][$secId] ?? [], $data);
             }
             $hd['_field_owners'] = $owners;
         }
         $swabTimes = $request->input('swab_times', []);
         if (! empty($swabTimes)) {
-            foreach ($swabTimes as $secId => $data) {
-                $ownerKey = "swab_times_{$secId}";
-                if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+            foreach ($swabTimes as $secId => $instanceData) {
+                if (! is_array($instanceData)) {
                     continue;
                 }
-                $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if ($hasVal) {
-                    $owners[$ownerKey] = Auth::id();
-                    $savedSectionIds[(string) $secId] = true;
+                foreach ($instanceData as $instNum => $data) {
+                    $ownerKey = "swab_times_{$secId}_{$instNum}";
+                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                        continue;
+                    }
+                    $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                    if ($hasVal) {
+                        $owners[$ownerKey] = Auth::id();
+                        $savedSectionIds["{$secId}|{$instNum}"] = true;
+                    }
+                    $hd['swab_times'][$secId][$instNum] = array_replace_recursive($hd['swab_times'][$secId][$instNum] ?? [], $data);
                 }
-                $hd['swab_times'][$secId] = array_replace_recursive($hd['swab_times'][$secId] ?? [], $data);
             }
             $hd['_field_owners'] = $owners;
         }
         $exposureTimes = $request->input('exposure_times', []);
         if (! empty($exposureTimes)) {
-            foreach ($exposureTimes as $secId => $data) {
-                $ownerKey = "exposure_times_{$secId}";
-                if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+            foreach ($exposureTimes as $secId => $instanceData) {
+                if (! is_array($instanceData)) {
                     continue;
                 }
-                $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                if ($hasVal) {
-                    $owners[$ownerKey] = Auth::id();
-                    $savedSectionIds[(string) $secId] = true;
+                foreach ($instanceData as $instNum => $data) {
+                    $ownerKey = "exposure_times_{$secId}_{$instNum}";
+                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                        continue;
+                    }
+                    $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                    if ($hasVal) {
+                        $owners[$ownerKey] = Auth::id();
+                        $savedSectionIds["{$secId}|{$instNum}"] = true;
+                    }
+                    $hd['exposure_times'][$secId][$instNum] = array_replace_recursive($hd['exposure_times'][$secId][$instNum] ?? [], $data);
                 }
-                $hd['exposure_times'][$secId] = array_replace_recursive($hd['exposure_times'][$secId] ?? [], $data);
             }
             $hd['_field_owners'] = $owners;
         }

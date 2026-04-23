@@ -46,9 +46,9 @@
 
     // Check ownership of time fields for this section
     $hdOwners = $hd['_field_owners'] ?? [];
-    $expTimeLocked = $isEditable && isset($hdOwners["exposure_times_{$section->id}"]) && (int) $hdOwners["exposure_times_{$section->id}"] !== auth()->id();
-    $settlTimeLocked = $isEditable && isset($hdOwners["settle_times_{$section->id}"]) && (int) $hdOwners["settle_times_{$section->id}"] !== auth()->id();
-    $swabTimeLocked = $isEditable && isset($hdOwners["swab_times_{$section->id}"]) && (int) $hdOwners["swab_times_{$section->id}"] !== auth()->id();
+    $expTimeLocked = $isEditable && isset($hdOwners["exposure_times_{$section->id}_{$instance}"]) && (int) $hdOwners["exposure_times_{$section->id}_{$instance}"] !== auth()->id();
+    $settlTimeLocked = $isEditable && isset($hdOwners["settle_times_{$section->id}_{$instance}"]) && (int) $hdOwners["settle_times_{$section->id}_{$instance}"] !== auth()->id();
+    $swabTimeLocked = $isEditable && isset($hdOwners["swab_times_{$section->id}_{$instance}"]) && (int) $hdOwners["swab_times_{$section->id}_{$instance}"] !== auth()->id();
 @endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4 overflow-hidden">
     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
@@ -130,18 +130,18 @@
                 <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
                     @if ($hasMachineSetup)
                     @php
-                        $msJamMulai   = $hd['exposure_times'][$section->id][0]['start_time'] ?? null;
-                        $msJamSelesai = $hd['exposure_times'][$section->id][0]['end_time'] ?? null;
+                        $msJamMulai   = $hd['exposure_times'][$section->id][$instance][0]['start_time'] ?? null;
+                        $msJamSelesai = $hd['exposure_times'][$section->id][$instance][0]['end_time'] ?? null;
                     @endphp
                     <th class="px-2 py-2 text-center font-semibold border-r border-sky-100" colspan="3">
                         <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
                         @if ($isEditable && !$expTimeLocked)
                         <div class="flex justify-center items-center gap-1">
-                            <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
+                            <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][start_time]"
                                    value="{{ $msJamMulai }}"
                                    class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                             <span class="text-gray-400 text-[10px] font-normal">–</span>
-                            <input type="time" name="exposure_times[{{ $section->id }}][0][end_time]"
+                            <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][end_time]"
                                    value="{{ $msJamSelesai }}"
                                    class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         </div>
@@ -168,18 +168,18 @@
 
                         {{-- Swab time slots (S1, S1-2, S1-3) --}}
                         @if ($isSwabTime)
-                        @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
+                        @php $swabColTimes = $hd['swab_times'][$section->id][$instance][$col] ?? []; @endphp
                         @if ($isEditable && !$swabTimeLocked)
                         <div class="space-y-0.5 mt-1">
                             @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                             @php $st = $swabColTimes[$swabKey] ?? []; @endphp
                             <div class="flex items-center justify-center gap-0.5">
                                 <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
-                                <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][mulai]"
+                                <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][mulai]"
                                        value="{{ $st['mulai'] ?? '' }}"
                                        class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 <span class="text-gray-400 text-[10px]">–</span>
-                                <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][selesai]"
+                                <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][selesai]"
                                        value="{{ $st['selesai'] ?? '' }}"
                                        class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                             </div>
@@ -200,14 +200,14 @@
                             @if ($isEditable && !$settlTimeLocked)
                             <div class="space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                @php $stAB = $hd['settle_times'][$section->id][$instance][$col][$ab] ?? []; @endphp
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
-                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][start_time]"
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][start_time]"
                                            value="{{ $stAB['start_time'] ?? '' }}"
                                            class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                     <span class="text-gray-400 text-[10px]">–</span>
-                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][end_time]"
+                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][end_time]"
                                            value="{{ $stAB['end_time'] ?? '' }}"
                                            class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 </div>
@@ -216,7 +216,7 @@
                             @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                @php $stAB = $hd['settle_times'][$section->id][$instance][$col][$ab] ?? []; @endphp
                                 <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
@@ -226,7 +226,7 @@
                         {{-- Single time slot: Mulai–Selesai per exposure column (in header) --}}
                         @if ($hasJam)
                         @php
-                            $expJam        = $hd['exposure_times'][$section->id][$col] ?? [];
+                            $expJam        = $hd['exposure_times'][$section->id][$instance][$col] ?? [];
                             $expJamMulai   = $expJam['start_time'] ?? null;
                             $expJamSelesai = $expJam['end_time'] ?? null;
                         @endphp
@@ -234,13 +234,13 @@
                         <div class="space-y-0.5 mt-1">
                             <div class="flex items-center justify-center gap-0.5">
                                 <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
-                                <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][start_time]"
+                                <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][start_time]"
                                        value="{{ $expJamMulai }}"
                                        class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                             </div>
                             <div class="flex items-center justify-center gap-0.5">
                                 <span class="text-[9px] text-gray-500 w-10 shrink-0">Selesai:</span>
-                                <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][end_time]"
+                                <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][end_time]"
                                        value="{{ $expJamSelesai }}"
                                        class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                             </div>
@@ -589,64 +589,39 @@
         </div>
     </div>
 
-    {{-- ── Per-section Signature ─────────────────────────────── --}}
+    @endif
+
+    {{-- ── Per-section Signature (per instance) ──────────────── --}}
     @php
-        // Collect unique analyst_ids from all entries belonging to this section
-        $_sectionPivotIds = $section->locations->pluck('pivot.id')->toArray();
-        $_secAnalysts = [];
-        foreach ($_sectionPivotIds as $_pid) {
-            foreach ($entryMap[$_pid] ?? [] as $_instMap) {
-                foreach ($_instMap as $_pMap) {
-                    foreach ($_pMap as $_e) {
-                        if ((int) $_e->analyst_id) {
-                            $_secAnalysts[(string) $_e->analyst_id] = true;
-                        }
-                    }
-                }
-            }
-        }
-        $_secAnalystIds = array_keys($_secAnalysts);
-        $_allMonIds  = array_map('strval', $report->analyst_monitoring ?? []);
-        $_allReadIds = array_map('strval', $report->analyst_reading    ?? []);
-        $_secMonTs   = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
-        $_secReadTs  = $hd['section_ttd_reading'][(string) $section->id]    ?? [];
-        // Union: analysts with entries in this section + analysts who saved time fields (timestamp-based)
-        $_secMonIds  = array_values(array_unique(array_merge(
-            array_intersect($_secAnalystIds, $_allMonIds),
-            array_intersect(array_keys($_secMonTs), $_allMonIds)
-        )));
-        // Reading: only analysts who actually have CFU entries in this section
-        $_secReadIds = array_values(array_intersect($_secAnalystIds, $_allReadIds));
-        // Supervisor & Manager approvals (same for all sections)
-        $_supApproval = $report->approvals->firstWhere('step', 2);
+        // Signatures for this specific section+instance, from report_section_signatures table
+        $_instSigs   = isset($sectionSignatures) ? $sectionSignatures->get("{$section->id}|{$instance}", collect()) : collect();
+        $_monSigs    = $_instSigs->where('role', 'monitoring');
+        $_readSigs   = $_instSigs->where('role', 'reading');
+        // Supervisor & Manager approvals (same for all instances/sections)
+        $_supApproval  = $report->approvals->firstWhere('step', 2);
         $_mngrApproval = $report->approvals->firstWhere('step', 3);
-        // Fetch user objects in one query
-        $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
-        $_secUserMap   = \App\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
     @endphp
     <div class="px-5 py-4 border-t border-gray-100">
-        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Tanda Tangan & Verifikasi</p>
+        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            Tanda Tangan & Verifikasi
+            @if ($instance > 1)<span class="text-orange-500 normal-case font-normal">&nbsp;(Duplikat {{ $instance }})</span>@endif
+        </p>
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
             {{-- Dimonitoring oleh --}}
             <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                 <p class="text-[11px] font-semibold text-gray-600 mb-2">Dimonitoring oleh:</p>
                 <div class="flex-1 flex flex-col gap-2 justify-center">
-                    @forelse ($_secMonIds as $_uid)
-                    @php $_u = $_secUserMap->get($_uid); $_ts = isset($_secMonTs[$_uid]) ? \Illuminate\Support\Carbon::parse($_secMonTs[$_uid]) : null; @endphp
-                    @if ($_u)
+                    @forelse ($_monSigs as $_sig)
                     <div class="text-center">
-                        @if ($_ts)
                         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Tersimpan
                         </span>
-                        @endif
-                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
-                        @if ($_ts)
-                        <p class="text-[11px] text-gray-500 mt-0.5">{{ $_ts->isoFormat('D MMM Y, HH:mm') }}</p>
+                        <p class="text-sm font-semibold text-gray-700">{{ $_sig->user->name }}</p>
+                        @if ($_sig->signed_at)
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ \Illuminate\Support\Carbon::parse($_sig->signed_at)->isoFormat('D MMM Y, HH:mm') }}</p>
                         @endif
                     </div>
-                    @endif
                     @empty
                     <div class="text-center"><div class="h-px w-12 border-b border-dashed border-gray-300 mx-auto"></div></div>
                     @endforelse
@@ -657,22 +632,17 @@
             <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                 <p class="text-[11px] font-semibold text-gray-600 mb-2">Dibaca oleh:</p>
                 <div class="flex-1 flex flex-col gap-2 justify-center">
-                    @forelse ($_secReadIds as $_uid)
-                    @php $_u = $_secUserMap->get($_uid); $_ts = isset($_secReadTs[$_uid]) ? \Illuminate\Support\Carbon::parse($_secReadTs[$_uid]) : null; @endphp
-                    @if ($_u)
+                    @forelse ($_readSigs as $_sig)
                     <div class="text-center">
-                        @if ($_ts)
                         <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Tersimpan
                         </span>
-                        @endif
-                        <p class="text-sm font-semibold text-gray-700">{{ $_u->name }}</p>
-                        @if ($_ts)
-                        <p class="text-[11px] text-gray-500 mt-0.5">{{ $_ts->isoFormat('D MMM Y, HH:mm') }}</p>
+                        <p class="text-sm font-semibold text-gray-700">{{ $_sig->user->name }}</p>
+                        @if ($_sig->signed_at)
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ \Illuminate\Support\Carbon::parse($_sig->signed_at)->isoFormat('D MMM Y, HH:mm') }}</p>
                         @endif
                     </div>
-                    @endif
                     @empty
                     <div class="text-center"><div class="h-px w-12 border-b border-dashed border-gray-300 mx-auto"></div></div>
                     @endforelse
@@ -723,5 +693,4 @@
             </div>
         </div>
     </div>
-    @endif
 </div>
