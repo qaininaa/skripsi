@@ -421,17 +421,19 @@ class AnalystReportController extends Controller
         $changed = false;
         foreach (array_keys($owners) as $k) {
             if (! str_contains((string) $k, '.')) {
-                $sectionData = $hd[$k] ?? [];
-                if (is_array($sectionData)) {
+                // Only migrate keys that are actual section-level arrays in $hd (old format).
+                // Keys like incubator_{uuid}_in / settle_times_{uuid}_{n} are NOT in $hd, skip them.
+                $sectionData = $hd[$k] ?? null;
+                if (is_array($sectionData) && ! empty($sectionData)) {
                     foreach (array_keys($sectionData) as $fk) {
                         if (! isset($owners["{$k}.{$fk}"])) {
                             $owners["{$k}.{$fk}"] = $owners[$k];
                             $changed = true;
                         }
                     }
+                    unset($owners[$k]);
+                    $changed = true;
                 }
-                unset($owners[$k]);
-                $changed = true;
             }
         }
         if ($changed) {
@@ -474,39 +476,80 @@ class AnalystReportController extends Controller
 
         // Save incubators ke tabel incubators
         if ($request->has('incubator')) {
+            $freshHdInk = $report->header_data ?? [];
+            $inkOwners  = $freshHdInk['_field_owners'] ?? [];
+
             foreach ($request->input('incubator', []) as $tempKey => $data) {
-                $report->incubators()->updateOrCreate(
-                    ['report_type_incubator_id' => $tempKey],
-                    [
-                        'no_id' => $data['no_id'] ?? null ?: null,
-                        'calibration_date' => $data['calibration_date'] ?? null ?: null,
-                        'due_date_calibration' => $data['due_date_calibration'] ?? null ?: null,
-                        'incubated_by' => $data['incubated_by'] ?? null ?: null,
-                        'date_in' => $data['date_in'] ?? null ?: null,
-                        'time_in' => $data['time_in'] ?? null ?: null,
-                        'removed_by' => $data['removed_by'] ?? null ?: null,
-                        'date_out' => $data['date_out'] ?? null ?: null,
-                        'time_out' => $data['time_out'] ?? null ?: null,
-                    ]
-                );
+                // Split fields into "in" group (masuk) and "out" group (keluar)
+                $inFields  = array_filter([
+                    'no_id'               => $data['no_id']               ?? null ?: null,
+                    'calibration_date'    => $data['calibration_date']    ?? null ?: null,
+                    'due_date_calibration'=> $data['due_date_calibration'] ?? null ?: null,
+                    'incubated_by'        => $data['incubated_by']        ?? null ?: null,
+                    'date_in'             => $data['date_in']             ?? null ?: null,
+                    'time_in'             => $data['time_in']             ?? null ?: null,
+                ]);
+                $outFields = array_filter([
+                    'removed_by' => $data['removed_by'] ?? null ?: null,
+                    'date_out'   => $data['date_out']   ?? null ?: null,
+                    'time_out'   => $data['time_out']   ?? null ?: null,
+                ]);
+
+                $ownerKeyIn  = "incubator_{$tempKey}_in";
+                $ownerKeyOut = "incubator_{$tempKey}_out";
+
+                // "In" group: skip if owned by someone else
+                $inLocked = isset($inkOwners[$ownerKeyIn]) && (string) $inkOwners[$ownerKeyIn] !== (string) Auth::id();
+                if (! $inLocked) {
+                    if (! empty($inFields)) {
+                        $inkOwners[$ownerKeyIn] = (string) Auth::id();
+                    }
+                } else {
+                    // Mask in-group fields so they don't overwrite owner's data
+                    $inFields = [];
+                }
+
+                // "Out" group: skip if owned by someone else
+                $outLocked = isset($inkOwners[$ownerKeyOut]) && (string) $inkOwners[$ownerKeyOut] !== (string) Auth::id();
+                if (! $outLocked) {
+                    if (! empty($outFields)) {
+                        $inkOwners[$ownerKeyOut] = (string) Auth::id();
+                    }
+                } else {
+                    $outFields = [];
+                }
+
+                $mergedData = array_merge($inFields, $outFields);
+                if (! empty($mergedData)) {
+                    $report->incubators()->updateOrCreate(
+                        ['report_type_incubator_id' => $tempKey],
+                        $mergedData
+                    );
+                }
             }
+
+            // Persist updated owners back
+            $freshHdInk['_field_owners'] = $inkOwners;
+            $report->update(['header_data' => $freshHdInk]);
         }
 
         // Save header_data (analyst assignments + timing data)
         $hd = $report->header_data ?? [];
         $owners = $hd['_field_owners'] ?? [];
-        // Migrate any old per-section ownership keys to per-field format
+        // Migrate any old per-section ownership keys to per-field format.
+        // Only migrate keys that actually exist as non-empty arrays in $hd (old format).
+        // Keys like incubator_{uuid}_in or settle_times_{uuid}_{n} are NOT in $hd — skip them.
         foreach (array_keys($owners) as $k) {
             if (! str_contains((string) $k, '.')) {
-                $sectionData = $hd[$k] ?? [];
-                if (is_array($sectionData)) {
+                $sectionData = $hd[$k] ?? null;
+                if (is_array($sectionData) && ! empty($sectionData)) {
                     foreach (array_keys($sectionData) as $fk) {
                         if (! isset($owners["{$k}.{$fk}"])) {
                             $owners["{$k}.{$fk}"] = $owners[$k];
                         }
                     }
+                    unset($owners[$k]);
                 }
-                unset($owners[$k]);
             }
         }
         if ($request->has('header_data')) {
@@ -516,11 +559,11 @@ class AnalystReportController extends Controller
             foreach ($incoming as $sectionKey => $sectionData) {
                 if (! is_array($sectionData)) {
                     $ownerKey = $sectionKey;
-                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
                         continue;
                     }
                     if ($sectionData !== null && $sectionData !== '') {
-                        $owners[$ownerKey] = Auth::id();
+                        $owners[$ownerKey] = (string) Auth::id();
                     }
                     $hd[$sectionKey] = $sectionData;
 
@@ -528,11 +571,11 @@ class AnalystReportController extends Controller
                 }
                 foreach ($sectionData as $fieldKey => $fieldValue) {
                     $ownerKey = "{$sectionKey}.{$fieldKey}";
-                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
                         continue;
                     }
                     if ($fieldValue !== null && $fieldValue !== '') {
-                        $owners[$ownerKey] = Auth::id();
+                        $owners[$ownerKey] = (string) Auth::id();
                     }
                     $hd[$sectionKey][$fieldKey] = $fieldValue;
                 }
@@ -576,12 +619,12 @@ class AnalystReportController extends Controller
                 }
                 foreach ($instanceData as $instNum => $data) {
                     $ownerKey = "settle_times_{$secId}_{$instNum}";
-                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
                         continue;
                     }
                     $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
                     if ($hasVal) {
-                        $owners[$ownerKey] = Auth::id();
+                        $owners[$ownerKey] = (string) Auth::id();
                         $savedSectionIds["{$secId}|{$instNum}"] = true;
                     }
                     $hd['settle_times'][$secId][$instNum] = array_replace_recursive($hd['settle_times'][$secId][$instNum] ?? [], $data);
@@ -597,12 +640,12 @@ class AnalystReportController extends Controller
                 }
                 foreach ($instanceData as $instNum => $data) {
                     $ownerKey = "swab_times_{$secId}_{$instNum}";
-                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
                         continue;
                     }
                     $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
                     if ($hasVal) {
-                        $owners[$ownerKey] = Auth::id();
+                        $owners[$ownerKey] = (string) Auth::id();
                         $savedSectionIds["{$secId}|{$instNum}"] = true;
                     }
                     $hd['swab_times'][$secId][$instNum] = array_replace_recursive($hd['swab_times'][$secId][$instNum] ?? [], $data);
@@ -618,12 +661,12 @@ class AnalystReportController extends Controller
                 }
                 foreach ($instanceData as $instNum => $data) {
                     $ownerKey = "exposure_times_{$secId}_{$instNum}";
-                    if (isset($owners[$ownerKey]) && (int) $owners[$ownerKey] !== Auth::id()) {
+                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
                         continue;
                     }
                     $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
                     if ($hasVal) {
-                        $owners[$ownerKey] = Auth::id();
+                        $owners[$ownerKey] = (string) Auth::id();
                         $savedSectionIds["{$secId}|{$instNum}"] = true;
                     }
                     $hd['exposure_times'][$secId][$instNum] = array_replace_recursive($hd['exposure_times'][$secId][$instNum] ?? [], $data);
