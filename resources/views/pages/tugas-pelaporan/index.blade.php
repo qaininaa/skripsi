@@ -87,7 +87,7 @@
 
                             {{-- Tombol lihat, edit & hapus --}}
                             <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <x-buttons.view-button href="{{ route('tugas-pelaporan.edit', $item) }}" />
+                                <x-buttons.view-button href="{{ route('admin.laporan.preview', $item) }}" />
                                 <x-buttons.edit-button onclick="window.location.href='{{ route('tugas-pelaporan.edit', $item) }}'" />
                                     <x-buttons.delete-button
                                         :action="route('tugas-pelaporan.destroy', $item)"
