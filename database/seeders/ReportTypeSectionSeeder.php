@@ -27,13 +27,13 @@ class ReportTypeSectionSeeder extends Seeder
         // ---------------------------------------------------------------
         $annex18 = (string) Str::uuid();
         DB::table('report_types')->insert([
-            'id'          => $annex18,
-            'name'        => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.1 B Filling Line 2',
-            'annex_number'=> 18,
-            'sop_code'    => 'SOP-QC035-A18',
+            'id' => $annex18,
+            'name' => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.1 B Filling Line 2',
+            'annex_number' => 18,
+            'sop_code' => 'SOP-QC035-A18',
             'sop_version' => '11',
-            'created_at'  => $now,
-            'updated_at'  => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
         $this->insertMedia($annex18, $media, $now);
         $this->insertIncubators($annex18, $incubators, $now);
@@ -86,13 +86,13 @@ class ReportTypeSectionSeeder extends Seeder
         // ---------------------------------------------------------------
         $annex24 = (string) Str::uuid();
         DB::table('report_types')->insert([
-            'id'          => $annex24,
-            'name'        => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5',
-            'annex_number'=> 24,
-            'sop_code'    => 'SOP-QC035-A24',
+            'id' => $annex24,
+            'name' => 'Laporan Pemantauan Ruangan Produksi Injeksi HVAC 6.1.5',
+            'annex_number' => 24,
+            'sop_code' => 'SOP-QC035-A24',
             'sop_version' => '11',
-            'created_at'  => $now,
-            'updated_at'  => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
         $this->insertMedia($annex24, $media, $now);
         $this->insertIncubators($annex24, $incubators, $now);
@@ -135,13 +135,13 @@ class ReportTypeSectionSeeder extends Seeder
         // ---------------------------------------------------------------
         $annex3 = (string) Str::uuid();
         DB::table('report_types')->insert([
-            'id'          => $annex3,
-            'name'        => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 3',
-            'annex_number'=> 3,
-            'sop_code'    => 'SOP-QC035-A3',
+            'id' => $annex3,
+            'name' => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 3',
+            'annex_number' => 3,
+            'sop_code' => 'SOP-QC035-A3',
             'sop_version' => '11',
-            'created_at'  => $now,
-            'updated_at'  => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
         $this->insertMedia($annex3, $media, $now);
         $this->insertIncubators($annex3, $incubators, $now);
@@ -184,13 +184,13 @@ class ReportTypeSectionSeeder extends Seeder
         // ---------------------------------------------------------------
         $annex4 = (string) Str::uuid();
         DB::table('report_types')->insert([
-            'id'          => $annex4,
-            'name'        => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 4',
-            'annex_number'=> 4,
-            'sop_code'    => 'SOP-QC035-A4',
+            'id' => $annex4,
+            'name' => 'Laporan Pemantauan Ruangan Produksi HVAC Annex 4',
+            'annex_number' => 4,
+            'sop_code' => 'SOP-QC035-A4',
             'sop_version' => '11',
-            'created_at'  => $now,
-            'updated_at'  => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
         $this->insertMedia($annex4, $media, $now);
         $this->insertIncubators($annex4, $incubators, $now);
@@ -232,10 +232,10 @@ class ReportTypeSectionSeeder extends Seeder
         // Populate config columns based on measurement_type
         // ---------------------------------------------------------------
         $configMap = [
-            'settle_plate'  => ['column_label' => 'Exposure', 'time_slot_type' => 'dual_ab', 'has_machine_setup' => true,  'has_shift_toggle' => true],
-            'air_sampler'   => ['column_label' => 'Shift',    'time_slot_type' => 'single',  'has_machine_setup' => false, 'has_shift_toggle' => true],
+            'settle_plate' => ['column_label' => 'Exposure', 'time_slot_type' => 'dual_ab', 'has_machine_setup' => true,  'has_shift_toggle' => true],
+            'air_sampler' => ['column_label' => 'Shift',    'time_slot_type' => 'single',  'has_machine_setup' => false, 'has_shift_toggle' => true],
             'contact_plate' => ['column_label' => 'Shift',    'time_slot_type' => 'none',    'has_machine_setup' => false, 'has_shift_toggle' => true],
-            'swab'          => ['column_label' => 'Shift',    'time_slot_type' => 'swab',    'has_machine_setup' => false, 'has_shift_toggle' => false],
+            'swab' => ['column_label' => 'Shift',    'time_slot_type' => 'swab',    'has_machine_setup' => false, 'has_shift_toggle' => false],
         ];
 
         foreach ($configMap as $type => $cfg) {
@@ -249,11 +249,11 @@ class ReportTypeSectionSeeder extends Seeder
     {
         foreach ($mediums as $m) {
             DB::table('report_type_mediums')->insert([
-                'id'             => (string) Str::uuid(),
+                'id' => (string) Str::uuid(),
                 'report_type_id' => $reportTypeId,
-                'name'           => $m['name'],
-                'created_at'     => $now,
-                'updated_at'     => $now,
+                'name' => $m['name'],
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
     }
@@ -262,12 +262,12 @@ class ReportTypeSectionSeeder extends Seeder
     {
         foreach ($incubators as $inc) {
             DB::table('report_type_incubators')->insert([
-                'id'                => (string) Str::uuid(),
-                'report_type_id'    => $reportTypeId,
+                'id' => (string) Str::uuid(),
+                'report_type_id' => $reportTypeId,
                 'temperature_label' => $inc['temperature_label'],
-                'min_days'          => $inc['min_days'],
-                'created_at'        => $now,
-                'updated_at'        => $now,
+                'min_days' => $inc['min_days'],
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
         }
     }

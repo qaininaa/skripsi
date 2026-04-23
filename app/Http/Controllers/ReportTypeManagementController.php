@@ -32,22 +32,22 @@ class ReportTypeManagementController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'sop_code'           => ['required', 'string', 'max:100', 'unique:report_types,sop_code'],
-            'sop_version'        => ['required', 'string', 'max:50'],
-            'name'               => ['required', 'string', 'max:255'],
-            'annex_number'       => ['required', 'integer', 'min:1'],
-            'medium_labels'      => ['nullable', 'array'],
-            'medium_labels.*'    => ['nullable', 'string', 'max:255'],
-            'incubator_labels'   => ['nullable', 'array'],
+            'sop_code' => ['required', 'string', 'max:100', 'unique:report_types,sop_code'],
+            'sop_version' => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:255'],
+            'annex_number' => ['required', 'integer', 'min:1'],
+            'medium_labels' => ['nullable', 'array'],
+            'medium_labels.*' => ['nullable', 'string', 'max:255'],
+            'incubator_labels' => ['nullable', 'array'],
             'incubator_labels.*' => ['nullable', 'string', 'max:255'],
-            'incubator_min_days'    => ['nullable', 'array'],
-            'incubator_min_days.*'  => ['nullable', 'integer', 'min:1'],
+            'incubator_min_days' => ['nullable', 'array'],
+            'incubator_min_days.*' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $reportType = ReportType::create([
-            'sop_code'     => $validated['sop_code'],
-            'sop_version'  => $validated['sop_version'],
-            'name'         => $validated['name'],
+            'sop_code' => $validated['sop_code'],
+            'sop_version' => $validated['sop_version'],
+            'name' => $validated['name'],
             'annex_number' => $validated['annex_number'],
         ]);
 
@@ -55,11 +55,11 @@ class ReportTypeManagementController extends Controller
         $this->syncIncubators($reportType, $request->input('incubator_labels', []), $request->input('incubator_min_days', []));
 
         AuditLog::create([
-            'user_id'     => $request->user()?->id,
-            'action'      => 'create_report_type',
+            'user_id' => $request->user()?->id,
+            'action' => 'create_report_type',
             'description' => 'Membuat jenis laporan: '.$reportType->name.' ('.$reportType->annex_number.')',
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()
@@ -85,22 +85,22 @@ class ReportTypeManagementController extends Controller
     public function update(Request $request, ReportType $reportType): RedirectResponse
     {
         $validated = $request->validate([
-            'sop_code'           => ['required', 'string', 'max:100', 'unique:report_types,sop_code,'.$reportType->id],
-            'sop_version'        => ['required', 'string', 'max:50'],
-            'name'               => ['required', 'string', 'max:255'],
-            'annex_number'       => ['required', 'integer', 'min:1'],
-            'medium_labels'      => ['nullable', 'array'],
-            'medium_labels.*'    => ['nullable', 'string', 'max:255'],
-            'incubator_labels'   => ['nullable', 'array'],
+            'sop_code' => ['required', 'string', 'max:100', 'unique:report_types,sop_code,'.$reportType->id],
+            'sop_version' => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:255'],
+            'annex_number' => ['required', 'integer', 'min:1'],
+            'medium_labels' => ['nullable', 'array'],
+            'medium_labels.*' => ['nullable', 'string', 'max:255'],
+            'incubator_labels' => ['nullable', 'array'],
             'incubator_labels.*' => ['nullable', 'string', 'max:255'],
-            'incubator_min_days'   => ['nullable', 'array'],
+            'incubator_min_days' => ['nullable', 'array'],
             'incubator_min_days.*' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $reportType->update([
-            'sop_code'     => $validated['sop_code'],
-            'sop_version'  => $validated['sop_version'],
-            'name'         => $validated['name'],
+            'sop_code' => $validated['sop_code'],
+            'sop_version' => $validated['sop_version'],
+            'name' => $validated['name'],
             'annex_number' => $validated['annex_number'],
         ]);
 
@@ -110,11 +110,11 @@ class ReportTypeManagementController extends Controller
         $this->syncIncubators($reportType, $request->input('incubator_labels', []), $request->input('incubator_min_days', []));
 
         AuditLog::create([
-            'user_id'     => $request->user()?->id,
-            'action'      => 'update_report_type',
+            'user_id' => $request->user()?->id,
+            'action' => 'update_report_type',
             'description' => 'Memperbarui jenis laporan: '.$reportType->name.' ('.$reportType->annex_number.')',
-            'ip_address'  => $request->ip(),
-            'user_agent'  => $request->userAgent(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()
@@ -241,7 +241,7 @@ class ReportTypeManagementController extends Controller
             if ($label !== '') {
                 ReportTypeMedium::create([
                     'report_type_id' => $reportType->id,
-                    'name'           => $label,
+                    'name' => $label,
                 ]);
             }
         }
@@ -253,9 +253,9 @@ class ReportTypeManagementController extends Controller
             $label = trim($label);
             if ($label !== '') {
                 ReportTypeIncubator::create([
-                    'report_type_id'    => $reportType->id,
+                    'report_type_id' => $reportType->id,
                     'temperature_label' => $label,
-                    'min_days'          => (int) ($minDays[$i] ?? 3),
+                    'min_days' => (int) ($minDays[$i] ?? 3),
                 ]);
             }
         }

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('report_type_incubators', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('report_type_id')->constrained('report_types')->cascadeOnDelete();
-            $table->string('temperature_label'); 
+            $table->string('temperature_label');
             $table->unsignedTinyInteger('min_days');
             $table->timestamps();
         });
