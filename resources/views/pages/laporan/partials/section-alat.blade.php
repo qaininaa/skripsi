@@ -14,7 +14,7 @@
         </div>
         <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
-            <input type="text" name="air_sampler[no_id]" value="{{ $instrument?->no_id ?? '' }}"
+            <input type="text" name="air_sampler[no_id]" value="{{ $instrument?->no_id ?? 'N/A' }}"
                    @if(!$isEditable) readonly @endif
                    class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
         </div>

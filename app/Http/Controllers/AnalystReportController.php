@@ -82,7 +82,8 @@ class AnalystReportController extends Controller
         $report->load([
             'reportType.sections.locations.room',
             'reportType.sections.locations.frequency',
-            'entries',
+            'reportType.incubatorConfigs',
+            'environmentalEntries',
             'approvals.user',
             'lockedByUser',
             'instrumentIdentities',
@@ -94,7 +95,7 @@ class AnalystReportController extends Controller
 
         // entryMap[$pivot_id][$instance][$period_number][$shift] = entry
         $entryMap = [];
-        foreach ($report->entries as $entry) {
+        foreach ($report->environmentalEntries as $entry) {
             $entryMap[$entry->report_section_id][$entry->instance_number ?? 1][$entry->period_number][$entry->shift] = $entry;
         }
 
@@ -119,7 +120,8 @@ class AnalystReportController extends Controller
         }
 
         $instrument = $report->instrumentIdentities->first();
-        $incubators = $report->incubators->keyBy('temperature');
+        $incubators = $report->incubators->keyBy('report_type_incubator_id');
+        $incubatorConfigs = $report->reportType->incubatorConfigs;
         $mediums = $report->mediumIdentities->keyBy('name');
         $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
         $readingAnalysts = $report->analysts->where('type', 'reading');
@@ -138,7 +140,7 @@ class AnalystReportController extends Controller
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
             'sectionInstances', 'returnedApproval', 'isRevision',
-            'instrument', 'incubators', 'mediums',
+            'instrument', 'incubators', 'incubatorConfigs', 'mediums',
             'monitoringAnalysts', 'readingAnalysts'
         ));
     }
@@ -148,7 +150,8 @@ class AnalystReportController extends Controller
         $report->load([
             'reportType.sections.locations.room',
             'reportType.sections.locations.frequency',
-            'entries',
+            'reportType.incubatorConfigs',
+            'environmentalEntries',
             'approvals.user',
             'lockedByUser',
             'instrumentIdentities',
@@ -159,7 +162,7 @@ class AnalystReportController extends Controller
         ]);
 
         $entryMap = [];
-        foreach ($report->entries as $entry) {
+        foreach ($report->environmentalEntries as $entry) {
             $entryMap[$entry->report_section_id][$entry->instance_number ?? 1][$entry->period_number][$entry->shift] = $entry;
         }
 
@@ -182,7 +185,8 @@ class AnalystReportController extends Controller
         }
 
         $instrument = $report->instrumentIdentities->first();
-        $incubators = $report->incubators->keyBy('temperature');
+        $incubators = $report->incubators->keyBy('report_type_incubator_id');
+        $incubatorConfigs = $report->reportType->incubatorConfigs;
         $mediums = $report->mediumIdentities->keyBy('name');
         $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
         $readingAnalysts = $report->analysts->where('type', 'reading');
@@ -196,7 +200,7 @@ class AnalystReportController extends Controller
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'isEditable', 'isMonitoringPhase', 'analis', 'otherAnalis',
             'sectionInstances', 'isAdminPreview',
-            'instrument', 'incubators', 'mediums',
+            'instrument', 'incubators', 'incubatorConfigs', 'mediums',
             'monitoringAnalysts', 'readingAnalysts'
         ));
     }
@@ -448,7 +452,7 @@ class AnalystReportController extends Controller
         if ($request->has('incubator')) {
             foreach ($request->input('incubator', []) as $tempKey => $data) {
                 $report->incubators()->updateOrCreate(
-                    ['temperature' => $tempKey],
+                    ['report_type_incubator_id' => $tempKey],
                     [
                         'no_id' => $data['no_id'] ?? null ?: null,
                         'calibration_date' => $data['calibration_date'] ?? null ?: null,

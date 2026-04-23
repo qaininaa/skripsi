@@ -25,7 +25,7 @@
                     <input type="hidden" name="analyst_monitoring[]" value="{{ $oid }}">
                     <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-sm text-emerald-700 mb-1.5">
                         <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        {{ \App\Models\User::find($oid)?->name ?? '—' }}
+                        {{ \App\Models\User::find($oid)?->name ?? 'N/A' }}
                     </div>
                 @endforeach
                 {{-- Current user slot --}}
@@ -50,11 +50,11 @@
                 @endforeach
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php $monitoringNames = \App\Models\User::whereIn('id', $monIds)->pluck('name'); @endphp
-                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
+                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : 'N/A' }}
                 </div>
             @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    {{ $monitoringAnalysts->map->user->filter()->pluck('name')->join(', ') ?: '—' }}
+                    {{ $monitoringAnalysts->map->user->filter()->pluck('name')->join(', ') ?: 'N/A' }}
                 </div>
             @endif
         </div>
@@ -107,7 +107,7 @@
                 @if(!empty($readIds))
                     @php $existingReadNames = $readingAnalysts->map->user->filter()->pluck('name'); @endphp
                     <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                        {{ $existingReadNames->join(', ') }}
+                        {{ $existingReadNames->join(', ') ?: 'N/A' }}
                     </div>
                 @else
                     <div class="px-3 py-2 rounded-lg bg-gray-100 border border-dashed border-gray-200 text-sm text-gray-400 italic">
@@ -116,7 +116,7 @@
                 @endif
             @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    {{ $readingAnalysts->map->user->filter()->pluck('name')->join(', ') ?: '—' }}
+                    {{ $readingAnalysts->map->user->filter()->pluck('name')->join(', ') ?: 'N/A' }}
                 </div>
             @endif
         </div>
