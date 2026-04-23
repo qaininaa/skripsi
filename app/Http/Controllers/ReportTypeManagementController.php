@@ -11,6 +11,7 @@ use App\Models\ReportTypeMedium;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ReportTypeManagementController extends Controller
@@ -32,7 +33,7 @@ class ReportTypeManagementController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'sop_code' => ['required', 'string', 'max:100', 'unique:report_types,sop_code'],
+            'sop_code' => ['required', 'string', 'max:100', Rule::unique('report_types', 'sop_code')->where('annex_number', $request->input('annex_number'))->where('sop_version', $request->input('sop_version'))],
             'sop_version' => ['required', 'string', 'max:50'],
             'name' => ['required', 'string', 'max:255'],
             'annex_number' => ['required', 'integer', 'min:1'],
@@ -85,7 +86,7 @@ class ReportTypeManagementController extends Controller
     public function update(Request $request, ReportType $reportType): RedirectResponse
     {
         $validated = $request->validate([
-            'sop_code' => ['required', 'string', 'max:100', 'unique:report_types,sop_code,'.$reportType->id],
+            'sop_code' => ['required', 'string', 'max:100', Rule::unique('report_types', 'sop_code')->where('annex_number', $request->input('annex_number'))->where('sop_version', $request->input('sop_version'))->ignore($reportType->id)],
             'sop_version' => ['required', 'string', 'max:50'],
             'name' => ['required', 'string', 'max:255'],
             'annex_number' => ['required', 'integer', 'min:1'],
