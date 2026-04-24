@@ -597,7 +597,8 @@
                         $hasAlt = !$hasTMS && (
                                     ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                                  || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
-                        $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : 'MS');
+                        $hasCfuEntries = $locEntries->contains(fn($e) => $e->cfu_bacteria !== null || $e->cfu_fungi !== null);
+                        $konklusi = $hasCfuEntries ? ($hasTMS ? 'TMS' : 'MS') : null;
 
                         $classBadge = match($loc->room->class) {
                             'A' => 'bg-purple-100 text-purple-700',

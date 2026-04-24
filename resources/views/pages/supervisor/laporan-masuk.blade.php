@@ -86,15 +86,11 @@
                                     {{ $report->batch_number ?: '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    @php
-                                        $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
-                                    @endphp
+                                    @php $monitoringNames = $report->analysts->where('type', 'monitoring')->map(fn($a) => optional($a->user)->name)->filter(); @endphp
                                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
-                                    @php
-                                        $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
-                                    @endphp
+                                    @php $readingNames = $report->analysts->where('type', 'reading')->map(fn($a) => optional($a->user)->name)->filter(); @endphp
                                     {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                                 </td>
                                 <td class="px-5 py-3.5">

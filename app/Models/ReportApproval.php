@@ -10,7 +10,7 @@ class ReportApproval extends Model
     use HasUuids;
 
     protected $fillable = [
-        'report_id', 'step', 'role_label', 'user_id',
+        'report_id', 'step', 'role', 'user_id',
         'signed_at', 'signature_path', 'status', 'notes', 'returned_to_user_id',
     ];
 

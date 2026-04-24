@@ -15,6 +15,7 @@ class MediumIdentity extends Model
 
     protected $fillable = [
         'report_id',
+        'medium_id',
         'name',
         'batch_number',
         'gpt_number',

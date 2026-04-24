@@ -13,10 +13,7 @@
     $routeReturn  = $reviewRole . '.laporan.return';
     $isEditable   = $approval->isPending();
     // Users that can receive the return:
-    $allReturnableIds = array_unique(array_merge(
-        $report->analyst_monitoring ?? [],
-        $report->analyst_reading    ?? []
-    ));
+    $allReturnableIds = $report->analysts->pluck('user_id')->unique()->toArray();
     $returnableAnalysts = \App\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
     // For manajer: also supervisor
     $returnSupervisor = $returnSupervisor ?? null; // passed from controller for manajer only
@@ -92,14 +89,14 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    @php $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name'); @endphp
+                    @php $monitoringNames = $report->analysts->where('type', 'monitoring')->map(fn($a) => optional($a->user)->name)->filter(); @endphp
                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dibaca Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    @php $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name'); @endphp
+                    @php $readingNames = $report->analysts->where('type', 'reading')->map(fn($a) => optional($a->user)->name)->filter(); @endphp
                     {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                 </div>
             </div>
@@ -171,45 +168,54 @@
     @endif
 
     {{-- ── 3. Identitas Medium ────────────────────────────── --}}
-    @php $mediumGroups = $report->reportType->medium_groups ?? []; @endphp
-    @if (!empty($mediumGroups))
+    @php
+        $mediumTypeList = $report->relationLoaded('reportType') ? $report->reportType->media : collect();
+        $mediumByName   = $report->mediumIdentities->keyBy('name');
+    @endphp
+    @if ($needsMedium && $mediumTypeList->isNotEmpty())
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div class="px-5 py-3.5 border-b border-gray-100">
             <h3 class="font-semibold text-sm text-gray-700">3. Identitas Medium</h3>
         </div>
-        <div class="p-5 grid grid-cols-1 gap-6 {{ count($mediumGroups) > 2 ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
-            @foreach ($mediumGroups as $medKey => $medLabel)
-            @php $med = $hd[$medKey] ?? []; @endphp
+        <div class="p-5 grid grid-cols-1 gap-6 {{ $mediumTypeList->count() > 2 ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
+            @foreach ($mediumTypeList as $medType)
+            @php
+                $medName = $medType->name;
+                $med     = $mediumByName->get($medName);
+                $isSwab  = str_contains(strtolower($medName), 'swab');
+            @endphp
             <div>
-                <h4 class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-3">{{ $medLabel }}</h4>
+                <h4 class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-3">{{ $medName }}</h4>
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
                         @if ($isEditable)
-                        <input type="text" name="header_data[{{ $medKey }}][nomor_batch]" value="{{ $med['nomor_batch'] ?? '' }}"
+                        <input type="text" name="medium[{{ $medName }}][batch_number]" value="{{ $med?->batch_number ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['nomor_batch'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->batch_number ?? '—' }}</div>
                         @endif
                     </div>
-                    @if ($medKey !== 'medium_swab')
+                    @if (!$isSwab)
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
                         @if ($isEditable)
-                        <input type="text" name="header_data[{{ $medKey }}][nomor_gpt]" value="{{ $med['nomor_gpt'] ?? '' }}"
+                        <input type="text" name="medium[{{ $medName }}][gpt_number]" value="{{ $med?->gpt_number ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['nomor_gpt'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->gpt_number ?? '—' }}</div>
                         @endif
                     </div>
                     @endif
                     <div>
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $medKey === 'medium_swab' ? 'Swab Kit' : 'Medium' }}</label>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $isSwab ? 'Swab Kit' : 'Medium' }}</label>
                         @if ($isEditable)
-                        <input type="date" name="header_data[{{ $medKey }}][expiry_date]" value="{{ $med['expiry_date'] ?? '' }}"
+                        <input type="date" name="medium[{{ $medName }}][expiration_date]" value="{{ $med?->expiration_date?->format('Y-m-d') ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med['expiry_date'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
+                            {{ $med?->expiration_date ? $med->expiration_date->format('d/m/Y') : '—' }}
+                        </div>
                         @endif
                     </div>
                 </div>
@@ -422,7 +428,7 @@
                         @php
                             $msJamMulai = null; $msJamSelesai = null;
                             foreach ($section->locations as $loc2) {
-                                $e0 = $entryMap[$loc2->pivot->id][0][1] ?? $entryMap[$loc2->pivot->id][0][2] ?? null;
+                                $e0 = $entryMap[$loc2->pivot->id][1][0][1] ?? $entryMap[$loc2->pivot->id][1][0][2] ?? null;
                                 if ($e0 && ($e0->start_time || $e0->end_time)) {
                                     $msJamMulai   = $e0->start_time;
                                     $msJamSelesai = $e0->end_time;
@@ -604,8 +610,8 @@
                         $locEntries = collect();
                         for ($p = 1; $p <= $section->max_column; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
-                                if (isset($entryMap[$loc->pivot->id][$p][$s])) {
-                                    $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
+                                if (isset($entryMap[$loc->pivot->id][1][$p][$s])) {
+                                    $locEntries->push($entryMap[$loc->pivot->id][1][$p][$s]);
                                 }
                             }
                         }
@@ -616,7 +622,8 @@
                         $hasAlt = !$hasTMS && (
                                     ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                                  || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
-                        $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : 'MS');
+                        $hasCfuEntries = $locEntries->contains(fn($e) => $e->cfu_bacteria !== null || $e->cfu_fungi !== null);
+                        $konklusi = $hasCfuEntries ? ($hasTMS ? 'TMS' : 'MS') : null;
                         $classBadge = match($loc->room->class) {
                             'A' => 'bg-purple-100 text-purple-700',
                             'B' => 'bg-blue-100 text-blue-700',
@@ -641,7 +648,7 @@
 
                         @if ($hasMachineSetup)
                         @php
-                            $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
+                            $msEntry = $entryMap[$loc->pivot->id][1][0][1] ?? $entryMap[$loc->pivot->id][1][0][2] ?? null;
                             $msTVal  = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
@@ -664,7 +671,7 @@
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
-                            $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
+                            $existEntry = $entryMap[$loc->pivot->id][1][$col][$colAsgn] ?? null;
                             $tVal       = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
                         @if ($isPerLocation)
@@ -751,14 +758,16 @@
                         $_sHasTMS   = false;
                         $_sAllEmpty = true;
                         foreach ($section->locations as $_loc) {
-                            foreach ($entryMap[$_loc->pivot->id] ?? [] as $_period => $_shifts) {
-                                foreach ($_shifts as $_shift => $_e) {
-                                    $_sAllEmpty = false;
-                                    $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
-                                    $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
-                                    if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
-                                        || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
-                                        $_sHasTMS = true;
+                            foreach ($entryMap[$_loc->pivot->id] ?? [] as $_instMap) {
+                                foreach ($_instMap as $_period => $_shifts) {
+                                    foreach ($_shifts as $_shift => $_e) {
+                                        $_sAllEmpty = false;
+                                        $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
+                                        $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
+                                        if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
+                                            || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
+                                            $_sHasTMS = true;
+                                        }
                                     }
                                 }
                             }
@@ -783,15 +792,17 @@
             $_sectionPivotIds = $section->locations->pluck('pivot.id')->toArray();
             $_secAnalysts = [];
             foreach ($_sectionPivotIds as $_pid) {
-                foreach ($entryMap[$_pid] ?? [] as $_pMap) {
-                    foreach ($_pMap as $_e) {
-                        if ((int) $_e->analyst_id) $_secAnalysts[(string) $_e->analyst_id] = true;
+                foreach ($entryMap[$_pid] ?? [] as $_instMap) {
+                    foreach ($_instMap as $_pMap) {
+                        foreach ($_pMap as $_e) {
+                            if ($_e->analyst_id) $_secAnalysts[(string) $_e->analyst_id] = true;
+                        }
                     }
                 }
             }
             $_secAnalystIds = array_keys($_secAnalysts);
-            $_allMonIds  = array_map('strval', $report->analyst_monitoring ?? []);
-            $_allReadIds = array_map('strval', $report->analyst_reading    ?? []);
+            $_allMonIds  = $report->analysts->where('type', 'monitoring')->pluck('user_id')->map('strval')->toArray();
+            $_allReadIds = $report->analysts->where('type', 'reading')->pluck('user_id')->map('strval')->toArray();
             $_secMonTs   = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
             $_secReadTs  = $hd['section_ttd_reading'][(string) $section->id]    ?? [];
             $_secMonIds  = array_values(array_unique(array_merge(

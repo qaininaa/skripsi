@@ -11,12 +11,15 @@
         $inkMin   = $config->min_days;
         $allAnalysts = \App\Models\User::where('role', 'analis')->orderBy('name')->get();
 
-        // Ownership: who owns the "in" and "out" groups for this incubator config?
-        $hdOwners  = $hd['_field_owners'] ?? [];
-        $inOwner   = isset($hdOwners["incubator_{$config->id}_in"])  ? (string) $hdOwners["incubator_{$config->id}_in"]  : null;
-        $outOwner  = isset($hdOwners["incubator_{$config->id}_out"]) ? (string) $hdOwners["incubator_{$config->id}_out"] : null;
-        $inLocked  = $isEditable && $inOwner  !== null && $inOwner  !== (string) auth()->id();
-        $outLocked = $isEditable && $outOwner !== null && $outOwner !== (string) auth()->id();
+        // Ownership: who owns each group for this incubator config?
+        $hdOwners    = $hd['_field_owners'] ?? [];
+        $infoOwner   = isset($hdOwners["incubator_{$config->id}_info"]) ? (string) $hdOwners["incubator_{$config->id}_info"] : null;
+        $inOwner     = isset($hdOwners["incubator_{$config->id}_in"])   ? (string) $hdOwners["incubator_{$config->id}_in"]   : null;
+        $outOwner    = isset($hdOwners["incubator_{$config->id}_out"])  ? (string) $hdOwners["incubator_{$config->id}_out"]  : null;
+        $infoLocked  = $isEditable && $infoOwner !== null && $infoOwner !== (string) auth()->id();
+        $inLocked    = $isEditable && $inOwner   !== null && $inOwner   !== (string) auth()->id();
+        $outLocked   = $isEditable && $outOwner  !== null && $outOwner  !== (string) auth()->id();
+        $infoEditable = $isEditable && ! $infoLocked;
         $inEditable  = $isEditable && ! $inLocked;
         $outEditable = $isEditable && ! $outLocked;
     @endphp
@@ -31,10 +34,10 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Inkubator</label>
-                @if ($inEditable)
+                @if ($infoEditable)
                 <input type="text" name="incubator[{{ $config->id }}][no_id]" value="{{ $ink?->no_id ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
-                @elseif ($inLocked)
+                @elseif ($infoLocked)
                 <input type="text" value="{{ $ink?->no_id ?? '' }}" disabled
                        class="block w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
                 @else
@@ -43,10 +46,10 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
-                @if ($inEditable)
+                @if ($infoEditable)
                 <input type="date" name="incubator[{{ $config->id }}][calibration_date]" value="{{ $ink?->calibration_date?->format('Y-m-d') ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
-                @elseif ($inLocked)
+                @elseif ($infoLocked)
                 <input type="date" value="{{ $ink?->calibration_date?->format('Y-m-d') ?? '' }}" disabled
                        class="block w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
                 @else
@@ -57,10 +60,10 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
-                @if ($inEditable)
+                @if ($infoEditable)
                 <input type="date" name="incubator[{{ $config->id }}][due_date_calibration]" value="{{ $ink?->due_date_calibration?->format('Y-m-d') ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
-                @elseif ($inLocked)
+                @elseif ($infoLocked)
                 <input type="date" value="{{ $ink?->due_date_calibration?->format('Y-m-d') ?? '' }}" disabled
                        class="block w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
                 @else

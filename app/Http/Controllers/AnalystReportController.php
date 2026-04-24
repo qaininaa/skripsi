@@ -6,12 +6,15 @@ use App\Models\Analyst;
 use App\Models\Report;
 use App\Models\ReportEnvironmentalEntry;
 use App\Models\User;
+use App\Services\ReportSectionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AnalystReportController extends Controller
 {
+    public function __construct(private ReportSectionService $sectionService) {}
+
     public function index(Request $request)
     {
         $status = $request->query('status', 'all');
@@ -83,6 +86,7 @@ class AnalystReportController extends Controller
             'reportType.sections.locations.room',
             'reportType.sections.locations.frequency',
             'reportType.incubatorConfigs',
+            'reportType.media',
             'environmentalEntries',
             'approvals.user',
             'lockedByUser',
@@ -94,31 +98,18 @@ class AnalystReportController extends Controller
             'signatures.user',
         ]);
 
-        // entryMap[$pivot_id][$instance][$period_number][$shift] = entry
-        $entryMap = [];
-        foreach ($report->environmentalEntries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->instance_number ?? 1][$entry->period_number][$entry->shift] = $entry;
-        }
+        $entryMap        = $this->sectionService->buildEntryMap($report);
+        $sectionNeeds    = $this->sectionService->computeSectionNeeds($report);
+        $sectionInstances = $this->sectionService->buildSectionInstances($report);
 
-        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
-        $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsAirSampler   = $sectionNeeds['needsAirSampler'];
+        $needsInkubator    = $sectionNeeds['needsInkubator'];
+        $needsMedium       = $sectionNeeds['needsMedium'];
 
-        $isEditable = in_array($report->status, ['monitoring', 'reading'])
-                           && $report->locked_by === auth()->id();
+        $isEditable        = in_array($report->status, ['monitoring', 'reading'])
+                             && $report->locked_by === auth()->id();
         $isMonitoringPhase = $report->status === 'monitoring';
-        $myShift = 1;
-
-        // Build sectionInstances: expand sections with duplicate counts
-        $sectionCounts = $report->header_data['_section_counts'] ?? [];
-        $sectionInstances = [];
-        foreach ($report->reportType->sections as $section) {
-            $count = (int) ($sectionCounts[$section->id] ?? 1);
-            for ($i = 1; $i <= $count; $i++) {
-                $sectionInstances[] = ['section' => $section, 'instance' => $i, 'totalInstances' => $count];
-            }
-        }
+        $myShift           = 1;
 
         $instrument = $report->instrumentIdentities->first();
         $incubators = $report->incubators->keyBy('report_type_incubator_id');
@@ -155,6 +146,7 @@ class AnalystReportController extends Controller
             'reportType.sections.locations.room',
             'reportType.sections.locations.frequency',
             'reportType.incubatorConfigs',
+            'reportType.media',
             'environmentalEntries',
             'approvals.user',
             'lockedByUser',
@@ -166,28 +158,17 @@ class AnalystReportController extends Controller
             'signatures.user',
         ]);
 
-        $entryMap = [];
-        foreach ($report->environmentalEntries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->instance_number ?? 1][$entry->period_number][$entry->shift] = $entry;
-        }
+        $entryMap         = $this->sectionService->buildEntryMap($report);
+        $sectionNeeds     = $this->sectionService->computeSectionNeeds($report);
+        $sectionInstances = $this->sectionService->buildSectionInstances($report);
 
-        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
-        $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsAirSampler   = $sectionNeeds['needsAirSampler'];
+        $needsInkubator    = $sectionNeeds['needsInkubator'];
+        $needsMedium       = $sectionNeeds['needsMedium'];
 
-        $isEditable = false;
+        $isEditable        = false;
         $isMonitoringPhase = $report->status === 'monitoring';
-        $myShift = 1;
-
-        $sectionCounts = $report->header_data['_section_counts'] ?? [];
-        $sectionInstances = [];
-        foreach ($report->reportType->sections as $section) {
-            $count = (int) ($sectionCounts[$section->id] ?? 1);
-            for ($i = 1; $i <= $count; $i++) {
-                $sectionInstances[] = ['section' => $section, 'instance' => $i, 'totalInstances' => $count];
-            }
-        }
+        $myShift           = 1;
 
         $instrument = $report->instrumentIdentities->first();
         $incubators = $report->incubators->keyBy('report_type_incubator_id');
@@ -285,8 +266,8 @@ class AnalystReportController extends Controller
 
         if ($action === 'submit') {
             abort_unless($report->status === 'reading', 403);
-            $supervisorId = (int) $request->input('supervisor_id');
-            abort_if($supervisorId === 0, 422, 'Pilih supervisor terlebih dahulu.');
+            $supervisorId = $request->input('supervisor_id');
+            abort_if(empty($supervisorId), 422, 'Pilih supervisor terlebih dahulu.');
             abort_unless(
                 User::where('id', $supervisorId)->where('role', 'supervisor')->exists(),
                 422,
@@ -298,7 +279,7 @@ class AnalystReportController extends Controller
 
             \App\Models\ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 2],
-                ['role_label' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending',
+                ['role' => 'Supervisor', 'user_id' => $supervisorId, 'status' => 'pending',
                     'signed_at' => null, 'notes' => null, 'returned_to_user_id' => null]
             );
 
@@ -462,15 +443,21 @@ class AnalystReportController extends Controller
 
         // Save medium identities ke tabel medium_identities
         if ($request->has('medium')) {
+            $report->load('reportType.media');
             foreach ($request->input('medium', []) as $medKey => $data) {
-                $report->mediumIdentities()->updateOrCreate(
-                    ['name' => $medKey],
-                    [
-                        'batch_number' => $data['batch_number'] ?? null ?: null,
-                        'gpt_number' => $data['gpt_number'] ?? null ?: null,
-                        'expiration_date' => $data['expiration_date'] ?? null ?: null,
-                    ]
-                );
+                // Find the medium by name to get its ID
+                $medium = $report->reportType->media->firstWhere('name', $medKey);
+                if ($medium) {
+                    $report->mediumIdentities()->updateOrCreate(
+                        ['name' => $medKey],
+                        [
+                            'medium_id' => $medium->id,
+                            'batch_number' => $data['batch_number'] ?? null ?: null,
+                            'gpt_number' => $data['gpt_number'] ?? null ?: null,
+                            'expiration_date' => $data['expiration_date'] ?? null ?: null,
+                        ]
+                    );
+                }
             }
         }
 
@@ -480,14 +467,17 @@ class AnalystReportController extends Controller
             $inkOwners  = $freshHdInk['_field_owners'] ?? [];
 
             foreach ($request->input('incubator', []) as $tempKey => $data) {
-                // Split fields into "in" group (masuk) and "out" group (keluar)
+                // "info" group: instrument identity (no_id, calibration, due date)
+                $infoFields = array_filter([
+                    'no_id'                => $data['no_id']                ?? null ?: null,
+                    'calibration_date'     => $data['calibration_date']     ?? null ?: null,
+                    'due_date_calibration' => $data['due_date_calibration'] ?? null ?: null,
+                ]);
+                // "in" group: incubation process (who put it in and when)
                 $inFields  = array_filter([
-                    'no_id'               => $data['no_id']               ?? null ?: null,
-                    'calibration_date'    => $data['calibration_date']    ?? null ?: null,
-                    'due_date_calibration'=> $data['due_date_calibration'] ?? null ?: null,
-                    'incubated_by'        => $data['incubated_by']        ?? null ?: null,
-                    'date_in'             => $data['date_in']             ?? null ?: null,
-                    'time_in'             => $data['time_in']             ?? null ?: null,
+                    'incubated_by' => $data['incubated_by'] ?? null ?: null,
+                    'date_in'      => $data['date_in']      ?? null ?: null,
+                    'time_in'      => $data['time_in']      ?? null ?: null,
                 ]);
                 $outFields = array_filter([
                     'removed_by' => $data['removed_by'] ?? null ?: null,
@@ -495,8 +485,19 @@ class AnalystReportController extends Controller
                     'time_out'   => $data['time_out']   ?? null ?: null,
                 ]);
 
-                $ownerKeyIn  = "incubator_{$tempKey}_in";
-                $ownerKeyOut = "incubator_{$tempKey}_out";
+                $ownerKeyInfo = "incubator_{$tempKey}_info";
+                $ownerKeyIn   = "incubator_{$tempKey}_in";
+                $ownerKeyOut  = "incubator_{$tempKey}_out";
+
+                // "Info" group: skip if owned by someone else
+                $infoLocked = isset($inkOwners[$ownerKeyInfo]) && (string) $inkOwners[$ownerKeyInfo] !== (string) Auth::id();
+                if (! $infoLocked) {
+                    if (! empty($infoFields)) {
+                        $inkOwners[$ownerKeyInfo] = (string) Auth::id();
+                    }
+                } else {
+                    $infoFields = [];
+                }
 
                 // "In" group: skip if owned by someone else
                 $inLocked = isset($inkOwners[$ownerKeyIn]) && (string) $inkOwners[$ownerKeyIn] !== (string) Auth::id();
@@ -519,7 +520,7 @@ class AnalystReportController extends Controller
                     $outFields = [];
                 }
 
-                $mergedData = array_merge($inFields, $outFields);
+                $mergedData = array_merge($infoFields, $inFields, $outFields);
                 if (! empty($mergedData)) {
                     $report->incubators()->updateOrCreate(
                         ['report_type_incubator_id' => $tempKey],
@@ -611,6 +612,29 @@ class AnalystReportController extends Controller
         }
         $savedSectionIds = [];
 
+        // Build section → locations map EARLY so time fan-out can write to entries below.
+        // Also builds the pivot-level maps reused in the entry upsert loop.
+        $sectionLocations     = []; // sectionId (UUID) → [['pivot_id', 'class', 'location_number'], ...]
+        $pivotSectionType     = [];
+        $pivotSectionId       = [];
+        $pivotSectionTimeSlot = [];
+        $pivotLocationClass   = [];
+        $pivotLocationNumber  = [];
+        foreach ($report->reportType->sections()->with('locations.room')->get() as $_sec) {
+            $sectionLocations[$_sec->id] = [];
+            foreach ($_sec->locations as $_loc) {
+                $pid = $_loc->pivot->id;
+                $cls = strtolower($_loc->room->class ?? '');
+                $num = $_loc->location_number ?? '';
+                $sectionLocations[$_sec->id][] = ['pivot_id' => $pid, 'class' => $cls, 'location_number' => $num];
+                $pivotSectionType[$pid]     = $_sec->measurement_type;
+                $pivotSectionId[$pid]       = $_sec->id;
+                $pivotSectionTimeSlot[$pid] = $_sec->time_slot_type;
+                $pivotLocationClass[$pid]   = $cls;
+                $pivotLocationNumber[$pid]  = $num;
+            }
+        }
+
         $settleTimes = $request->input('settle_times', []);
         if (! empty($settleTimes)) {
             foreach ($settleTimes as $secId => $instanceData) {
@@ -618,16 +642,38 @@ class AnalystReportController extends Controller
                     continue;
                 }
                 foreach ($instanceData as $instNum => $data) {
-                    $ownerKey = "settle_times_{$secId}_{$instNum}";
-                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
+                    if (! is_array($data)) {
                         continue;
                     }
-                    $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                    if ($hasVal) {
-                        $owners[$ownerKey] = (string) Auth::id();
-                        $savedSectionIds["{$secId}|{$instNum}"] = true;
+                    foreach ($data as $col => $abData) {
+                        if (! is_array($abData)) {
+                            continue;
+                        }
+                        $ownerKey = "settle_times_{$secId}_{$instNum}_{$col}";
+                        if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
+                            continue;
+                        }
+                        $hasVal = collect($abData)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                        if ($hasVal) {
+                            $owners[$ownerKey] = (string) Auth::id();
+                            $savedSectionIds["{$secId}|{$instNum}"] = true;
+                            // Fan out: each location gets the A or B slot matching its room class
+                            foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
+                                $ab = $locInfo['class']; // 'a' or 'b'
+                                $st = $abData[$ab] ?? [];
+                                $startTime = ($st['start_time'] ?? '') ?: null;
+                                $endTime   = ($st['end_time']   ?? '') ?: null;
+                                if ($startTime === null && $endTime === null) {
+                                    continue;
+                                }
+                                ReportEnvironmentalEntry::updateOrCreate(
+                                    ['report_id' => $report->id, 'report_section_id' => $locInfo['pivot_id'], 'instance_number' => (int) $instNum, 'period_number' => (int) $col, 'shift' => $myShift],
+                                    ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
+                                );
+                            }
+                        }
+                        $hd['settle_times'][$secId][$instNum][$col] = array_replace_recursive($hd['settle_times'][$secId][$instNum][$col] ?? [], $abData);
                     }
-                    $hd['settle_times'][$secId][$instNum] = array_replace_recursive($hd['settle_times'][$secId][$instNum] ?? [], $data);
                 }
             }
             $hd['_field_owners'] = $owners;
@@ -639,16 +685,45 @@ class AnalystReportController extends Controller
                     continue;
                 }
                 foreach ($instanceData as $instNum => $data) {
-                    $ownerKey = "swab_times_{$secId}_{$instNum}";
-                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
+                    if (! is_array($data)) {
                         continue;
                     }
-                    $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                    if ($hasVal) {
-                        $owners[$ownerKey] = (string) Auth::id();
-                        $savedSectionIds["{$secId}|{$instNum}"] = true;
+                    foreach ($data as $col => $slotData) {
+                        if (! is_array($slotData)) {
+                            continue;
+                        }
+                        $ownerKey = "swab_times_{$secId}_{$instNum}_{$col}";
+                        if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
+                            continue;
+                        }
+                        $hasVal = collect($slotData)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                        if ($hasVal) {
+                            $owners[$ownerKey] = (string) Auth::id();
+                            $savedSectionIds["{$secId}|{$instNum}"] = true;
+                            // Fan out: pick S1 / S1-2 / S1-3 slot by location_number
+                            foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
+                                $locNum = $locInfo['location_number'];
+                                if (stripos($locNum, 'S1-3') !== false) {
+                                    $swabKey = 's1_3';
+                                } elseif (stripos($locNum, 'S1-2') !== false) {
+                                    $swabKey = 's1_2';
+                                } else {
+                                    $swabKey = 's1';
+                                }
+                                $st = $slotData[$swabKey] ?? [];
+                                $startTime = ($st['mulai']   ?? '') ?: null;
+                                $endTime   = ($st['selesai'] ?? '') ?: null;
+                                if ($startTime === null && $endTime === null) {
+                                    continue;
+                                }
+                                ReportEnvironmentalEntry::updateOrCreate(
+                                    ['report_id' => $report->id, 'report_section_id' => $locInfo['pivot_id'], 'instance_number' => (int) $instNum, 'period_number' => (int) $col, 'shift' => $myShift],
+                                    ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
+                                );
+                            }
+                        }
+                        $hd['swab_times'][$secId][$instNum][$col] = array_replace_recursive($hd['swab_times'][$secId][$instNum][$col] ?? [], $slotData);
                     }
-                    $hd['swab_times'][$secId][$instNum] = array_replace_recursive($hd['swab_times'][$secId][$instNum] ?? [], $data);
                 }
             }
             $hd['_field_owners'] = $owners;
@@ -660,16 +735,36 @@ class AnalystReportController extends Controller
                     continue;
                 }
                 foreach ($instanceData as $instNum => $data) {
-                    $ownerKey = "exposure_times_{$secId}_{$instNum}";
-                    if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
+                    if (! is_array($data)) {
                         continue;
                     }
-                    $hasVal = collect($data)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                    if ($hasVal) {
-                        $owners[$ownerKey] = (string) Auth::id();
-                        $savedSectionIds["{$secId}|{$instNum}"] = true;
+                    foreach ($data as $col => $times) {
+                        if (! is_array($times)) {
+                            continue;
+                        }
+                        $ownerKey = "exposure_times_{$secId}_{$instNum}_{$col}";
+                        if (isset($owners[$ownerKey]) && (string) $owners[$ownerKey] !== (string) Auth::id()) {
+                            continue;
+                        }
+                        $hasVal = collect($times)->flatten()->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
+                        if ($hasVal) {
+                            $owners[$ownerKey] = (string) Auth::id();
+                            $savedSectionIds["{$secId}|{$instNum}"] = true;
+                            // Fan out: same start/end for ALL locations in this section for this column
+                            foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
+                                $startTime = ($times['start_time'] ?? '') ?: null;
+                                $endTime   = ($times['end_time']   ?? '') ?: null;
+                                if ($startTime === null && $endTime === null) {
+                                    continue;
+                                }
+                                ReportEnvironmentalEntry::updateOrCreate(
+                                    ['report_id' => $report->id, 'report_section_id' => $locInfo['pivot_id'], 'instance_number' => (int) $instNum, 'period_number' => (int) $col, 'shift' => $myShift],
+                                    ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
+                                );
+                            }
+                        }
+                        $hd['exposure_times'][$secId][$instNum][$col] = array_replace_recursive($hd['exposure_times'][$secId][$instNum][$col] ?? [], $times);
                     }
-                    $hd['exposure_times'][$secId][$instNum] = array_replace_recursive($hd['exposure_times'][$secId][$instNum] ?? [], $data);
                 }
             }
             $hd['_field_owners'] = $owners;
@@ -684,19 +779,7 @@ class AnalystReportController extends Controller
         $freshHd[$tsKey][(string) Auth::id()] = now()->toDateTimeString();
         $report->update(['header_data' => $freshHd]);
 
-        // Build pivot_row → measurement_type and pivot_row → section_id maps
-        $pivotSectionType = [];
-        $pivotSectionId = [];
-        $pivotSectionTimeSlot = [];
-        foreach ($report->reportType->sections()->with('locations')->get() as $section) {
-            foreach ($section->locations as $location) {
-                $pivotSectionType[$location->pivot->id] = $section->measurement_type;
-                $pivotSectionId[$location->pivot->id] = $section->id;
-                $pivotSectionTimeSlot[$location->pivot->id] = $section->time_slot_type;
-            }
-        }
-
-        // Pre-load entries owned by other analysts — these must not be overwritten
+        // Pre-load entries owned by other analysts — CFU must not be overwritten
         $lockedEntryKeys = ReportEnvironmentalEntry::where('report_id', $report->id)
             ->where('analyst_id', '!=', Auth::id())
             ->whereNotNull('analyst_id')
@@ -707,56 +790,71 @@ class AnalystReportController extends Controller
             ->map(fn ($e) => "{$e->report_section_id}-{$e->instance_number}-{$e->period_number}-{$e->shift}")
             ->toArray();
 
-        // Upsert entries
+        // Upsert entries with CFU (and per_location time — other types already written by fan-out above)
         foreach ($request->input('entries', []) as $pivotId => $instances) {
-            $sectionType = $pivotSectionType[(int) $pivotId] ?? null;
+            $sectionType = $pivotSectionType[(string) $pivotId] ?? null;
             if (! $sectionType) {
                 continue;
             }
 
-            $timeSlotType = $pivotSectionTimeSlot[(int) $pivotId] ?? 'none';
-            $sectionId = $pivotSectionId[(int) $pivotId] ?? null;
+            $timeSlotType = $pivotSectionTimeSlot[(string) $pivotId] ?? 'none';
+            $sectionId    = $pivotSectionId[(string) $pivotId] ?? null;
 
             foreach ($instances as $instanceNum => $cols) {
                 $instanceNumber = max(1, (int) $instanceNum);
 
                 foreach ($cols as $colIdx => $data) {
                     $periodNumber = (int) $colIdx;
-                    $shift = $myShift;
+                    $shift        = $myShift;
 
-                    $hasData = collect($data)->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                    if (! $hasData) {
+                    $hasCfuData = (($data['cfu_bacteria'] ?? '') !== '' && ($data['cfu_bacteria'] ?? null) !== null)
+                               || (($data['cfu_fungi']    ?? '') !== '' && ($data['cfu_fungi']    ?? null) !== null);
+
+                    // For per_location, also save when there is a start_time (even without CFU)
+                    $hasPerLocTime = ($timeSlotType === 'per_location') && (($data['start_time'] ?? '') !== '');
+
+                    if (! $hasCfuData && ! $hasPerLocTime) {
                         continue;
                     }
 
-                    // Skip entries owned by another analyst
-                    $entryKey = ((int) $pivotId)."-{$instanceNumber}-{$periodNumber}-{$shift}";
-                    if (in_array($entryKey, $lockedEntryKeys)) {
+                    // CFU protection: skip if another analyst already owns this entry's data
+                    $entryKey = ((string) $pivotId)."-{$instanceNumber}-{$periodNumber}-{$shift}";
+                    if ($hasCfuData && in_array($entryKey, $lockedEntryKeys)) {
+                        continue;
+                    }
+
+                    $updateValues = [];
+                    if ($hasCfuData) {
+                        $updateValues['analyst_id']   = Auth::id();
+                        $updateValues['cfu_bacteria'] = self::normalizeCfu($data['cfu_bacteria'] ?? null);
+                        $updateValues['cfu_fungi']    = self::normalizeCfu($data['cfu_fungi']    ?? null);
+                    }
+                    // per_location: time comes directly from the row input
+                    if ($hasPerLocTime) {
+                        $updateValues['start_time'] = $data['start_time'];
+                        $updateValues['end_time']   = null;
+                        // analyst_id required on insert; set if not already set by CFU block
+                        if (!isset($updateValues['analyst_id'])) {
+                            $updateValues['analyst_id'] = Auth::id();
+                        }
+                    }
+
+                    if (empty($updateValues)) {
                         continue;
                     }
 
                     ReportEnvironmentalEntry::updateOrCreate(
                         [
-                            'report_id' => $report->id,
-                            'report_section_id' => (int) $pivotId,
-                            'instance_number' => $instanceNumber,
-                            'period_number' => $periodNumber,
-                            'shift' => $shift,
+                            'report_id'         => $report->id,
+                            'report_section_id' => (string) $pivotId,
+                            'instance_number'   => $instanceNumber,
+                            'period_number'     => $periodNumber,
+                            'shift'             => $shift,
                         ],
-                        [
-                            'analyst_id' => Auth::id(),
-                            'start_time' => ($timeSlotType === 'per_location')
-                                ? ($data['start_time'] ?? null ?: null)
-                                : ($exposureTimes[$sectionId][$colIdx]['start_time'] ?? null ?: null),
-                            'end_time' => ($timeSlotType === 'per_location')
-                                ? null
-                                : ($exposureTimes[$sectionId][$colIdx]['end_time'] ?? null ?: null),
-                            'cfu_bacteria' => self::normalizeCfu($data['cfu_bacteria'] ?? null),
-                            'cfu_fungi' => self::normalizeCfu($data['cfu_fungi'] ?? null),
-                        ]
+                        $updateValues
                     );
                     if ($sectionId) {
-                        $savedSectionIds[(string) $sectionId] = true;
+                        $savedSectionIds["{$sectionId}|{$instanceNumber}"] = true;
                     }
                 }
             }

@@ -527,7 +527,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 $hasAlt = !$hasTMS && (
                             ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                          || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
-                $konklusi = $locEntries->isEmpty() ? null : ($hasTMS ? 'TMS' : 'MS');
+                $hasCfuEntries = $locEntries->contains(fn($e) => $e->cfu_bacteria !== null || $e->cfu_fungi !== null);
+                $konklusi = $hasCfuEntries ? ($hasTMS ? 'TMS' : 'MS') : null;
             @endphp
             <tr>
                 <td class="tc">{{ $_rowNumP }}</td>

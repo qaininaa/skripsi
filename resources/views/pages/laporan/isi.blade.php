@@ -58,21 +58,26 @@
 @php $hd = $report->header_data ?? []; @endphp
 
 @if ($needsAirSampler)
-@include('pages.laporan.partials.section-alat')
+@include('pages.laporan.partials.section-alat', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
-@if (!empty($report->reportType->medium_groups ?? []))
-@include('pages.laporan.partials.section-medium')
+@if ($needsMedium && ($report->reportType->media->isNotEmpty() ?? false))
+@include('pages.laporan.partials.section-medium', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
 @if ($needsInkubator)
-@include('pages.laporan.partials.section-inkubator')
+@include('pages.laporan.partials.section-inkubator', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
 {{-- ── 4+. Tabel Pengukuran per Seksi ─────────────────── --}}
 @foreach ($sectionInstances as $sectionInstance)
-@php $section = $sectionInstance['section']; $instance = $sectionInstance['instance']; $totalInstances = $sectionInstance['totalInstances']; @endphp
-@include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'totalInstances' => $totalInstances])
+@php
+    $section        = $sectionInstance['section'];
+    $instance       = $sectionInstance['instance'];
+    $totalInstances = $sectionInstance['totalInstances'];
+    $secNum         = $sectionInstance['secNum'];
+@endphp
+@include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'totalInstances' => $totalInstances, 'secNum' => $secNum])
 @endforeach
 
 @include('pages.laporan.partials.bottom-bar')

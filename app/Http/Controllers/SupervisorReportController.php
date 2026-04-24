@@ -50,7 +50,7 @@ class SupervisorReportController extends Controller
             'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
         ];
 
-        $reports = Report::with(['reportType', 'approvals'])
+        $reports = Report::with(['reportType', 'approvals', 'analysts.user'])
             ->join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 2)
             ->where('report_approvals.user_id', $userId)
@@ -71,18 +71,24 @@ class SupervisorReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user']);
+        $report->load([
+            'reportType.sections.locations.room',
+            'reportType.sections.locations.frequency',
+            'reportType.media',
+            'environmentalEntries',
+            'approvals.user',
+            'analysts.user',
+            'signatures',
+            'mediumIdentities',
+        ]);
 
-        // entryMap[$pivot_id][$period_number][$shift] = entry
-        $entryMap = [];
-        foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
-        }
+        $sectionService = app(\App\Services\ReportSectionService::class);
+        $entryMap = $sectionService->buildEntryMap($report);
+        $sectionNeeds = $sectionService->computeSectionNeeds($report);
 
-        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
-        $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsAirSampler = $sectionNeeds['needsAirSampler'];
+        $needsInkubator = $sectionNeeds['needsInkubator'];
+        $needsMedium = $sectionNeeds['needsMedium'];
 
         $reviewRole = 'supervisor';
         $returnSupervisor = null;
@@ -136,7 +142,7 @@ class SupervisorReportController extends Controller
             ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 3],
                 [
-                    'role_label' => 'manajer',
+                    'role' => 'manajer',
                     'user_id' => $manager->id,
                     'status' => 'pending',
                     'signed_at' => null,
@@ -219,11 +225,27 @@ class SupervisorReportController extends Controller
         $incoming = $request->input('header_data', []);
         $hd = $report->header_data ?? [];
 
-        // Only update allowed keys: sections 2 (air_sampler), 3 (medium groups), 4 (inkubator)
-        $allowedKeys = ['air_sampler', 'inkubator_20_25', 'inkubator_30_35'];
-        foreach ($report->reportType->medium_groups ?? [] as $key => $_) {
-            $allowedKeys[] = $key;
+        // Save medium identities (section 3) to medium_identities table
+        if ($request->has('medium')) {
+            $report->load('reportType.media');
+            foreach ($request->input('medium', []) as $medName => $data) {
+                $medium = $report->reportType->media->firstWhere('name', $medName);
+                if ($medium) {
+                    $report->mediumIdentities()->updateOrCreate(
+                        ['name' => $medName],
+                        [
+                            'medium_id'       => $medium->id,
+                            'batch_number'    => $data['batch_number']    ?? null ?: null,
+                            'gpt_number'      => $data['gpt_number']      ?? null ?: null,
+                            'expiration_date' => $data['expiration_date'] ?? null ?: null,
+                        ]
+                    );
+                }
+            }
         }
+
+        // Only update allowed keys: sections 2 (air_sampler), 4 (inkubator)
+        $allowedKeys = ['air_sampler', 'inkubator_20_25', 'inkubator_30_35'];
 
         foreach ($allowedKeys as $key) {
             if (array_key_exists($key, $incoming)) {
@@ -297,7 +319,7 @@ class SupervisorReportController extends Controller
         ));
     }
 
-    private function baseQuery(int $userId)
+    private function baseQuery(string $userId)
     {
         return Report::join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 2)
