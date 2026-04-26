@@ -6,13 +6,13 @@ use App\Http\Controllers\Masters\ReportManagements\ReportTypeController;
 use App\Http\Controllers\Masters\ReportManagements\ReportLocationController;
 use App\Http\Controllers\Masters\ReportManagements\ReportSectionController;
 use App\Http\Controllers\Masters\UserManagementController;
+use App\Http\Controllers\Reports\ReportAssignmentController;
 use App\Http\Controllers\AnalystReportController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ManagerReportController;
 use App\Http\Controllers\PasswordSettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportArchiveController;
-use App\Http\Controllers\ReportAssignmentController;
 use App\Http\Controllers\SupervisorReportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -66,12 +66,12 @@ Route::middleware(['auth', 'password.check', 'role:super'])
 Route::middleware(['auth', 'password.check', 'role:admin'])
     ->prefix('dashboard')
     ->group(function () {
-        Route::resource('tugas-pelaporan', ReportAssignmentController::class)
+        Route::resource('report-assignment', ReportAssignmentController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
-            ->names('tugas-pelaporan');
-        Route::get('tugas-pelaporan/{report}/preview', [AnalystReportController::class, 'lihat'])->name('admin.laporan.preview');
-        Route::post('tugas-pelaporan/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'duplicateSection'])->name('tugas-pelaporan.sections.duplicate');
-        Route::delete('tugas-pelaporan/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'removeSection'])->name('tugas-pelaporan.sections.remove');
+            ->names('report-assignment');
+        Route::get('report-assignment/{report}/preview', [AnalystReportController::class, 'lihat'])->name('admin.laporan.preview');
+        Route::post('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
+        Route::delete('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'removeSection'])->name('report-assignment.sections.remove');
         // Data Master
         Route::resource('master/room', RoomController::class)->names('master.room');
         Route::resource('master/location', LocationController::class)->names('master.location');

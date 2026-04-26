@@ -70,7 +70,7 @@ class ReportSectionService
     /**
      * Collect all CFU entries for one location across all columns and shifts.
      */
-    public function collectLocationEntries(string|int $pivotId, int $instance, int $maxColumn, array $entryMap): Collection
+    public function collectLocationEntries(string $pivotId, int $instance, int $maxColumn, array $entryMap): Collection
     {
         $entries = collect();
         for ($p = 0; $p <= $maxColumn; $p++) {

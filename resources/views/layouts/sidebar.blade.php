@@ -127,8 +127,8 @@
         <div class="pt-2 pb-1 px-3">
             <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Laporan</p>
         </div>
-        <a href="{{ route('tugas-pelaporan.index') }}"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('tugas-pelaporan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+        <a href="{{ route('report-assignment.index') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('report-assignment.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>

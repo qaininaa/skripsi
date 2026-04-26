@@ -21,7 +21,7 @@
             <h2 class="text-xl font-bold text-gray-800">Tugas Pelaporan</h2>
             <p class="text-sm text-gray-500 mt-0.5">Daftar tugas pelaporan yang dibuat.</p>
         </div>
-        <a href="{{ route('tugas-pelaporan.create') }}"
+        <a href="{{ route('report-assignment.create') }}"
            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 shadow-sm transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -32,9 +32,9 @@
 
     {{-- Filter & Pencarian --}}
     <x-form.search-filter
-        :action="route('tugas-pelaporan.index')"
+        :action="route('report-assignment.index')"
         placeholder="Cari nama atau nomor batch.."
-        :resetRoute="route('tugas-pelaporan.index')"
+        :resetRoute="route('report-assignment.index')"
     >
          <select name="status"
                 class="rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
@@ -61,7 +61,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @forelse ($tugas as $item)
+                    @forelse ($reportAssignments as $item)
                         <tr class="hover:bg-gray-50 align-center">
                             {{-- Tanggal --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
@@ -88,9 +88,9 @@
                             {{-- Tombol lihat, edit & hapus --}}
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 <x-buttons.view-button href="{{ route('admin.laporan.preview', $item) }}" />
-                                <x-buttons.edit-button onclick="window.location.href='{{ route('tugas-pelaporan.edit', $item) }}'" />
+                                <x-buttons.edit-button onclick="window.location.href='{{ route('report-assignment.edit', $item) }}'" />
                                     <x-buttons.delete-button
-                                        :action="route('tugas-pelaporan.destroy', $item)"
+                                        :action="route('report-assignment.destroy', $item)"
                                         :name="$item->product_name"
                                     />
                             </td>
@@ -98,7 +98,7 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-4 py-10 text-center text-sm text-gray-500">
-                                Belum ada tugas pelaporan. <a href="{{ route('tugas-pelaporan.create') }}" class="text-emerald-600 hover:underline">Tambah sekarang</a>.
+                                Belum ada tugas pelaporan. <a href="{{ route('report-assignment.create') }}" class="text-emerald-600 hover:underline">Tambah sekarang</a>.
                             </td>
                         </tr>
                     @endforelse
@@ -106,9 +106,9 @@
             </table>
         </div>
 
-        @if ($tugas->hasPages())
+        @if ($reportAssignments->hasPages())
             <div class="px-4 py-3 border-t border-gray-100 bg-gray-50">
-                {{ $tugas->links() }}
+                {{ $reportAssignments->links() }}
             </div>
         @endif
     </div>

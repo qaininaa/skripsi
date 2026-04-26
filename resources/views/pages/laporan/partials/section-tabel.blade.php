@@ -25,7 +25,7 @@
         <div class="ml-auto flex items-center gap-2 shrink-0">
             @if ($instance === 1)
             <button type="button"
-                    onclick="adminSectionAction('POST', '{{ route('tugas-pelaporan.sections.duplicate', [$report->id, $section->id]) }}')"
+                    onclick="adminSectionAction('POST', '{{ route('report-assignment.sections.duplicate', [$report->id, $section->id]) }}')"
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Duplikat Seksi
@@ -33,7 +33,7 @@
             @endif
             @if ($instance > 1 && $instance === ($totalInstances ?? $instance))
             <button type="button"
-                    onclick="if(confirm('Hapus duplikat seksi ini?')) adminSectionAction('DELETE', '{{ route('tugas-pelaporan.sections.remove', [$report->id, $section->id]) }}')"
+                    onclick="if(confirm('Hapus duplikat seksi ini?')) adminSectionAction('DELETE', '{{ route('report-assignment.sections.remove', [$report->id, $section->id]) }}')"
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
                 Hapus Duplikat
