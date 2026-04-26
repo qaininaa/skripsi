@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Masters;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Masters\StoreRoomRequest;
-use App\Http\Requests\Masters\UpdateRoomRequest;
+use App\Http\Requests\Masters\RoomRequest;
 use App\Models\Room;
 use App\Services\Masters\RoomService;
 use Illuminate\Http\RedirectResponse;
@@ -62,7 +61,7 @@ class RoomController extends Controller
         return view('pages.master.room.edit', compact('room'));
     }
 
-    public function update(UpdateRoomRequest $request, Room $room): RedirectResponse
+    public function update(RoomRequest $request, Room $room): RedirectResponse
     {
         $this->service->update($room, $request->validated());
 
