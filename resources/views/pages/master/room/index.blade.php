@@ -24,7 +24,7 @@
             <h2 class="text-xl font-bold text-gray-800">Daftar Ruangan</h2>
             <p class="text-sm text-gray-500 mt-0.5">Kelola data ruangan yang digunakan dalam laporan.</p>
         </div>
-        <a href="{{ route('master.ruangan.create') }}"
+        <a href="{{ route('master.room.create') }}"
            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-green-800 transition-colors shadow-sm sm:whitespace-nowrap">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
@@ -35,9 +35,9 @@
 
     {{-- Pencarian --}}
     <x-form.search-filter
-        :action="route('master.ruangan.index')"
+        :action="route('master.room.index')"
         placeholder="Cari nama atau nomor ruangan..."
-        :resetRoute="route('master.ruangan.index')"
+        :resetRoute="route('master.room.index')"
     >
         <select name="class" class="rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500 pr-8">
             <option value="">Semua Kelas</option>
@@ -83,9 +83,9 @@
                             <td class="px-6 py-3.5 text-gray-600">{{ $room->locations_count }} lokasi</td>
                             <td class="px-6 py-3.5 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <x-buttons.edit-button onclick="window.location.href='{{ route('master.ruangan.edit', $room) }}'" />
+                                    <x-buttons.edit-button onclick="window.location.href='{{ route('master.room.edit', $room) }}'" />
                                     <x-buttons.delete-button
-                                        :action="route('master.ruangan.destroy', $room)"
+                                        :action="route('master.room.destroy', $room)"
                                         :name="$room->room_name"
                                     />
                                 </div>

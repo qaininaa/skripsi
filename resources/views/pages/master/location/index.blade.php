@@ -24,7 +24,7 @@
             <h2 class="text-xl font-bold text-gray-800">Daftar Lokasi</h2>
             <p class="text-sm text-gray-500 mt-0.5">Kelola data lokasi pengambilan sampel.</p>
         </div>
-        <a href="{{ route('master.lokasi.create') }}"
+        <a href="{{ route('master.location.create') }}"
            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-green-800 transition-colors shadow-sm sm:whitespace-nowrap">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
@@ -35,9 +35,9 @@
 
     {{-- Filter & Pencarian --}}
     <x-form.search-filter
-        :action="route('master.lokasi.index')"
+        :action="route('master.location.index')"
         placeholder="Cari nama ruangan atau nomor lokasi..."
-        :resetRoute="route('master.lokasi.index')"
+        :resetRoute="route('master.location.index')"
     >
         <select name="room_id"
                 class="rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
@@ -86,9 +86,9 @@
                             </td>
                             <td class="px-4 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <x-buttons.edit-button onclick="window.location.href='{{ route('master.lokasi.edit', $loc) }}'" />
+                                    <x-buttons.edit-button onclick="window.location.href='{{ route('master.location.edit', $loc) }}'" />
                                     <x-buttons.delete-button
-                                        :action="route('master.lokasi.destroy', $loc)"
+                                        :action="route('master.location.destroy', $loc)"
                                         :name="$loc->room->room_name ?? 'Lokasi' . ' - No. ' . ($loc->location_number ?? $loc->id)"
                                     />
                                 </div>

@@ -1,15 +1,15 @@
 <?php
 
+use App\Http\Controllers\Masters\LocationController;
+use App\Http\Controllers\Masters\RoomController;
 use App\Http\Controllers\AnalystReportController;
 use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ManagerReportController;
 use App\Http\Controllers\PasswordSettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportArchiveController;
 use App\Http\Controllers\ReportAssignmentController;
 use App\Http\Controllers\ReportTypeManagementController;
-use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SupervisorReportController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
@@ -71,8 +71,8 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
         Route::post('tugas-pelaporan/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'duplicateSection'])->name('tugas-pelaporan.sections.duplicate');
         Route::delete('tugas-pelaporan/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'removeSection'])->name('tugas-pelaporan.sections.remove');
         // Data Master
-        Route::resource('master/ruangan', RoomController::class)->names('master.ruangan');
-        Route::resource('master/lokasi', LocationController::class)->names('master.lokasi');
+        Route::resource('master/room', RoomController::class)->names('master.room');
+        Route::resource('master/location', LocationController::class)->names('master.location');
         // Manajemen Laporan
         Route::resource('report-types', ReportTypeManagementController::class)->names('report-types');
         Route::post('report-types/{reportType}/sections', [ReportTypeManagementController::class, 'storeSection'])->name('report-types.sections.store');
