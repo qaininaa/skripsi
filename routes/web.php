@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Masters\LocationController;
 use App\Http\Controllers\Masters\RoomController;
+use App\Http\Controllers\Masters\ReportManagements\ReportTypeController;
+use App\Http\Controllers\Masters\ReportManagements\ReportLocationController;
+use App\Http\Controllers\Masters\ReportManagements\ReportSectionController;
 use App\Http\Controllers\AnalystReportController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ManagerReportController;
@@ -9,7 +12,6 @@ use App\Http\Controllers\PasswordSettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportArchiveController;
 use App\Http\Controllers\ReportAssignmentController;
-use App\Http\Controllers\ReportTypeManagementController;
 use App\Http\Controllers\SupervisorReportController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
@@ -74,12 +76,12 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
         Route::resource('master/room', RoomController::class)->names('master.room');
         Route::resource('master/location', LocationController::class)->names('master.location');
         // Manajemen Laporan
-        Route::resource('report-types', ReportTypeManagementController::class)->names('report-types');
-        Route::post('report-types/{reportType}/sections', [ReportTypeManagementController::class, 'storeSection'])->name('report-types.sections.store');
-        Route::put('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'updateSection'])->name('report-types.sections.update');
-        Route::delete('report-types/{reportType}/sections/{section}', [ReportTypeManagementController::class, 'destroySection'])->name('report-types.sections.destroy');
-        Route::post('report-types/{reportType}/sections/{section}/locations', [ReportTypeManagementController::class, 'storeLocation'])->name('report-types.sections.locations.store');
-        Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportTypeManagementController::class, 'destroyLocation'])->name('report-types.sections.locations.destroy');
+        Route::resource('report-types', ReportTypeController::class)->names('report-types');
+        Route::post('report-types/{reportType}/sections', [ReportSectionController::class, 'store'])->name('report-types.sections.store');
+        Route::put('report-types/{reportType}/sections/{section}', [ReportSectionController::class, 'update'])->name('report-types.sections.update');
+        Route::delete('report-types/{reportType}/sections/{section}', [ReportSectionController::class, 'destroy'])->name('report-types.sections.destroy');
+        Route::post('report-types/{reportType}/sections/{section}/locations', [ReportLocationController::class, 'store'])->name('report-types.sections.locations.store');
+        Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportLocationController::class, 'destroy'])->name('report-types.sections.locations.destroy');
     });
 
 // Dashboard & Laporan Analis
