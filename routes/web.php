@@ -5,6 +5,7 @@ use App\Http\Controllers\Masters\RoomController;
 use App\Http\Controllers\Masters\ReportManagements\ReportTypeController;
 use App\Http\Controllers\Masters\ReportManagements\ReportLocationController;
 use App\Http\Controllers\Masters\ReportManagements\ReportSectionController;
+use App\Http\Controllers\Masters\UserManagementController;
 use App\Http\Controllers\AnalystReportController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ManagerReportController;
@@ -13,7 +14,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportArchiveController;
 use App\Http\Controllers\ReportAssignmentController;
 use App\Http\Controllers\SupervisorReportController;
-use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
