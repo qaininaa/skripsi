@@ -12,8 +12,8 @@ class ReportEnvironmentalEntry extends Model
     protected $table = 'report_environmental_entries';
 
     protected $fillable = [
-        'report_id', 'report_section_id', 'instance_number', 'period_number',
-        'shift', 'analyst_id',
+        'report_id', 'env_section_instance_id',
+        'period_number', 'shift', 'analyst_id',
         'start_time', 'end_time', 'cfu_bacteria', 'cfu_fungi',
     ];
 
@@ -22,9 +22,9 @@ class ReportEnvironmentalEntry extends Model
         return $this->belongsTo(Report::class);
     }
 
-    public function section()
+    public function envSectionInstance()
     {
-        return $this->belongsTo(ReportSection::class, 'report_section_id');
+        return $this->belongsTo(EnvSectionInstance::class, 'env_section_instance_id');
     }
 
     public function analyst()

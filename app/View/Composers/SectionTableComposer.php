@@ -75,7 +75,7 @@ class SectionTableComposer
         $cfuTot = fn (?string $b, ?string $f): ?string => CfuHelper::total($b, $f);
 
         // ── Section-level conclusion (only meaningful for instance === 1 render) ─
-        $totalInstances    = (int) ($data['totalInstances'] ?? $hd['_section_counts'][$section->id] ?? 1);
+        $totalInstances    = (int) ($data['totalInstances'] ?? 1);
         $sectionConclusion = $this->sectionService->computeSectionConclusion($section, $entryMap, $totalInstances);
         $sectionNote       = $hd['section_notes'][$section->id] ?? [];
 

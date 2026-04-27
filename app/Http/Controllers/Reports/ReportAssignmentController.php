@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Reports;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\ReportType;
-use App\Services\Reports\Sections\SectionService;
+use App\Services\Reports\Sections\SectionInstanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Auth;
 class ReportAssignmentController extends Controller
 {
     public function __construct(
-        private SectionService $sectionService
+        private SectionInstanceService $sectionInstanceService
     ) {}
 
     /**
@@ -69,12 +69,14 @@ class ReportAssignmentController extends Controller
             'report_type_id' => ['required', 'exists:report_types,id'],
         ]);
 
-        Report::create([
+        $report = Report::create([
             'report_type_id' => $request->report_type_id,
             'product_name'   => $request->product_name,
             'batch_number'   => $request->batch_number,
             'created_by'     => Auth::id(),
         ]);
+
+        $this->sectionInstanceService->ensureInstancesInitialized($report);
 
         return redirect()->route('report-assignment.index')
             ->with('success', 'Tugas pelaporan berhasil ditambahkan.');
@@ -94,8 +96,6 @@ class ReportAssignmentController extends Controller
     /**
      * PUT /report-assignment/{reportAssignment}
      * Update tugas laporan.
-     * Jika report type berubah, _section_counts di-reset karena
-     * section counts terikat ke type lama.
      */
     public function update(Request $request, Report $reportAssignment)
     {
@@ -105,20 +105,13 @@ class ReportAssignmentController extends Controller
             'report_type_id' => ['required', 'exists:report_types,id'],
         ]);
 
-        $hd = $reportAssignment->header_data ?? [];
-
-        // Reset section counts kalau report type berubah
-        // karena section counts terikat ke section-section di type lama
-        if ((int) $request->report_type_id !== (int) $reportAssignment->report_type_id) {
-            unset($hd['_section_counts']);
-        }
-
         $reportAssignment->update([
             'report_type_id' => $request->report_type_id,
             'product_name'   => $request->product_name,
             'batch_number'   => $request->batch_number,
-            'header_data'    => empty($hd) ? null : $hd,
         ]);
+
+        $this->sectionInstanceService->ensureInstancesInitialized($reportAssignment->fresh());
 
         return redirect()->route('report-assignment.index')
             ->with('success', 'Tugas pelaporan berhasil diperbarui.');
@@ -144,11 +137,11 @@ class ReportAssignmentController extends Controller
     /**
      * POST /report-assignment/{report}/sections/{sectionId}/duplicate
      * Tambah instance duplikat section (maks 5).
-     * Didelegasikan ke SectionService — logic yang sama dipakai analis juga.
+     * Didelegasikan ke SectionInstanceService — logic yang sama dipakai analis juga.
      */
-    public function duplicateSection(Report $report, int $sectionId)
+    public function duplicateSection(Report $report, string $sectionId)
     {
-        $result = $this->sectionService->duplicate($report, $sectionId);
+        $result = $this->sectionInstanceService->duplicate($report, $sectionId);
 
         return request()->wantsJson()
             ? response()->json($result, $result['ok'] ? 200 : 422)
@@ -160,11 +153,11 @@ class ReportAssignmentController extends Controller
     /**
      * DELETE /report-assignment/{report}/sections/{sectionId}/duplicate
      * Hapus satu instance duplikat section.
-     * Didelegasikan ke SectionService — logic yang sama dipakai analis juga.
+     * Didelegasikan ke SectionInstanceService — logic yang sama dipakai analis juga.
      */
-    public function removeSection(Report $report, int $sectionId)
+    public function removeSection(Report $report, string $sectionId)
     {
-        $result = $this->sectionService->remove($report, $sectionId);
+        $result = $this->sectionInstanceService->remove($report, $sectionId);
 
         return request()->wantsJson()
             ? response()->json($result, $result['ok'] ? 200 : 422)
@@ -173,3 +166,4 @@ class ReportAssignmentController extends Controller
                 : back()->with('error', $result['message']));
     }
 }
+

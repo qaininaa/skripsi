@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Helpers\CfuHelper;
+use App\Models\EnvSectionInstance;
 use App\Models\Report;
 use App\Models\ReportSection;
 use Illuminate\Support\Collection;
@@ -19,9 +20,30 @@ class ReportSectionService
      */
     public function buildEntryMap(Report $report): array
     {
+        // Build ordered instance lookup: instance_id → {pivot_id, instance_number}
+        // Ordering: original first (parent_instance_id IS NULL), then duplicates by created_at/id
+        $instances = EnvSectionInstance::where('report_id', $report->id)
+            ->orderByRaw('report_section_id, CASE WHEN parent_instance_id IS NULL THEN 0 ELSE 1 END, created_at, id')
+            ->get();
+
+        $countByPivot = [];
+        $instanceMap  = []; // instance_id → ['pivot_id', 'num']
+        foreach ($instances as $inst) {
+            $pivotId = (string) $inst->report_section_id;
+            $countByPivot[$pivotId] = ($countByPivot[$pivotId] ?? 0) + 1;
+            $instanceMap[(string) $inst->id] = [
+                'pivot_id' => $pivotId,
+                'num'      => $countByPivot[$pivotId],
+            ];
+        }
+
         $entryMap = [];
         foreach ($report->environmentalEntries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->instance_number ?? 1][$entry->period_number][$entry->shift] = $entry;
+            $inst = $instanceMap[(string) $entry->env_section_instance_id] ?? null;
+            if (! $inst) {
+                continue;
+            }
+            $entryMap[$inst['pivot_id']][$inst['num']][$entry->period_number][$entry->shift] = $entry;
         }
         return $entryMap;
     }
@@ -33,15 +55,51 @@ class ReportSectionService
      */
     public function buildSectionInstances(Report $report): array
     {
-        $sectionCounts    = $report->header_data['_section_counts'] ?? [];
+        $report->loadMissing('reportType.sections.reportSections');
+
+        $pivotIds = $report->reportType->sections
+            ->flatMap(fn ($section) => $section->reportSections->pluck('id'))
+            ->unique()
+            ->values();
+
+        $countsByPivot  = collect();
+        // instanceIdsByPivot: pivot_id → [1 => uuid, 2 => uuid, ...]
+        $instanceIdsByPivot = [];
+        if ($pivotIds->isNotEmpty()) {
+            $instances = EnvSectionInstance::query()
+                ->where('report_id', $report->id)
+                ->whereIn('report_section_id', $pivotIds->all())
+                ->orderByRaw('report_section_id, CASE WHEN parent_instance_id IS NULL THEN 0 ELSE 1 END, created_at, id')
+                ->get(['id', 'report_section_id']);
+
+            $countMap = [];
+            foreach ($instances as $inst) {
+                $pid = (string) $inst->report_section_id;
+                $countMap[$pid] = ($countMap[$pid] ?? 0) + 1;
+                $instanceIdsByPivot[$pid][$countMap[$pid]] = (string) $inst->id;
+            }
+            $countsByPivot = collect($countMap);
+        }
+
         $sectionInstances = [];
 
         foreach ($report->reportType->sections as $section) {
-            $count = (int) ($sectionCounts[$section->id] ?? 1);
+            $sectionPivotIds = $section->reportSections->pluck('id');
+            $count = (int) ($sectionPivotIds
+                ->map(fn ($pivotId) => (int) ($countsByPivot[(string) $pivotId] ?? 0))
+                ->max() ?? 0);
+            $count = max(1, $count);
+
+            // Find the first pivot_id that has instances, to look up UUIDs
+            $representativePivotId = (string) ($sectionPivotIds->first(
+                fn ($pid) => isset($instanceIdsByPivot[(string) $pid])
+            ) ?? $sectionPivotIds->first());
+
             for ($i = 1; $i <= $count; $i++) {
                 $sectionInstances[] = [
                     'section'        => $section,
                     'instance'       => $i,
+                    'instance_id'    => $instanceIdsByPivot[$representativePivotId][$i] ?? null,
                     'totalInstances' => $count,
                     // secNum: 1-indexed offset by 4 fixed sections above the table
                     'secNum'         => count($sectionInstances) + 5,
