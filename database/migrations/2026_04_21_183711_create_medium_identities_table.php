@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
             $table->foreignUuid('medium_id')->constrained('report_type_mediums')->cascadeOnDelete();
+            $table->string('name')->nullable();
             $table->string('batch_number')->nullable();
             $table->string('gpt_number')->nullable();
             $table->date('expiration_date')->nullable();
