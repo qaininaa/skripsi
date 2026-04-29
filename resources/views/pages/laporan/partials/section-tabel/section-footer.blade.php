@@ -47,7 +47,7 @@
 
 {{-- ── Per-section Signature ───────────────────────────────────────────────── --}}
 @php
-    $_instSigs   = isset($sectionSignatures) ? $sectionSignatures->get("{$section->id}|{$instance}", collect()) : collect();
+    $_instSigs   = isset($sectionSignatures) ? $sectionSignatures->get($section->id . '|' . $instance, collect()) : collect();
     $_monSigs    = $_instSigs->where('role', 'monitoring');
     $_readSigs   = $_instSigs->where('role', 'reading');
     $_supApproval  = $report->approvals->firstWhere('step', 2);
