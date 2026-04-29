@@ -1,4 +1,7 @@
-@php $hd = $report->header_data ?? []; @endphp
+@php
+    $hd = $report->header_data ?? [];
+    $printPreviewOnly = $printPreviewOnly ?? false;
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,7 +10,7 @@
 <title>{{ $report->reportType->annex_number }} — {{ $report->created_at->format('Y-m-d') }}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:#d1d5db;overflow-x:hidden}
+body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:{{ $printPreviewOnly ? '#fff' : '#d1d5db' }};overflow-x:hidden}
 
 /* ── Pages ─────────────────────────────── */
 .doc-page{background:#fff;margin:1rem auto 2rem;box-shadow:0 2px 14px rgba(0,0,0,.2);position:relative;padding-bottom:18mm}
@@ -168,7 +171,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 #zoom-outer{
     width:100%;
     overflow-x:auto;         /* horizontal scroll when zoomed in */
-    padding-bottom:32px;     /* bottom padding only; horizontal centering done by JS */
+    padding-bottom:{{ $printPreviewOnly ? '0' : '32px' }};     /* bottom padding only; horizontal centering done by JS */
 }
 #zoom-wrap{
     transform-origin:top left;
@@ -204,6 +207,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 <body>
 
 {{-- ── Print Toolbar (screen only) ──────────────────── --}}
+@unless($printPreviewOnly)
 <div class="no-print toolbar">
     <div class="toolbar-title">
         <a href="{{ $backUrl ?? route('supervisor.laporan.show', $report) }}">
@@ -227,6 +231,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         @endif
     </div>
 </div>
+@endunless
 
 <div id="zoom-outer">
 <div id="zoom-wrap">
@@ -711,10 +716,11 @@ function applyZoom() {
     // Compensate height: CSS transform doesn't affect document flow
     wrap.style.height = (naturalH * pageZoom) + 'px';
 
-    // Center content horizontally with at least 16px left breathing room
+    // Center content horizontally with small breathing room (or none for preview-only mode)
     var vw      = window.innerWidth || document.documentElement.clientWidth;
     var scaledW = naturalW * pageZoom;
-    wrap.style.marginLeft = Math.max(16, (vw - scaledW) / 2) + 'px';
+    var minLeft = {{ $printPreviewOnly ? '0' : '16' }};
+    wrap.style.marginLeft = Math.max(minLeft, (vw - scaledW) / 2) + 'px';
 
     if (lv) lv.textContent = Math.round(pageZoom * 100) + '%';
 }
@@ -729,8 +735,9 @@ function autoFit() {
     var maxPageMM    = hasLandscape ? 297 : 210;
     // 1mm ≈ 3.7795px at 96dpi
     var maxPagePx    = maxPageMM * 3.7795;
-    // Account for #zoom-outer horizontal padding (16px * 2 = 32px)
-    var totalWidth   = maxPagePx + 32;
+    // Account for #zoom-outer horizontal padding
+    var outerPadding = {{ $printPreviewOnly ? '0' : '32' }};
+    var totalWidth   = maxPagePx + outerPadding;
     var vw = window.innerWidth || document.documentElement.clientWidth;
 
     if (vw < totalWidth) {
@@ -743,6 +750,9 @@ function autoFit() {
 
 document.addEventListener('DOMContentLoaded', function(){
     autoFit();
+    @if($autoPrint ?? false)
+    window.print();
+    @endif
 });
 
 var resizeTimer;

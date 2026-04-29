@@ -12,11 +12,20 @@
     $routeApprove = $reviewRole . '.laporan.approve';
     $routeReturn  = $reviewRole . '.laporan.return';
     $isEditable   = $approval->isPending();
+    $canEditPersonnelTime = $isEditable;
+    $personnelMethods = $report->reportType->personnelMethods ?? collect();
+    $personnelInstances = $report->personnelInstances ?? collect();
+    $personnelSignatures = $report->personnelSignatures->groupBy('role');
+    $supApproval = $report->approvals->firstWhere('step', 2);
+    $mngrApproval = $report->approvals->firstWhere('step', 3);
     // Users that can receive the return:
     $allReturnableIds = $report->analysts->pluck('user_id')->unique()->toArray();
     $returnableAnalysts = \App\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
     // For manajer: also supervisor
     $returnSupervisor = $returnSupervisor ?? null; // passed from controller for manajer only
+    // Table-based lookups (no more $hd for these)
+    $airSamplerRecord = $report->instrumentIdentities->firstWhere('tool_name', 'Air Sampler');
+    $incubatorByRtiId = $report->incubators->keyBy('report_type_incubator_id');
 @endphp
 
 <div class="space-y-4">
@@ -126,7 +135,7 @@
 
     {{-- ── 2. Identitas Instrumen — Air Sampler ──────────── --}}
     @if ($needsAirSampler)
-    @php $as = $hd['air_sampler'] ?? []; @endphp
+    @php $as = $airSamplerRecord; @endphp
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div class="px-5 py-3.5 border-b border-gray-100">
             <h3 class="font-semibold text-sm text-gray-700">2. Identitas Instrumen</h3>
@@ -134,33 +143,33 @@
         <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Nama Alat</label>
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm font-medium text-gray-700">{{ $as['nama_alat'] ?? 'Air Sampler' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm font-medium text-gray-700">{{ $as?->tool_name ?? 'Air Sampler' }}</div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
                 @if ($isEditable)
-                <input type="text" name="header_data[air_sampler][no_id]" value="{{ $as['no_id'] ?? '' }}"
+                <input type="text" name="header_data[air_sampler][no_id]" value="{{ $as?->no_id ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                 @else
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['no_id'] ?? '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->no_id ?? '—' }}</div>
                 @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
                 @if ($isEditable)
-                <input type="date" name="header_data[air_sampler][calibration_date]" value="{{ $as['calibration_date'] ?? '' }}"
+                <input type="date" name="header_data[air_sampler][calibration_date]" value="{{ $as?->calibration_date?->format('Y-m-d') ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                 @else
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['calibration_date'] ?? '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->calibration_date ? $as->calibration_date->format('d/m/Y') : '—' }}</div>
                 @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
                 @if ($isEditable)
-                <input type="date" name="header_data[air_sampler][due_date]" value="{{ $as['due_date'] ?? '' }}"
+                <input type="date" name="header_data[air_sampler][due_date]" value="{{ $as?->due_date?->format('Y-m-d') ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                 @else
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as['due_date'] ?? '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->due_date ? $as->due_date->format('d/m/Y') : '—' }}</div>
                 @endif
             </div>
         </div>
@@ -231,11 +240,12 @@
         <div class="px-5 py-3.5 border-b border-gray-100">
             <h3 class="font-semibold text-sm text-gray-700">4. Proses Inkubasi Medium Monitoring</h3>
         </div>
-        @foreach ([
-            'inkubator_20_25' => ['label' => 'Inkubator Suhu 20–25°C', 'min_days' => 3],
-            'inkubator_30_35' => ['label' => 'Inkubator Suhu 30–35°C', 'min_days' => 2],
-        ] as $inkKey => $inkInfo)
-        @php $ink = $hd[$inkKey] ?? []; $inkLabel = $inkInfo['label']; $inkMin = $inkInfo['min_days']; @endphp
+        @foreach ($report->reportType->incubatorConfigs->sortByDesc('min_days') as $inkRti)
+        @php
+            $inkRecord = $incubatorByRtiId[$inkRti->id] ?? null;
+            $inkLabel  = $inkRti->temperature_label;
+            $inkMin    = $inkRti->min_days;
+        @endphp
         <div class="p-5 space-y-4 @if(!$loop->last) border-b border-gray-100 @endif">
             <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{{ $inkLabel }}</p>
 
@@ -248,31 +258,31 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Inkubator</label>
                     @if ($isEditable)
-                    <input type="text" name="header_data[{{ $inkKey }}][no_id]" value="{{ $ink['no_id'] ?? '' }}"
+                    <input type="text" name="incubator[{{ $inkRti->id }}][no_id]" value="{{ $inkRecord?->no_id ?? '' }}"
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                     @else
-                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['no_id'] ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->no_id ?? '—' }}</div>
                     @endif
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
                     @if ($isEditable)
-                    <input type="date" name="header_data[{{ $inkKey }}][calibration_date]" value="{{ $ink['calibration_date'] ?? '' }}"
+                    <input type="date" name="incubator[{{ $inkRti->id }}][calibration_date]" value="{{ $inkRecord?->calibration_date?->format('Y-m-d') ?? '' }}"
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                     @else
                     <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                        {{ isset($ink['calibration_date']) ? \Carbon\Carbon::parse($ink['calibration_date'])->format('d/m/Y') : '—' }}
+                        {{ $inkRecord?->calibration_date ? $inkRecord->calibration_date->format('d/m/Y') : '—' }}
                     </div>
                     @endif
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
                     @if ($isEditable)
-                    <input type="date" name="header_data[{{ $inkKey }}][due_date]" value="{{ $ink['due_date'] ?? '' }}"
+                    <input type="date" name="incubator[{{ $inkRti->id }}][due_date]" value="{{ $inkRecord?->due_date_calibration?->format('Y-m-d') ?? '' }}"
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                     @else
                     <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                        {{ isset($ink['due_date']) ? \Carbon\Carbon::parse($ink['due_date'])->format('d/m/Y') : '—' }}
+                        {{ $inkRecord?->due_date_calibration ? $inkRecord->due_date_calibration->format('d/m/Y') : '—' }}
                     </div>
                     @endif
                 </div>
@@ -286,31 +296,31 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
                         @if ($isEditable)
-                        <input type="text" name="header_data[{{ $inkKey }}][incubated_by]" value="{{ $ink['incubated_by'] ?? '' }}"
+                        <input type="text" name="incubator[{{ $inkRti->id }}][incubated_by]" value="{{ $inkRecord?->incubated_by ?? '' }}"
                                placeholder="Nama analis"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['incubated_by'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->incubated_by ?? '—' }}</div>
                         @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
                         @if ($isEditable)
-                        <input type="date" name="header_data[{{ $inkKey }}][date_in]" value="{{ $ink['date_in'] ?? '' }}"
+                        <input type="date" name="incubator[{{ $inkRti->id }}][date_in]" value="{{ $inkRecord?->date_in?->format('Y-m-d') ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                            {{ isset($ink['date_in']) ? \Carbon\Carbon::parse($ink['date_in'])->format('d/m/Y') : '—' }}
+                            {{ $inkRecord?->date_in ? $inkRecord->date_in->format('d/m/Y') : '—' }}
                         </div>
                         @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
                         @if ($isEditable)
-                        <input type="time" name="header_data[{{ $inkKey }}][time_in]" value="{{ $ink['time_in'] ?? '' }}"
+                        <input type="time" name="incubator[{{ $inkRti->id }}][time_in]" value="{{ $inkRecord?->time_in ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['time_in'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->time_in ?? '—' }}</div>
                         @endif
                     </div>
                 </div>
@@ -320,31 +330,31 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
                         @if ($isEditable)
-                        <input type="text" name="header_data[{{ $inkKey }}][removed_by]" value="{{ $ink['removed_by'] ?? '' }}"
+                        <input type="text" name="incubator[{{ $inkRti->id }}][removed_by]" value="{{ $inkRecord?->removed_by ?? '' }}"
                                placeholder="Nama analis"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['removed_by'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->removed_by ?? '—' }}</div>
                         @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
                         @if ($isEditable)
-                        <input type="date" name="header_data[{{ $inkKey }}][date_out]" value="{{ $ink['date_out'] ?? '' }}"
+                        <input type="date" name="incubator[{{ $inkRti->id }}][date_out]" value="{{ $inkRecord?->date_out?->format('Y-m-d') ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                            {{ isset($ink['date_out']) ? \Carbon\Carbon::parse($ink['date_out'])->format('d/m/Y') : '—' }}
+                            {{ $inkRecord?->date_out ? $inkRecord->date_out->format('d/m/Y') : '—' }}
                         </div>
                         @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
                         @if ($isEditable)
-                        <input type="time" name="header_data[{{ $inkKey }}][time_out]" value="{{ $ink['time_out'] ?? '' }}"
+                        <input type="time" name="incubator[{{ $inkRti->id }}][time_out]" value="{{ $inkRecord?->time_out ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink['time_out'] ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->time_out ?? '—' }}</div>
                         @endif
                     </div>
                 </div>
@@ -394,6 +404,31 @@
         }
         $secNote       = $hd['section_notes'][$section->id] ?? [];
         $subColsPerExp = $isPerLocation ? 4 : 3;
+
+        // Build time lookup from report_environmental_entries (no more $hd time reads)
+        $secTimesFromEntries = [];
+        foreach ($section->locations as $_loc) {
+            $_pivId  = $_loc->pivot->id;
+            $_class  = strtolower($_loc->room->class ?? '');
+            $_locNum = $_loc->location_number ?? '';
+            $_isS1_3 = stripos($_locNum, 'S1-3') !== false;
+            $_isS1_2 = stripos($_locNum, 'S1-2') !== false;
+            $_swK    = $_isS1_3 ? 's1_3' : ($_isS1_2 ? 's1_2' : 's1');
+            for ($_col = 0; $_col <= $maxCols; $_col++) {
+                $_e = $entryMap[$_pivId][1][$_col][1] ?? $entryMap[$_pivId][1][$_col][2] ?? null;
+                if (! $_e || (! $_e->start_time && ! $_e->end_time)) { continue; }
+                if ($_class && ! isset($secTimesFromEntries[$_col][$_class])) {
+                    $secTimesFromEntries[$_col][$_class] = ['start_time' => $_e->start_time, 'end_time' => $_e->end_time];
+                }
+                if (! isset($secTimesFromEntries[$_col]['swab'][$_swK])) {
+                    $secTimesFromEntries[$_col]['swab'][$_swK] = ['mulai' => $_e->start_time, 'selesai' => $_e->end_time];
+                }
+                if (! isset($secTimesFromEntries[$_col]['start_time'])) {
+                    $secTimesFromEntries[$_col]['start_time'] = $_e->start_time;
+                    $secTimesFromEntries[$_col]['end_time']   = $_e->end_time;
+                }
+            }
+        }
     @endphp
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
@@ -440,8 +475,8 @@
                             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
                             @if ($isEditable)
                             @php
-                                $msHdMulai   = $hd['exposure_times'][$section->id][0]['start_time'] ?? $msJamMulai;
-                                $msHdSelesai = $hd['exposure_times'][$section->id][0]['end_time']   ?? $msJamSelesai;
+                                $msHdMulai   = $msJamMulai;
+                                $msHdSelesai = $msJamSelesai;
                             @endphp
                             <div class="flex justify-center items-center gap-1">
                                 <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
@@ -467,11 +502,10 @@
 
                             {{-- Swab time slots --}}
                             @if ($isSwabTime)
-                            @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
                             @if ($isEditable)
                             <div class="space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
-                                @php $st = $swabColTimes[$swabKey] ?? []; @endphp
+                                @php $st = $secTimesFromEntries[$col]['swab'][$swabKey] ?? []; @endphp
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
                                     <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][mulai]"
@@ -487,7 +521,7 @@
                             @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
-                                @php $st = $swabColTimes[$swabKey] ?? []; @endphp
+                                @php $st = $secTimesFromEntries[$col]['swab'][$swabKey] ?? []; @endphp
                                 <div>{{ $swabLabel }}: {{ ($st['mulai'] ?? '') ?: '—' }} – {{ ($st['selesai'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
@@ -499,7 +533,7 @@
                             @if ($isEditable)
                             <div class="space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
                                     <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][start_time]"
@@ -515,7 +549,7 @@
                             @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
                                 <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
@@ -525,9 +559,8 @@
                             {{-- Single time slot (Mulai/Selesai in header) --}}
                             @if ($hasJam)
                             @php
-                                $expJam        = $hd['exposure_times'][$section->id][$col] ?? [];
-                                $expJamMulai   = $expJam['start_time'] ?? null;
-                                $expJamSelesai = $expJam['end_time'] ?? null;
+                                $expJamMulai   = $secTimesFromEntries[$col]['start_time'] ?? null;
+                                $expJamSelesai = $secTimesFromEntries[$col]['end_time']   ?? null;
                             @endphp
                             @if ($isEditable)
                             <div class="space-y-0.5 mt-1">
@@ -918,6 +951,21 @@
         </div>
     </div>
     @endforeach
+
+    @if (($report->reportType->has_personnel ?? false) && $personnelMethods->isNotEmpty())
+    @include('pages.laporan.partials.section-personel', [
+        'isEditable' => false,
+        'isMonitoringPhase' => false,
+        'isReadingPhase' => false,
+        'canEditPersonnelTime' => $canEditPersonnelTime,
+        'canManagePersonnelPages' => $isEditable,
+        'personnelMethods' => $personnelMethods,
+        'personnelInstances' => $personnelInstances,
+        'personnelSignatures' => $personnelSignatures,
+        'supApproval' => $supApproval,
+        'mngrApproval' => $mngrApproval,
+    ])
+    @endif
 
     {{-- Save button + close form (after all sections) --}}
     @if ($isEditable)
