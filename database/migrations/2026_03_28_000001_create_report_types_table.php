@@ -14,6 +14,7 @@ return new class extends Migration
             $table->integer('annex_number');
             $table->string('sop_code');
             $table->string('sop_version');
+            $table->boolean('has_personnel')->default(false);
             $table->timestamps();
         });
     }

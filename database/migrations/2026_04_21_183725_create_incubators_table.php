@@ -18,12 +18,6 @@ return new class extends Migration
             $table->string('no_id')->nullable();
             $table->date('calibration_date')->nullable();
             $table->date('due_date_calibration')->nullable();
-            $table->foreignUuid('incubated_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->date('date_in')->nullable();
-            $table->string('time_in')->nullable();
-            $table->foreignUuid('removed_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->date('date_out')->nullable();
-            $table->string('time_out')->nullable();
             $table->timestamps();
         });
     }
