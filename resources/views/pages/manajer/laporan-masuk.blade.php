@@ -87,13 +87,13 @@
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
                                     @php
-                                        $monitoringNames = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
+                                        $monitoringNames = $report->analysts->where('type', 'monitoring')->map->user->filter()->pluck('name');
                                     @endphp
                                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 text-gray-700">
                                     @php
-                                        $readingNames = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
+                                        $readingNames = $report->analysts->where('type', 'reading')->map->user->filter()->pluck('name');
                                     @endphp
                                     {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                                 </td>
