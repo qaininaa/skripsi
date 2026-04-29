@@ -120,7 +120,6 @@ window.personnelLimits = {
     $canEditPersonnelTime = $canEditPersonnelTime ?? false;
     $canManagePersonnelPages = $canManagePersonnelPages ?? ($isEditable && $isMonitoringPhase);
     $personnelActionRoute = $personnelActionRoute ?? null;
-    $personnelFormId = $personnelActionRoute ? 'personnel-page-action-form' : null;
 @endphp
 @foreach ($pagesToRender as $pageNum)
 @php
@@ -141,7 +140,7 @@ window.personnelLimits = {
             Pemantauan Personel - Halaman {{ $pageNum }} dari {{ $totalPages }}
         </h3>
         @if ($canManagePersonnelPages && $totalPages > 2 && $loop->last)
-        <button type="submit" formnovalidate @if($personnelFormId) form="{{ $personnelFormId }}" @endif name="_personnel_action" value="remove_page_{{ $pageNum }}"
+        <button type="submit" formnovalidate @if($personnelActionRoute) formaction="{{ $personnelActionRoute }}" formmethod="POST" @endif name="_personnel_action" value="remove_page_{{ $pageNum }}"
                 class="text-xs text-red-400 hover:text-red-600 transition-colors">
             Hapus halaman ini
         </button>
@@ -457,7 +456,7 @@ window.personnelLimits = {
 {{-- Tombol Tambah Halaman --}}
 @if ($canManagePersonnelPages)
 <div class="mb-4">
-    <button type="submit" formnovalidate @if($personnelFormId) form="{{ $personnelFormId }}" @endif name="_personnel_action" value="add_page"
+    <button type="submit" formnovalidate @if($personnelActionRoute) formaction="{{ $personnelActionRoute }}" formmethod="POST" @endif name="_personnel_action" value="add_page"
             class="w-full py-3 rounded-xl border-2 border-dashed border-sky-200 text-sky-500 text-sm hover:border-sky-400 hover:text-sky-700 transition-colors">
         + Tambah Halaman Personel
     </button>
@@ -605,12 +604,6 @@ window.personnelLimits = {
 
     </div>
 </div>
-
-@if($personnelActionRoute ?? null)
-<form id="personnel-page-action-form" method="POST" action="{{ $personnelActionRoute }}">
-@csrf
-</form>
-@endif
 
 @endif {{-- end has_personnel --}}
 
