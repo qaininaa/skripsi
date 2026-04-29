@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reports;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\ReportType;
+use App\Services\Reports\Sections\PersonnelInstanceService;
 use App\Services\Reports\Sections\SectionInstanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,8 @@ use Illuminate\Support\Facades\Auth;
 class ReportAssignmentController extends Controller
 {
     public function __construct(
-        private SectionInstanceService $sectionInstanceService
+        private SectionInstanceService $sectionInstanceService,
+        private PersonnelInstanceService $personnelInstanceService,
     ) {}
 
     /**
@@ -164,6 +166,24 @@ class ReportAssignmentController extends Controller
             : ($result['ok']
                 ? back()->with('success', $result['message'])
                 : back()->with('error', $result['message']));
+    }
+
+    /**
+     * POST /report-assignment/{report}/personnel-page
+     * Tambah atau hapus halaman personel — diakses admin QC dari preview laporan.
+     */
+    public function personnelPage(Request $request, Report $report)
+    {
+        $action = $request->input('_personnel_action');
+        if ($action === 'add_page') {
+            $result = $this->personnelInstanceService->addPage($report);
+        } elseif (str_starts_with((string) $action, 'remove_page_')) {
+            $pageNum = (int) str_replace('remove_page_', '', $action);
+            $result = $this->personnelInstanceService->removePage($report, $pageNum);
+        } else {
+            return back()->with('error', 'Aksi tidak dikenali.');
+        }
+        return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
     }
 }
 

@@ -31,6 +31,7 @@ class StoreReportTypeRequest extends FormRequest
             'incubator_labels.*'=> ['nullable', 'string', 'max:255'],
             'incubator_min_days'  => ['nullable', 'array'],
             'incubator_min_days.*'=> ['nullable', 'integer', 'min:1'],
+            'has_personnel'       => ['nullable', 'boolean'],
         ];
     }
 

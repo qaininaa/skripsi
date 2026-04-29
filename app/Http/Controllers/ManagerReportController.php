@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PersonnelInstance;
+use App\Models\PersonnelRow;
 use App\Models\Report;
 use App\Models\ReportApproval;
+use App\Services\Reports\ReportEntryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -53,21 +56,35 @@ class ManagerReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user']);
+        $report->load([
+            'reportType.sections.locations.room',
+            'reportType.sections.locations.frequency',
+            'reportType.media',
+            'reportType.personnelMethods.activities',
+            'reportType.personnelMethods.samplingPoints',
+            'reportType.personnelMethods.limits',
+            'environmentalEntries',
+            'approvals.user',
+            'analysts.user',
+            'signatures',
+            'mediumIdentities',
+            'instrumentIdentities',
+            'incubators',
+            'personnelInstances.rows.samplingEntries',
+            'personnelSignatures.user',
+        ]);
 
         // Supervisor (step 2 user) for the return dropdown
         $supervisorApproval = $report->approvals->firstWhere('step', 2);
         $returnSupervisor = $supervisorApproval?->user;
 
-        $entryMap = [];
-        foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
-        }
+        $sectionService = app(\App\Services\ReportSectionService::class);
+        $entryMap = $sectionService->buildEntryMap($report);
+        $sectionNeeds = $sectionService->computeSectionNeeds($report);
 
-        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
-        $needsAirSampler = $sectionTypes->contains('air_sampler');
-        $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
-        $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
+        $needsAirSampler = $sectionNeeds['needsAirSampler'];
+        $needsInkubator = $sectionNeeds['needsInkubator'];
+        $needsMedium = $sectionNeeds['needsMedium'];
 
         $reviewRole = 'manajer';
 
@@ -150,7 +167,7 @@ class ManagerReportController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        $returnedToUserId = (int) $request->input('returned_to_user_id');
+        $returnedToUserId = $request->input('returned_to_user_id');
 
         $supervisorApproval = ReportApproval::where('report_id', $report->id)
             ->where('step', 2)
@@ -217,54 +234,120 @@ class ManagerReportController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        $report->loadMissing('reportType');
-        $incoming = $request->input('header_data', []);
-        $hd = $report->header_data ?? [];
-
-        $allowedKeys = ['air_sampler', 'inkubator_20_25', 'inkubator_30_35'];
-        foreach ($report->reportType->medium_groups ?? [] as $key => $_) {
-            $allowedKeys[] = $key;
-        }
-
-        foreach ($allowedKeys as $key) {
-            if (array_key_exists($key, $incoming)) {
-                $hd[$key] = array_merge($hd[$key] ?? [], $incoming[$key]);
+        // Handle personnel page actions (add/remove)
+        $personnelAction = $request->input('_personnel_action');
+        if ($personnelAction === 'add_page' || str_starts_with((string) $personnelAction, 'remove_page_')) {
+            $svc = app(\App\Services\Reports\Sections\PersonnelInstanceService::class);
+            if ($personnelAction === 'add_page') {
+                $result = $svc->addPage($report);
+            } else {
+                $pageNum = (int) str_replace('remove_page_', '', $personnelAction);
+                $result = $svc->removePage($report, $pageNum);
             }
+            return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
         }
 
-        foreach (['exposure_times', 'settle_times', 'swab_times'] as $timeKey) {
-            $incomingTime = $request->input($timeKey);
-            if (is_array($incomingTime)) {
-                foreach ($incomingTime as $secId => $colData) {
-                    foreach ($colData as $colKey => $slotData) {
-                        if ($timeKey === 'settle_times') {
-                            foreach ($slotData as $ab => $times) {
-                                $hd[$timeKey][$secId][$colKey][$ab] = array_merge(
-                                    $hd[$timeKey][$secId][$colKey][$ab] ?? [],
-                                    $times
-                                );
-                            }
-                        } elseif ($timeKey === 'swab_times') {
-                            foreach ($slotData as $swabKey => $times) {
-                                $hd[$timeKey][$secId][$colKey][$swabKey] = array_merge(
-                                    $hd[$timeKey][$secId][$colKey][$swabKey] ?? [],
-                                    $times
-                                );
-                            }
-                        } else {
-                            $hd[$timeKey][$secId][$colKey] = array_merge(
-                                $hd[$timeKey][$secId][$colKey] ?? [],
-                                $slotData
-                            );
-                        }
-                    }
+        $entryService = app(ReportEntryService::class);
+
+        // Identitas instrumen (Air Sampler) → instrument_identities
+        $asData = $request->input('header_data.air_sampler');
+        if (is_array($asData)) {
+            $entryService->saveInstrumentFromArray($asData, $report);
+        }
+
+        // Identitas medium agar → medium_identities
+        if ($request->has('medium')) {
+            $report->loadMissing('reportType.media');
+            foreach ($request->input('medium', []) as $medName => $data) {
+                $medium = $report->reportType->media->firstWhere('name', $medName);
+                if ($medium) {
+                    $report->mediumIdentities()->updateOrCreate(
+                        ['name' => $medName],
+                        [
+                            'medium_id'       => $medium->id,
+                            'batch_number'    => $data['batch_number']    ?? null ?: null,
+                            'gpt_number'      => $data['gpt_number']      ?? null ?: null,
+                            'expiration_date' => $data['expiration_date'] ?? null ?: null,
+                        ]
+                    );
                 }
             }
         }
 
-        $report->update(['header_data' => $hd]);
+        // Data inkubator → incubators (form: incubator[<report_type_incubator_id>][field])
+        $report->loadMissing('reportType.incubatorConfigs');
+        foreach ($request->input('incubator', []) as $rtiId => $inkData) {
+            $rti = $report->reportType->incubatorConfigs->firstWhere('id', $rtiId);
+            if ($rti) {
+                $report->incubators()->updateOrCreate(
+                    ['report_type_incubator_id' => $rti->id],
+                    [
+                        'no_id'                => $inkData['no_id']            ?? null ?: null,
+                        'calibration_date'     => $inkData['calibration_date'] ?? null ?: null,
+                        'due_date_calibration' => $inkData['due_date']         ?? null ?: null,
+                        'incubated_by'         => $inkData['incubated_by']     ?? null ?: null,
+                        'date_in'              => $inkData['date_in']          ?? null ?: null,
+                        'time_in'              => $inkData['time_in']          ?? null ?: null,
+                        'removed_by'           => $inkData['removed_by']       ?? null ?: null,
+                        'date_out'             => $inkData['date_out']         ?? null ?: null,
+                        'time_out'             => $inkData['time_out']         ?? null ?: null,
+                    ]
+                );
+            }
+        }
+
+        // Waktu paparan → report_environmental_entries (start_time/end_time)
+        $entryService->saveReviewTimesToEntries(
+            $request->input('settle_times',   []),
+            $request->input('swab_times',     []),
+            $request->input('exposure_times', []),
+            $report
+        );
+
+        // Waktu monitoring personel → personnel_rows
+        $this->savePersonnelMonitoringTimes($request, $report);
 
         return back()->with('success', 'Data berhasil disimpan.');
+    }
+
+    private function savePersonnelMonitoringTimes(Request $request, Report $report): void
+    {
+        $personnelPayload = $request->input('personnel', []);
+        if (! is_array($personnelPayload) || empty($personnelPayload)) {
+            return;
+        }
+
+        foreach ($personnelPayload as $instanceId => $instanceData) {
+            if (! is_array($instanceData) || str_starts_with((string) $instanceId, '_new_')) {
+                continue;
+            }
+
+            $instance = PersonnelInstance::where('id', $instanceId)
+                ->where('report_id', $report->id)
+                ->first();
+
+            if (! $instance) {
+                continue;
+            }
+
+            foreach (($instanceData['row'] ?? []) as $rowOrder => $rowData) {
+                if (! is_array($rowData) || ! array_key_exists('time', $rowData)) {
+                    continue;
+                }
+
+                $row = PersonnelRow::where('personnel_instance_id', $instance->id)
+                    ->where('row_order', (int) $rowOrder)
+                    ->first();
+
+                if (! $row) {
+                    continue;
+                }
+
+                $time = trim((string) ($rowData['time'] ?? ''));
+                $row->monitoring_time = $time !== '' ? $time : null;
+                $row->save();
+            }
+        }
     }
 
     public function cetak(Report $report)
@@ -291,7 +374,7 @@ class ManagerReportController extends Controller
         ));
     }
 
-    private function baseQuery(int $userId)
+    private function baseQuery(string $userId)
     {
         return Report::join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 3)
