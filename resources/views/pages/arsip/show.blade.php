@@ -4,6 +4,7 @@
     'needsAirSampler' => $needsAirSampler,
     'needsInkubator' => $needsInkubator,
     'needsMedium' => $needsMedium,
-    'backUrl' => route('arsip-laporan.index'),
+    'backUrl' => $backUrl ?? route('arsip-laporan.index'),
     'showPrint' => true,
+    'autoPrint' => true,
 ])
