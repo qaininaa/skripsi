@@ -6,7 +6,27 @@ function adminSectionAction(method, url) {
     fetch(url, {
         method: method,
         headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
-    }).then(r => { window.location.reload(); });
+    })
+    .then(async r => {
+        const payload = await r.json().catch(() => ({}));
+        if (!r.ok || payload?.ok === false) {
+            const msg = payload?.message ?? 'Aksi gagal diproses.';
+            if (typeof showAlertModal === 'function') {
+                showAlertModal('Aksi Gagal', msg);
+            } else {
+                alert(msg);
+            }
+            return;
+        }
+        window.location.reload();
+    })
+    .catch(() => {
+        if (typeof showAlertModal === 'function') {
+            showAlertModal('Terjadi Kesalahan', 'Tidak bisa menghubungi server. Silakan coba lagi.');
+        } else {
+            alert('Tidak bisa menghubungi server. Silakan coba lagi.');
+        }
+    });
 }
 
 // ── Handover / Finish Monitoring modal ─────────────────────────────────
@@ -140,7 +160,7 @@ const _modalConfig = {
 function openSaveModal()    { openConfirmModal('save'); }
 function openConfirmModal(action) {
     // Block save/handover/submit if any CFU input has an invalid value
-    const invalidInputs = document.querySelectorAll('.cfu-input.border-red-400');
+    const invalidInputs = document.querySelectorAll('.cfu-input.border-red-400, .personnel-cfu-input.border-red-400');
     if (invalidInputs.length > 0) {
         showAlertModal(
             'Format Nilai CFU Tidak Valid',
@@ -268,13 +288,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// CFU string helpers — support <1, TNTC, non-negative integers
+// CFU string helpers — support <1, TNTC, positive integers
 function cfuToNum(v) {
     if (v === undefined || v === null || v === '') return null;
     if (v.toUpperCase() === 'TNTC') return Infinity;
     if (v === '<1') return 0;
     const n = parseInt(v, 10);
-    return isNaN(n) || n < 0 ? null : n;
+    return isNaN(n) || n <= 0 ? null : n;
 }
 function cfuSumStr(b, f) {
     const bn = cfuToNum(b);
@@ -488,4 +508,111 @@ window.addEventListener('beforeunload', (e) => {
         e.returnValue = '';
     }
 });
+
+// ── Personnel: validate CFU + auto-calc T & Kesimpulan ─────────────────
+(function () {
+    function recalcPersonnelPoint(pointRow, personRow, methodId) {
+        const bInp    = document.querySelector(`.personnel-cfu-input[data-prow="${pointRow}"][data-ptype="b"]`);
+        const fInp    = document.querySelector(`.personnel-cfu-input[data-prow="${pointRow}"][data-ptype="f"]`);
+        const tDisp   = document.getElementById(`pnt-${pointRow}`);
+        const tHidden = document.getElementById(`pnt-h-${pointRow}`);
+        const kDisp   = document.getElementById(`pkdisp-${pointRow}`);
+        const kHidden = document.getElementById(`pkesimpulan-${pointRow}`);
+
+        // Auto-calc T = B + F
+        const tStr = cfuSumStr(bInp?.value, fInp?.value);
+        if (tDisp) {
+            tDisp.textContent = tStr || '—';
+            tDisp.className   = tStr ? 'text-xs font-semibold text-gray-700' : 'text-xs text-gray-300';
+        }
+        if (tHidden) tHidden.value = tStr;
+
+        // Kesimpulan: need selected class
+        // Finger Dab: hidden input with class personnel-class-input (not type=radio)
+        // Cawan Kontak: radio buttons
+        const classChecked = document.querySelector(`.personnel-class-input[data-person="${personRow}"][type="radio"]:checked`);
+        const classHidden  = document.querySelector(`.personnel-class-input[data-person="${personRow}"][type="hidden"]`);
+        const cls = classChecked?.value || classHidden?.value || '';
+
+        const lims = window.personnelLimits?.[methodId];
+        if (!cls || !lims?.[cls]?.action) {
+            if (kDisp)   { kDisp.textContent = '—'; kDisp.className = 'text-xs text-gray-300'; }
+            if (kHidden) kHidden.value = '';
+            return;
+        }
+
+        const bVal = cfuToNum(bInp?.value);
+        const fVal = cfuToNum(fInp?.value);
+        const tVal = cfuToNum(tStr);
+
+        if (bVal === null && fVal === null) {
+            if (kDisp)   { kDisp.textContent = '—'; kDisp.className = 'text-xs text-gray-300'; }
+            if (kHidden) kHidden.value = '';
+            return;
+        }
+
+        const lim    = lims[cls].action;
+        const isTMS  = (tVal === Infinity) || (fVal === Infinity) ||
+                       (lim.total !== null && tVal !== null && tVal >= lim.total) ||
+                       (lim.fungi !== null && fVal !== null && fVal >= lim.fungi);
+        const result = isTMS ? 'TMS' : 'MS';
+
+        if (kDisp) {
+            kDisp.textContent = result;
+            kDisp.className   = result === 'MS'
+                ? 'text-xs font-semibold text-green-600'
+                : 'text-xs font-semibold text-red-600';
+        }
+        if (kHidden) kHidden.value = result;
+    }
+
+    // Validate a single personnel CFU input and style border
+    function validatePersonnelCfu(inp) {
+        const raw   = inp.value;
+        const valid = raw === '' || /^(<1|TNTC|[1-9][0-9]*)$/i.test(raw);
+        inp.classList.toggle('border-red-400',  !valid);
+        inp.classList.toggle('ring-1',           !valid);
+        inp.classList.toggle('ring-red-400',     !valid);
+        inp.classList.toggle('border-gray-200',  valid);
+    }
+
+    // Input: validate CFU + recalc row
+    document.addEventListener('input', function (e) {
+        if (!e.target.classList.contains('personnel-cfu-input')) return;
+        validatePersonnelCfu(e.target);
+        recalcPersonnelPoint(
+            e.target.dataset.prow,
+            e.target.dataset.person,
+            e.target.dataset.method
+        );
+    });
+
+    // Change: class radio selected → recalc ALL points for that person
+    document.addEventListener('change', function (e) {
+        if (!e.target.classList.contains('personnel-class-input') || e.target.type !== 'radio') return;
+        const personRow = e.target.dataset.person;
+        const methodId  = e.target.dataset.method;
+        const done = new Set();
+        document.querySelectorAll(`.personnel-cfu-input[data-person="${personRow}"]`).forEach(inp => {
+            if (!done.has(inp.dataset.prow)) {
+                done.add(inp.dataset.prow);
+                recalcPersonnelPoint(inp.dataset.prow, personRow, methodId);
+            }
+        });
+    });
+
+    // Page load: validate existing values + recalc all
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.personnel-cfu-input').forEach(validatePersonnelCfu);
+
+        const done = new Set();
+        document.querySelectorAll('.personnel-cfu-input').forEach(inp => {
+            const key = inp.dataset.prow + '|' + inp.dataset.person + '|' + inp.dataset.method;
+            if (!done.has(key)) {
+                done.add(key);
+                recalcPersonnelPoint(inp.dataset.prow, inp.dataset.person, inp.dataset.method);
+            }
+        });
+    });
+})();
 </script>
