@@ -6,10 +6,14 @@ use App\Models\AuditLog;
 use App\Models\ReportType;
 use App\Models\ReportTypeIncubator;
 use App\Models\ReportTypeMedium;
+use App\Services\Personnels\PersonnelService;
 use Illuminate\Http\Request;
 
 class ReportTypeService
 {
+    public function __construct(
+        private PersonnelService $personnelService,
+    ) {}
     public function create(array $validated, array $meta): ReportType
     {
         $reportType = ReportType::create([
@@ -17,6 +21,7 @@ class ReportTypeService
             'sop_version'  => $validated['sop_version'],
             'name'         => $validated['name'],
             'annex_number' => $validated['annex_number'],
+            'has_personnel' => $validated['has_personnel'] ?? false,
         ]);
 
         $this->syncMedia($reportType, $validated['medium_labels'] ?? []);
@@ -28,11 +33,15 @@ class ReportTypeService
 
     public function update(ReportType $reportType, array $validated, array $meta): ReportType
     {
+        $wasPersonnel = $reportType->has_personnel;
+        $isPersonnel  = $validated['has_personnel'] ?? false;
+
         $reportType->update([
             'sop_code'     => $validated['sop_code'],
             'sop_version'  => $validated['sop_version'],
             'name'         => $validated['name'],
             'annex_number' => $validated['annex_number'],
+            'has_personnel' => $isPersonnel,
         ]);
 
         // hapus lama, sync baru
@@ -40,6 +49,14 @@ class ReportTypeService
         $reportType->incubatorConfigs()->delete();
         $this->syncMedia($reportType, $validated['medium_labels'] ?? []);
         $this->syncIncubators($reportType, $validated['incubator_labels'] ?? [], $validated['incubator_min_days'] ?? []);
+
+        // Toggle on → generate, toggle off → hapus
+        if (! $wasPersonnel && $isPersonnel) {
+            $this->personnelService->generate($reportType);
+        } elseif ($wasPersonnel && ! $isPersonnel) {
+            $this->personnelService->remove($reportType);
+        }
+
         $this->auditLog('update_report_type', "Memperbarui jenis laporan: {$reportType->name} ({$reportType->annex_number})", $meta);
 
         return $reportType;
