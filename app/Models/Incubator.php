@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Mewakili satu incubator yang dipakai dalam satu laporan.
- * Setiap laporan bisa punya lebih dari satu incubator
- * (suhu berbeda, misalnya 30°C dan 35°C).
+ * Mewakili satu incubator (perangkat) yang dipakai dalam satu laporan.
+ * Setiap laporan bisa punya lebih dari satu incubator (suhu berbeda).
+ * Data tracking masuk/keluar per jenis medium ada di incubator_entries.
  */
 class Incubator extends Model
 {
@@ -29,39 +31,24 @@ class Incubator extends Model
     ];
 
     protected $casts = [
-        'calibration_date' => 'date',
+        'calibration_date'     => 'date',
         'due_date_calibration' => 'date',
-        'date_in' => 'date',
-        'date_out' => 'date',
+        'date_in'              => 'date',
+        'date_out'             => 'date',
     ];
 
-    /**
-     * Laporan yang menggunakan incubator ini.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function report()
+    public function report(): BelongsTo
     {
         return $this->belongsTo(Report::class);
     }
 
-    /**
-     * Analis yang memasukkan sampel ke incubator (incubated_by).
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function incubatedBy()
+    public function reportTypeIncubator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'incubated_by');
+        return $this->belongsTo(ReportTypeIncubator::class);
     }
 
-    /**
-     * Analis yang mengeluarkan sampel dari incubator (removed_by).
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function removedBy()
+    public function entries(): HasMany
     {
-        return $this->belongsTo(User::class, 'removed_by');
+        return $this->hasMany(IncubatorEntry::class);
     }
 }

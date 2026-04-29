@@ -10,7 +10,7 @@ class ReportType extends Model
     use HasUuids;
 
     protected $fillable = [
-        'name', 'annex_number', 'sop_code', 'sop_version',
+        'name', 'annex_number', 'sop_code', 'sop_version', 'has_personnel',
     ];
 
     public function media()
@@ -31,5 +31,10 @@ class ReportType extends Model
     public function reports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function personnelMethods()
+    {
+        return $this->hasMany(PersonnelMethod::class);
     }
 }

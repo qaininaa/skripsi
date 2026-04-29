@@ -52,6 +52,11 @@ class Report extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function personnelSignatures()
+    {
+        return $this->hasMany(PersonnelSignature::class);   
+    }
+
     // -------------------------------------------------------------------------
     // Relasi ke tabel normalisasi (dipindah dari JSON header_data)
     // -------------------------------------------------------------------------
@@ -104,6 +109,11 @@ class Report extends Model
     public function signatures()
     {
         return $this->hasMany(ReportSignature::class);
+    }
+
+    public function personnelInstances()
+    {
+        return $this->hasMany(PersonnelInstance::class)->orderBy('created_at');
     }
 
     /**
