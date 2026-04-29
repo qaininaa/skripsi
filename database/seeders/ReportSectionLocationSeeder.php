@@ -123,8 +123,8 @@ class ReportSectionLocationSeeder extends Seeder
         }
 
         if (! empty($pivotRows)) {
-            DB::table('report_section')->insertOrIgnore($pivotRows);
-            $this->command->info('Inserted '.count($pivotRows).' pivot row(s) into report_section.');
+            DB::table('report_sections')->insertOrIgnore($pivotRows);
+            $this->command->info('Inserted '.count($pivotRows).' pivot row(s) into report_sections.');
         } else {
             $this->command->warn('No pivot rows inserted. Pastikan LocationSeeder dan ReportTypeSectionSeeder sudah dijalankan.');
         }
