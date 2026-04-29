@@ -74,11 +74,22 @@
 @php
     $section        = $sectionInstance['section'];
     $instance       = $sectionInstance['instance'];
+    $instanceId     = $sectionInstance['instance_id'] ?? null;
     $totalInstances = $sectionInstance['totalInstances'];
     $secNum         = $sectionInstance['secNum'];
 @endphp
-@include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'totalInstances' => $totalInstances, 'secNum' => $secNum])
+@include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'instanceId' => $instanceId, 'totalInstances' => $totalInstances, 'secNum' => $secNum])
 @endforeach
+
+@if ($report->reportType->has_personnel ?? false)
+@include('pages.laporan.partials.section-personel', [
+    'isEditable'               => $isEditable,
+    'isMonitoringPhase'        => $isMonitoringPhase,
+    'isReadingPhase'           => !$isMonitoringPhase,
+    'canManagePersonnelPages'  => ($isAdminPreview ?? false) ? true : ($isEditable && $isMonitoringPhase),
+    'personnelActionRoute'     => ($isAdminPreview ?? false) ? route('admin.laporan.personnel-page', $report) : null,
+])
+@endif
 
 @include('pages.laporan.partials.bottom-bar')
 
