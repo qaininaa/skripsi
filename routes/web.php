@@ -6,8 +6,9 @@ use App\Http\Controllers\Masters\ReportManagements\ReportTypeController;
 use App\Http\Controllers\Masters\ReportManagements\ReportLocationController;
 use App\Http\Controllers\Masters\ReportManagements\ReportSectionController;
 use App\Http\Controllers\Masters\UserManagementController;
+use App\Http\Controllers\Reports\DuplicateSectionController;
 use App\Http\Controllers\Reports\ReportAssignmentController;
-use App\Http\Controllers\AnalystReportController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ManagerReportController;
 use App\Http\Controllers\PasswordSettingController;
@@ -69,7 +70,8 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
         Route::resource('report-assignment', ReportAssignmentController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('report-assignment');
-        Route::get('report-assignment/{report}/preview', [AnalystReportController::class, 'lihat'])->name('admin.laporan.preview');
+        Route::get('report-assignment/{report}/preview', [ReportController::class, 'lihat'])->name('admin.laporan.preview');
+        Route::post('report-assignment/{report}/personnel-page', [ReportAssignmentController::class, 'personnelPage'])->name('admin.laporan.personnel-page');
         Route::post('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
         Route::delete('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'removeSection'])->name('report-assignment.sections.remove');
         // Data Master
@@ -92,13 +94,26 @@ Route::middleware(['auth', 'password.check', 'role:analis'])
             return view('pages.dashboard.analis');
         })->name('dashboard.analis');
 
-        Route::get('laporan', [AnalystReportController::class, 'index'])->name('laporan.index');
-        Route::get('laporan/{report}/isi', [AnalystReportController::class, 'isi'])->name('laporan.isi');
-        Route::get('laporan/{report}/lihat', [AnalystReportController::class, 'lihat'])->name('laporan.lihat');
-        Route::post('laporan/{report}/save', [AnalystReportController::class, 'save'])->name('laporan.save');
-        Route::post('laporan/{report}/sections/{sectionId}/duplicate', [AnalystReportController::class, 'duplicateSection'])->name('laporan.sections.duplicate');
-        Route::delete('laporan/{report}/sections/{sectionId}/duplicate', [AnalystReportController::class, 'removeSection'])->name('laporan.sections.remove');
-        Route::post('laporan/verify-password', [AnalystReportController::class, 'verifyPassword'])->name('laporan.verify-password');
+        Route::get('laporan', [ReportController::class, 'index'])->name('laporan.index');
+        Route::get('laporan/{report}/isi', [ReportController::class, 'isi'])->name('laporan.isi');
+        Route::get('laporan/{report}/lihat', [ReportController::class, 'lihat'])->name('laporan.lihat');
+        Route::post('laporan/{report}/save', [ReportController::class, 'save'])->name('laporan.save');
+        Route::post('laporan/verify-password', [ReportController::class, 'verifyPassword'])->name('laporan.verify-password');
+    });
+
+Route::middleware(['auth', 'password.check', 'role:analis,supervisor,manajer'])
+    ->prefix('dashboard')
+    ->group(function () {
+        // sectionId = id dari tabel sections
+        Route::post(
+            'laporan/{report}/sections/{sectionId}/duplicate',
+            [DuplicateSectionController::class, 'duplicate']
+        )->name('laporan.instances.duplicate');
+ 
+        Route::delete(
+            'laporan/{report}/sections/{sectionId}',
+            [DuplicateSectionController::class, 'remove']
+        )->name('laporan.instances.remove');
     });
 
 // Dashboard & Laporan Masuk Supervisor
@@ -107,7 +122,7 @@ Route::middleware(['auth', 'password.check', 'role:supervisor'])
     ->group(function () {
         Route::get('supervisor', [SupervisorReportController::class, 'dashboard'])->name('dashboard.supervisor');
         Route::get('supervisor/laporan-masuk', [SupervisorReportController::class, 'laporanMasuk'])->name('supervisor.laporan-masuk');
-        Route::get('supervisor/laporan/{report}/preview', [AnalystReportController::class, 'lihat'])->name('supervisor.laporan.preview');
+        Route::get('supervisor/laporan/{report}/preview', [ReportController::class, 'lihat'])->name('supervisor.laporan.preview');
         Route::get('supervisor/laporan/{report}', [SupervisorReportController::class, 'show'])->name('supervisor.laporan.show');
         Route::get('supervisor/laporan/{report}/cetak', [SupervisorReportController::class, 'cetak'])->name('supervisor.laporan.cetak');
         Route::post('supervisor/laporan/{report}/save', [SupervisorReportController::class, 'save'])->name('supervisor.laporan.save');
