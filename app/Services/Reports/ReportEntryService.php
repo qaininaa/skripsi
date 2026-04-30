@@ -824,8 +824,8 @@ class ReportEntryService
                         'page_number'                 => $page,
                     ]);
 
-                    $instance->catatan = $note !== '' ? $note : null;
-                    $instance->deviasi = $deviation !== '' ? $deviation : null;
+                    $instance->note = $note !== '' ? $note : null;
+                    $instance->deviation = $deviation !== '' ? $deviation : null;
                     $instance->save();
                 }
             }

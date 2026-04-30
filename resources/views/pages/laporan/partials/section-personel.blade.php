@@ -127,11 +127,11 @@ window.personnelLimits = {
     $fallbackPageOneByMethod = $instancesByPage->get(1, collect());
     $personCount = $pageNum === 1 ? 2 : 4;
     $pageNoteSource = $pageInstancesByMethod
-        ->first(fn ($inst) => ($inst->catatan ?? null) !== null || ($inst->deviasi ?? null) !== null)
+        ->first(fn ($inst) => ($inst->note ?? null) !== null || ($inst->deviation ?? null) !== null)
         ?? $pageInstancesByMethod->first();
     $pageNote = [
-        'note' => $pageNoteSource?->catatan ?? '',
-        'deviation' => $pageNoteSource?->deviasi ?? '',
+        'note' => $pageNoteSource?->note ?? '',
+        'deviation' => $pageNoteSource?->deviation ?? '',
     ];
 @endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
