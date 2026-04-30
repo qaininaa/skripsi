@@ -31,7 +31,7 @@
           </div>
       @endif
 
-      <form action="{{ route('login') }}" method="POST" class="space-y-6">
+      <form action="{{ route('login') }}" method="POST" class="space-y-6" x-data="{ loading: false }" @submit="loading = true">
         @csrf
 
         <div>
@@ -63,8 +63,11 @@
         </div>
 
         <div>
-          <button type="submit" class="flex w-full justify-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
-            Masuk
+          <button type="submit" :disabled="loading" class="flex w-full justify-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 disabled:opacity-70 disabled:cursor-not-allowed transition-all">
+            <span x-show="!loading">Masuk</span>
+            <span x-show="loading" class="flex items-center gap-2">
+              Memeriksa...
+            </span>
           </button>
         </div>
       </form>
