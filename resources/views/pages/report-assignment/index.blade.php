@@ -31,7 +31,7 @@
     </div>
 
     {{-- Filter & Pencarian --}}
-    <x-form.search-filter
+    <x-forms.search-filter
         :action="route('report-assignment.index')"
         placeholder="Cari nama atau nomor batch.."
         :resetRoute="route('report-assignment.index')"
@@ -43,8 +43,7 @@
             <option value="ongoing"   {{ request('status') === 'ongoing'   ? 'selected' : '' }}>Sedang Berlangsung</option>
             <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Selesai</option>
         </select>
-    </x-form.search-filter>
-
+    </x-forms.search-filter>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">

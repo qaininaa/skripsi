@@ -34,7 +34,7 @@
     </div>
 
     {{-- Pencarian --}}
-    <x-form.search-filter
+    <x-forms.search-filter
         :action="route('master.room.index')"
         placeholder="Cari nama atau nomor ruangan..."
         :resetRoute="route('master.room.index')"
@@ -46,7 +46,7 @@
             <option value="C" {{ request('class') === 'C' ? 'selected' : '' }}>Kelas C</option>
             <option value="D" {{ request('class') === 'D' ? 'selected' : '' }}>Kelas D</option>
         </select>
-    </x-form.search-filter>
+    </x-forms.search-filter>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">

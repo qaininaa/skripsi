@@ -34,7 +34,7 @@
     </div>
 
     {{-- Filter & Pencarian --}}
-    <x-form.search-filter
+    <x-forms.search-filter
         :action="route('master.location.index')"
         placeholder="Cari nama ruangan atau nomor lokasi..."
         :resetRoute="route('master.location.index')"
@@ -48,7 +48,7 @@
                 </option>
             @endforeach
         </select>
-    </x-form.search-filter>
+    </x-forms.search-filter>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
