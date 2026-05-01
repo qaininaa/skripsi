@@ -10,13 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * EnvSectionInstance
  *
- * Merepresentasikan satu kali pengerjaan section dalam sebuah report.
- * Normal = 1 instance per report_section (parent_instance_id = NULL).
+ * Merepresentasikan satu kali pengerjaan lokasi dalam sebuah report.
+ * Normal = 1 instance per lokasi (parent_instance_id = NULL).
  * Duplikat = instance baru dengan parent_instance_id = id original.
  *
  * @property string      $id
  * @property string      $report_id
- * @property string      $report_section_id
+ * @property string      $location_id
  * @property string|null $parent_instance_id
  * @property string|null $reason
  */
@@ -28,7 +28,7 @@ class EnvSectionInstance extends Model
 
     protected $fillable = [
         'report_id',
-        'report_section_id',
+        'location_id',
         'parent_instance_id',
         'reason',
     ];
@@ -44,11 +44,19 @@ class EnvSectionInstance extends Model
     }
 
     /**
-     * Template section + lokasi (junction table report_sections).
+     * Lokasi yang diukur pada instance ini.
+     */
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(ReportLocation::class, 'location_id');
+    }
+
+    /**
+     * Backward-compatible alias.
      */
     public function reportSection(): BelongsTo
     {
-        return $this->belongsTo(ReportSectionLocation::class, 'report_section_id');
+        return $this->location();
     }
 
     /**
