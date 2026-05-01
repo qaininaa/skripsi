@@ -15,7 +15,7 @@ return new class extends Migration
         if (! Schema::hasTable('env_section_instances')) {
             Schema::create('env_section_instances', function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->foreignUuid('report_section_id')->constrained('report_sections')->cascadeOnDelete();
+                $table->foreignUuid('location_id')->constrained('locations')->cascadeOnDelete();
                 $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
                 $table->foreignUuid('parent_instance_id')->nullable()->constrained('env_section_instances')->cascadeOnDelete();
                 $table->string('reason')->nullable();
@@ -43,7 +43,7 @@ return new class extends Migration
             });
         }
 
-        $this->ensureForeignKey('env_section_instances', 'report_section_id', 'report_sections');
+        $this->ensureForeignKey('env_section_instances', 'location_id', 'locations');
         $this->ensureForeignKey('env_section_instances', 'report_id', 'reports');
         $this->ensureForeignKey('env_section_instances', 'parent_instance_id', 'env_section_instances');
     }

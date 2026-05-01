@@ -10,8 +10,9 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('section_id')->nullable()->constrained('sections')->cascadeOnDelete();
             $table->foreignUuid('room_id')->constrained('rooms')->cascadeOnDelete();
-            $table->foreignUuid('frequency_id')->nullable()->constrained('frequencies')->nullOnDelete();
+            $table->enum('frequency', ['operational', 'daily', 'weekly', 'monthly', 'semi_annual'])->nullable();
             $table->string('location_number', 50)->nullable();
             $table->string('measurement_type', 50)->nullable();
             $table->unsignedSmallInteger('alert_limit_total')->nullable();
