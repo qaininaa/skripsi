@@ -9,22 +9,48 @@ class ReportLocation extends Model
 {
     use HasUuids;
 
+    public const FREQUENCY_LABELS = [
+        'operational' => 'Operasional',
+        'daily' => 'Harian',
+        'weekly' => 'Mingguan',
+        'monthly' => 'Bulanan',
+        'semi_annual' => '6 Bulan',
+    ];
+
     protected $table = 'locations';
 
     protected $fillable = [
-        'room_id', 'frequency_id', 'location_number', 'measurement_type',
+        'section_id', 'room_id', 'frequency', 'location_number', 'measurement_type',
         'alert_limit_total', 'alert_limit_fungi',
         'alert_action_total', 'alert_action_fungi',
     ];
+
+    protected $casts = [
+        'frequency' => 'string',
+    ];
+
+    public function section()
+    {
+        return $this->belongsTo(ReportSection::class, 'section_id');
+    }
 
     public function room()
     {
         return $this->belongsTo(Room::class, 'room_id');
     }
 
-    public function frequency()
+    public static function frequencyLabel(?string $frequency): string
     {
-        return $this->belongsTo(Frequency::class, 'frequency_id');
+        if (! $frequency) {
+            return 'Tidak Ditentukan';
+        }
+
+        return self::FREQUENCY_LABELS[$frequency] ?? ucfirst(str_replace('_', ' ', $frequency));
+    }
+
+    public function getFrequencyLabel(): string
+    {
+        return self::frequencyLabel($this->frequency);
     }
 
     public function getFormattedMeasurementType(): string
