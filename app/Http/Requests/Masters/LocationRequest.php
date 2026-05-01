@@ -12,7 +12,7 @@ class LocationRequest extends FormRequest
     {
         return [
             'room_id'            => ['required', 'exists:rooms,id'],
-            'frequency_id'       => ['nullable', 'exists:frequencies,id'],
+            'frequency'          => ['nullable', 'in:operational,daily,weekly,monthly,semi_annual'],
             'location_number'    => ['nullable', 'string', 'max:50'],
             'measurement_type'   => ['nullable', 'string', 'max:50'],
             'alert_limit_total'  => ['nullable', 'integer', 'min:0', 'max:65535'],

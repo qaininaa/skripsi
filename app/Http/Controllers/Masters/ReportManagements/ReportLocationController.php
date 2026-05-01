@@ -8,7 +8,6 @@ use App\Models\ReportSection;
 use App\Models\ReportType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class ReportLocationController extends Controller
 {
@@ -18,8 +17,16 @@ class ReportLocationController extends Controller
             'location_id' => ['required', 'exists:locations,id'],
         ]);
 
-        if (! $section->locations()->where('location_id', $validated['location_id'])->exists()) {
-            $section->locations()->attach($validated['location_id'], ['id' => (string) Str::uuid()]);
+        $location = ReportLocation::query()->findOrFail($validated['location_id']);
+
+        if ($location->section_id && (string) $location->section_id !== (string) $section->id) {
+            return redirect()
+                ->route('report-types.show', $reportType)
+                ->with('error', 'Lokasi sudah terhubung ke seksi lain. Lepaskan terlebih dahulu dari seksi asal.');
+        }
+
+        if ((string) $location->section_id !== (string) $section->id) {
+            $location->update(['section_id' => $section->id]);
         }
 
         return redirect()
@@ -29,7 +36,9 @@ class ReportLocationController extends Controller
 
     public function destroy(ReportType $reportType, ReportSection $section, ReportLocation $location): RedirectResponse
     {
-        $section->locations()->detach($location->id);
+        if ((string) $location->section_id === (string) $section->id) {
+            $location->update(['section_id' => null]);
+        }
 
         return redirect()
             ->route('report-types.show', $reportType)

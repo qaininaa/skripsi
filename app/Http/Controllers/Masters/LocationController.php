@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Masters;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Masters\LocationRequest;
-use App\Models\Frequency;
 use App\Models\ReportLocation;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +17,7 @@ class LocationController extends Controller
         $search = $request->input('search');
         $roomId = $request->input('room_id');
 
-        $locations = ReportLocation::with(['room', 'frequency'])
+        $locations = ReportLocation::with(['room', 'section'])
             ->when($search, fn ($q) => $q->whereHas('room', fn ($q) => $q
                 ->where('room_name', 'like', "%{$search}%")
                 ->orWhere('room_number', 'like', "%{$search}%")
@@ -35,10 +34,9 @@ class LocationController extends Controller
 
     public function create(): View
     {
-        $rooms       = Room::orderBy('class')->orderBy('room_name')->get();
-        $frequencies = Frequency::orderBy('name')->get();
+        $rooms = Room::orderBy('class')->orderBy('room_name')->get();
 
-        return view('pages.master.location.create', compact('rooms', 'frequencies'));
+        return view('pages.master.location.create', compact('rooms'));
     }
 
     public function store(LocationRequest $request): RedirectResponse
@@ -52,10 +50,9 @@ class LocationController extends Controller
 
     public function edit(ReportLocation $location): View
     {
-        $rooms       = Room::orderBy('class')->orderBy('room_name')->get();
-        $frequencies = Frequency::orderBy('name')->get();
+        $rooms = Room::orderBy('class')->orderBy('room_name')->get();
 
-        return view('pages.master.location.edit', compact('location', 'rooms', 'frequencies'));
+        return view('pages.master.location.edit', compact('location', 'rooms'));
     }
 
     public function update(LocationRequest $request, ReportLocation $location): RedirectResponse
@@ -72,7 +69,7 @@ class LocationController extends Controller
         $location->delete();
 
         return redirect()
-            ->route('master.lokasi.index')
+            ->route('master.location.index')
             ->with('success', 'Lokasi berhasil dihapus.');
     }
 }
