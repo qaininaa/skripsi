@@ -66,6 +66,34 @@ class SupervisorReportController extends Controller
         return view('pages.supervisor.laporan-masuk', compact('reports', 'counts', 'tab'));
     }
 
+    public function laporanSedangDikerjakan(Request $request)
+    {
+        $status = $request->query('status', 'all');
+        $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        if (! in_array($status, $validStatuses, true)) {
+            $status = 'all';
+        }
+
+        $countKeys = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        $counts = [];
+        foreach ($countKeys as $key) {
+            $countQuery = $this->progressBaseQuery();
+            $this->applyProgressStatusFilter($countQuery, $key);
+            $counts[$key] = $countQuery->count();
+        }
+
+        $reportsQuery = $this->progressBaseQuery()
+            ->with(['reportType', 'lockedByUser', 'analysts.user', 'approvals.user']);
+        $this->applyProgressStatusFilter($reportsQuery, $status);
+
+        $reports = $reportsQuery
+            ->orderByDesc('created_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('pages.supervisor.laporan-sedang-dikerjakan', compact('reports', 'counts', 'status'));
+    }
+
     public function show(Report $report)
     {
         $userId = Auth::id();
@@ -377,6 +405,51 @@ class SupervisorReportController extends Controller
         return view('pages.supervisor.laporan-cetak', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
+    }
+
+    private function progressBaseQuery()
+    {
+        return Report::query()
+            ->whereDoesntHave('approvals', function ($query) {
+                $query->where('step', 3)->where('status', 'approved');
+            });
+    }
+
+    private function applyProgressStatusFilter($query, string $status): void
+    {
+        if ($status === 'all') {
+            $query->where(function ($nested) {
+                $nested->whereIn('status', ['pending', 'monitoring', 'reading'])
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->where('step', 2)->where('status', 'pending');
+                    })
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->where('step', 3)->where('status', 'pending');
+                    });
+            });
+            return;
+        }
+
+        if (in_array($status, ['pending', 'monitoring', 'reading'], true)) {
+            $query->where('status', $status);
+            return;
+        }
+
+        if ($status === 'review_supervisor') {
+            $query->whereHas('approvals', function ($approvalQuery) {
+                $approvalQuery->where('step', 2)->where('status', 'pending');
+            });
+            return;
+        }
+
+        if ($status === 'waiting_manager') {
+            $query->whereHas('approvals', function ($approvalQuery) {
+                $approvalQuery->where('step', 3)->where('status', 'pending');
+            });
+            return;
+        }
+
+        $query->whereRaw('1 = 0');
     }
 
     private function baseQuery(string $userId)

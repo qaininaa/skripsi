@@ -122,6 +122,7 @@ Route::middleware(['auth', 'password.check', 'role:supervisor'])
     ->group(function () {
         Route::get('supervisor', [SupervisorReportController::class, 'dashboard'])->name('dashboard.supervisor');
         Route::get('supervisor/laporan-masuk', [SupervisorReportController::class, 'laporanMasuk'])->name('supervisor.laporan-masuk');
+        Route::get('supervisor/laporan-sedang-dikerjakan', [SupervisorReportController::class, 'laporanSedangDikerjakan'])->name('supervisor.laporan-sedang-dikerjakan');
         Route::get('supervisor/laporan/{report}/preview', [ReportController::class, 'lihat'])->name('supervisor.laporan.preview');
         Route::get('supervisor/laporan/{report}', [SupervisorReportController::class, 'show'])->name('supervisor.laporan.show');
         Route::get('supervisor/laporan/{report}/cetak', [SupervisorReportController::class, 'cetak'])->name('supervisor.laporan.cetak');
@@ -136,6 +137,8 @@ Route::middleware(['auth', 'password.check', 'role:manajer'])
     ->group(function () {
         Route::get('manajer', [ManagerReportController::class, 'dashboard'])->name('dashboard.manajer');
         Route::get('manajer/laporan-masuk', [ManagerReportController::class, 'laporanMasuk'])->name('manajer.laporan-masuk');
+        Route::get('manajer/laporan-sedang-dikerjakan', [ManagerReportController::class, 'laporanSedangDikerjakan'])->name('manajer.laporan-sedang-dikerjakan');
+        Route::get('manajer/laporan/{report}/preview', [ReportController::class, 'lihat'])->name('manajer.laporan.preview');
         Route::get('manajer/laporan/{report}', [ManagerReportController::class, 'show'])->name('manajer.laporan.show');
         Route::get('manajer/laporan/{report}/cetak', [ManagerReportController::class, 'cetak'])->name('manajer.laporan.cetak');
         Route::post('manajer/laporan/{report}/save', [ManagerReportController::class, 'save'])->name('manajer.laporan.save');
