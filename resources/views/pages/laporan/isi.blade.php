@@ -94,7 +94,7 @@
 @include('pages.laporan.partials.bottom-bar')
 
 </form>
-@include('pages.laporan.partials.modals')
+<x-modals-auth-modal variant="collection" :is-monitoring-phase="$isMonitoringPhase" />
 
 @endsection
 
