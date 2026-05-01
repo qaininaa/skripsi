@@ -176,7 +176,7 @@ class ReportEntryService
 
         //  6. BANGUN PETA LOKASI DAN INSTANCE 
         $savedSectionIds = [];
-        [$sectionLocations, $pivotSectionType, $pivotSectionId, $pivotSectionTimeSlot] =
+        [$sectionLocations, $locationSectionType, $locationSectionId, $locationSectionTimeSlot] =
             $this->buildSectionLocationMaps($report);
         $instanceLookup = $this->buildInstanceLookup($report);
 
@@ -210,8 +210,8 @@ class ReportEntryService
 
         // 7. CFU UPSERT + PER_LOCATION TIME 
         $savedSectionIds = $this->saveCfuEntries(
-            $request, $report, $pivotSectionType, $pivotSectionId,
-            $pivotSectionTimeSlot, $instanceLookup, $savedSectionIds, $myShift
+            $request, $report, $locationSectionType, $locationSectionId,
+            $locationSectionTimeSlot, $instanceLookup, $savedSectionIds, $myShift
         );
 
         // 8. PEMANTAUAN PERSONEL 
@@ -434,37 +434,37 @@ class ReportEntryService
     /**
      * Bangun peta lokasi per seksi dan lookup table per pivot_id.
      *
-     * @return array [$sectionLocations, $pivotSectionType, $pivotSectionId, $pivotSectionTimeSlot]
+     * @return array [$sectionLocations, $locationSectionType, $locationSectionId, $locationSectionTimeSlot]
      */
     public function buildSectionLocationMaps(Report $report): array
     {
         $sectionLocations     = [];
-        $pivotSectionType     = [];
-        $pivotSectionId       = [];
-        $pivotSectionTimeSlot = [];
+        $locationSectionType     = [];
+        $locationSectionId       = [];
+        $locationSectionTimeSlot = [];
 
         foreach ($report->reportType->sections()->with('locations.room')->get() as $_sec) {
             $sectionLocations[$_sec->id] = [];
             foreach ($_sec->locations as $_loc) {
-                $pid = $_loc->pivot->id;
+                $locationId = (string) $_loc->id;
                 $cls = strtolower($_loc->room->class ?? '');
                 $num = $_loc->location_number ?? '';
                 $sectionLocations[$_sec->id][] = [
-                    'pivot_id'        => $pid,
+                    'location_id'     => $locationId,
                     'class'           => $cls,
                     'location_number' => $num,
                 ];
-                $pivotSectionType[$pid]     = $_sec->measurement_type;
-                $pivotSectionId[$pid]       = $_sec->id;
-                $pivotSectionTimeSlot[$pid] = $_sec->time_slot_type;
+                $locationSectionType[$locationId]     = $_sec->measurement_type;
+                $locationSectionId[$locationId]       = $_sec->id;
+                $locationSectionTimeSlot[$locationId] = $_sec->time_slot_type;
             }
         }
 
-        return [$sectionLocations, $pivotSectionType, $pivotSectionId, $pivotSectionTimeSlot];
+        return [$sectionLocations, $locationSectionType, $locationSectionId, $locationSectionTimeSlot];
     }
 
     /**
-     * Bangun lookup: $instanceLookup[pivot_id][instance_number] = env_section_instance_id.
+     * Bangun lookup: $instanceLookup[location_id][instance_number] = env_section_instance_id.
      */
     public function buildInstanceLookup(Report $report): array
     {
@@ -472,10 +472,10 @@ class ReportEntryService
         EnvSectionInstance::where('report_id', $report->id)
             ->orderByRaw('CASE WHEN parent_instance_id IS NULL THEN 0 ELSE 1 END, created_at, id')
             ->get()
-            ->groupBy('report_section_id')
-            ->each(function ($group, $pivotId) use (&$instanceLookup) {
+            ->groupBy('location_id')
+            ->each(function ($group, $locationId) use (&$instanceLookup) {
                 foreach ($group->values() as $idx => $inst) {
-                    $instanceLookup[(string) $pivotId][$idx + 1] = (string) $inst->id;
+                    $instanceLookup[(string) $locationId][$idx + 1] = (string) $inst->id;
                 }
             });
 
@@ -524,7 +524,7 @@ class ReportEntryService
                             if ($startTime === null && $endTime === null) {
                                 continue;
                             }
-                            $instanceId = $instanceLookup[(string) $locInfo['pivot_id']][(int) $instNum] ?? null;
+                            $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
                             if (! $instanceId) {
                                 continue;
                             }
@@ -601,7 +601,7 @@ class ReportEntryService
                             if ($startTime === null && $endTime === null) {
                                 continue;
                             }
-                            $instanceId = $instanceLookup[(string) $locInfo['pivot_id']][(int) $instNum] ?? null;
+                            $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
                             if (! $instanceId) {
                                 continue;
                             }
@@ -669,7 +669,7 @@ class ReportEntryService
                             if ($startTime === null && $endTime === null) {
                                 continue;
                             }
-                            $instanceId = $instanceLookup[(string) $locInfo['pivot_id']][(int) $instNum] ?? null;
+                            $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
                             if (! $instanceId) {
                                 continue;
                             }
@@ -705,7 +705,7 @@ class ReportEntryService
      */
     private function saveCfuEntries(
         Request $request, Report $report,
-        array $pivotSectionType, array $pivotSectionId, array $pivotSectionTimeSlot,
+        array $locationSectionType, array $locationSectionId, array $locationSectionTimeSlot,
         array $instanceLookup, array $savedSectionIds, int $myShift
     ): array {
         // Kunci entry yang sudah punya data CFU dari analis lain.
@@ -717,13 +717,13 @@ class ReportEntryService
             ->map(fn ($e) => "{$e->env_section_instance_id}-{$e->period_number}-{$e->shift}")
             ->toArray();
 
-        foreach ($request->input('entries', []) as $pivotId => $instances) {
-            $sectionType = $pivotSectionType[(string) $pivotId] ?? null;
+        foreach ($request->input('entries', []) as $locationId => $instances) {
+            $sectionType = $locationSectionType[(string) $locationId] ?? null;
             if (! $sectionType) {
                 continue;
             }
-            $timeSlotType = $pivotSectionTimeSlot[(string) $pivotId] ?? 'none';
-            $sectionId    = $pivotSectionId[(string) $pivotId] ?? null;
+            $timeSlotType = $locationSectionTimeSlot[(string) $locationId] ?? 'none';
+            $sectionId    = $locationSectionId[(string) $locationId] ?? null;
 
             foreach ($instances as $instanceNum => $cols) {
                 $instanceNumber = max(1, (int) $instanceNum);
@@ -740,7 +740,7 @@ class ReportEntryService
                         continue;
                     }
 
-                    $instanceId = $instanceLookup[(string) $pivotId][$instanceNumber] ?? null;
+                    $instanceId = $instanceLookup[(string) $locationId][$instanceNumber] ?? null;
                     if (! $instanceId) {
                         continue;
                     }

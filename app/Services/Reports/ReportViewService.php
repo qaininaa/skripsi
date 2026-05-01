@@ -20,7 +20,6 @@ class ReportViewService
      */
     public const RELATIONS = [
         'reportType.sections.locations.room',
-        'reportType.sections.locations.frequency',
         'reportType.incubatorConfigs',
         'reportType.media',
         'environmentalEntries',
