@@ -19,27 +19,34 @@ class ManagerReportController extends Controller
 
         $pending = $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count();
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
-        $rejected = $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count();
+        $returned = $this->baseQuery($userId)->whereIn('report_approvals.status', ['returned', 'rejected'])->count();
 
-        return view('pages.manajer.index', compact('pending', 'approved', 'rejected'));
+        return view('pages.manajer.index', compact('pending', 'approved', 'returned'));
     }
 
     public function laporanMasuk(Request $request)
     {
         $userId = Auth::id();
         $tab = $request->query('tab', 'pending');
+        if ($tab === 'rejected') {
+            $tab = 'returned';
+        }
 
         $counts = [
             'pending' => $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count(),
             'approved' => $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count(),
-            'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
+            'returned' => $this->baseQuery($userId)->whereIn('report_approvals.status', ['returned', 'rejected'])->count(),
         ];
 
-        $reports = Report::with(['reportType', 'approvals', 'analysts.user'])
+        $reports = Report::with(['reportType', 'approvals.returnedTo', 'analysts.user'])
             ->join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 3)
             ->where('report_approvals.user_id', $userId)
-            ->where('report_approvals.status', $tab)
+            ->when(
+                $tab === 'returned',
+                fn ($query) => $query->whereIn('report_approvals.status', ['returned', 'rejected']),
+                fn ($query) => $query->where('report_approvals.status', $tab)
+            )
             ->select('reports.*', 'report_approvals.status as approval_status', 'report_approvals.id as approval_id')
             ->orderByDesc('reports.created_at')
             ->paginate(15)
@@ -86,7 +93,6 @@ class ManagerReportController extends Controller
 
         $report->load([
             'reportType.sections.locations.room',
-            'reportType.sections.locations.frequency',
             'reportType.media',
             'reportType.personnelMethods.activities',
             'reportType.personnelMethods.samplingPoints',
@@ -386,10 +392,15 @@ class ManagerReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'approvals.user']);
         $report->applyReportTypeSnapshot();
-        foreach ($report->entries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
+        $entryMap = [];
+        foreach ($report->environmentalEntries as $entry) {
+            $locationId = optional($entry->envSectionInstance)->location_id;
+            if (! $locationId) {
+                continue;
+            }
+            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();

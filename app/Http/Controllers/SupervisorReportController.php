@@ -20,7 +20,7 @@ class SupervisorReportController extends Controller
 
         $pending = $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count();
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
-        $rejected = $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count();
+        $returned = $this->baseQuery($userId)->whereIn('report_approvals.status', ['returned', 'rejected'])->count();
 
         $counts = Report::selectRaw('status, count(*) as total')
             ->groupBy('status')
@@ -37,7 +37,7 @@ class SupervisorReportController extends Controller
             ->latest()->take(5)->get();
 
         return view('pages.supervisor.index', compact(
-            'pending', 'approved', 'rejected',
+            'pending', 'approved', 'returned',
             'counts', 'pendingReports', 'monitoringReports', 'readingReports'
         ));
     }
@@ -46,18 +46,25 @@ class SupervisorReportController extends Controller
     {
         $userId = Auth::id();
         $tab = $request->query('tab', 'pending');
+        if ($tab === 'rejected') {
+            $tab = 'returned';
+        }
 
         $counts = [
             'pending' => $this->baseQuery($userId)->where('report_approvals.status', 'pending')->count(),
             'approved' => $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count(),
-            'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
+            'returned' => $this->baseQuery($userId)->whereIn('report_approvals.status', ['returned', 'rejected'])->count(),
         ];
 
-        $reports = Report::with(['reportType', 'approvals', 'analysts.user'])
+        $reports = Report::with(['reportType', 'approvals.returnedTo', 'analysts.user'])
             ->join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 2)
             ->where('report_approvals.user_id', $userId)
-            ->where('report_approvals.status', $tab)
+            ->when(
+                $tab === 'returned',
+                fn ($query) => $query->whereIn('report_approvals.status', ['returned', 'rejected']),
+                fn ($query) => $query->where('report_approvals.status', $tab)
+            )
             ->select('reports.*', 'report_approvals.status as approval_status', 'report_approvals.id as approval_id')
             ->orderByDesc('reports.created_at')
             ->paginate(15)
@@ -104,7 +111,6 @@ class SupervisorReportController extends Controller
 
         $report->load([
             'reportType.sections.locations.room',
-            'reportType.sections.locations.frequency',
             'reportType.media',
             'reportType.personnelMethods.activities',
             'reportType.personnelMethods.samplingPoints',
@@ -202,6 +208,7 @@ class SupervisorReportController extends Controller
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
+            'returned_to_user_id' => 'required|uuid|exists:users,id',
         ]);
 
         $user = Auth::user();
@@ -218,13 +225,13 @@ class SupervisorReportController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        $returnedToUserId = (int) $request->input('returned_to_user_id');
-        $allowedUsers = array_merge(
-            $report->analyst_monitoring ?? [],
-            $report->analyst_reading ?? []
-        );
+        $returnedToUserId = (string) $request->input('returned_to_user_id');
+        $allowedUsers = $report->analysts()
+            ->pluck('user_id')
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
         abort_unless(
-            in_array($returnedToUserId, $allowedUsers),
+            in_array($returnedToUserId, $allowedUsers, true),
             422,
             'Analis tujuan tidak valid.'
         );
@@ -383,18 +390,18 @@ class SupervisorReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'entries.envSectionInstance', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'approvals.user']);
         $report->applyReportTypeSnapshot();
 
-        // Build instance ordering: instance_id → {pivot_id}
-        // entryMap[$pivot_id][$period_number][$shift] = entry
+        // Build instance ordering: instance_id → {location_id}
+        // entryMap[$location_id][$period_number][$shift] = entry
         $entryMap = [];
-        foreach ($report->entries as $entry) {
-            $pivotId = optional($entry->envSectionInstance)->report_section_id;
-            if (! $pivotId) {
+        foreach ($report->environmentalEntries as $entry) {
+            $locationId = optional($entry->envSectionInstance)->location_id;
+            if (! $locationId) {
                 continue;
             }
-            $entryMap[$pivotId][$entry->period_number][$entry->shift] = $entry;
+            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
