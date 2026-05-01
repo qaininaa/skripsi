@@ -15,8 +15,8 @@
     $locEntries = collect();
     for ($p = 0; $p <= $section->max_column; $p++) {
         for ($s = 1; $s <= 2; $s++) {
-            if (isset($entryMap[$loc->pivot->id][$instance][$p][$s])) {
-                $locEntries->push($entryMap[$loc->pivot->id][$instance][$p][$s]);
+            if (isset($entryMap[$loc->id][$instance][$p][$s])) {
+                $locEntries->push($entryMap[$loc->id][$instance][$p][$s]);
             }
         }
     }
@@ -53,7 +53,7 @@
     {{-- Machine Set-up columns --}}
     @if ($hasMachineSetup)
     @php
-        $msEntry       = $entryMap[$loc->pivot->id][$instance][0][$myShift] ?? null;
+        $msEntry       = $entryMap[$loc->id][$instance][0][$myShift] ?? null;
         $msTVal        = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
         $msLocked      = $isEditable && $msEntry && $msEntry->analyst_id
                          && $msEntry->analyst_id !== auth()->id()
@@ -65,10 +65,10 @@
     <td class="px-1 py-2 border-r border-gray-100 text-center">
         @if ($msCfuEditable)
             <input type="text" inputmode="text"
-                   name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_bacteria]"
+                   name="entries[{{ $loc->id }}][{{ $instance }}][0][cfu_bacteria]"
                    value="{{ $msEntry?->cfu_bacteria }}"
                    placeholder="—"
-                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="0" data-type="b"
+                   data-loc="{{ $loc->id }}-{{ $instance }}" data-col="0" data-type="b"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
@@ -87,10 +87,10 @@
     <td class="px-1 py-2 border-r border-gray-100 text-center">
         @if ($msCfuEditable)
             <input type="text" inputmode="text"
-                   name="entries[{{ $loc->pivot->id }}][{{ $instance }}][0][cfu_fungi]"
+                   name="entries[{{ $loc->id }}][{{ $instance }}][0][cfu_fungi]"
                    value="{{ $msEntry?->cfu_fungi }}"
                    placeholder="—"
-                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="0" data-type="f"
+                   data-loc="{{ $loc->id }}-{{ $instance }}" data-col="0" data-type="f"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
@@ -107,7 +107,7 @@
     </td>
     {{-- T (computed) --}}
     <td class="px-1 py-2 border-r border-gray-100 text-center bg-gray-50/40">
-        <span id="t-{{ $loc->pivot->id }}-{{ $instance }}-0"
+          <span id="t-{{ $loc->id }}-{{ $instance }}-0"
               class="text-[11px] font-semibold {{ $msTVal !== null ? 'text-gray-700' : 'text-gray-300' }}">
             {{ $msTVal ?? 'N/A' }}
         </span>
@@ -118,12 +118,12 @@
     @for ($col = 1; $col <= $maxCols; $col++)
     @php
         $colAsgn     = $secAssignments[$col] ?? 1;
-        $existEntry  = $entryMap[$loc->pivot->id][$instance][$col][$colAsgn] ?? null;
+        $existEntry  = $entryMap[$loc->id][$instance][$col][$colAsgn] ?? null;
         $entryLocked = $isEditable && $existEntry && $existEntry->analyst_id
                        && $existEntry->analyst_id !== auth()->id()
                        && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null);
-        $iName  = "entries[{$loc->pivot->id}][{$instance}][{$col}]";
-        $rowKey = "{$loc->pivot->id}-{$instance}-{$col}";
+        $iName  = "entries[{$loc->id}][{$instance}][{$col}]";
+        $rowKey = "{$loc->id}-{$instance}-{$col}";
 
         // Determine whether this column has any time data (gates reading-phase B/F inputs)
         if ($isDualAB) {
@@ -175,7 +175,7 @@
             <input type="text" inputmode="text" name="{{ $iName }}[cfu_bacteria]"
                    value="{{ $existEntry?->cfu_bacteria }}"
                    placeholder="—"
-                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="b"
+                   data-loc="{{ $loc->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="b"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                    @if (str_starts_with($loc->location_number, '*)')) data-optional="true" @endif
                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
@@ -198,7 +198,7 @@
             <input type="text" inputmode="text" name="{{ $iName }}[cfu_fungi]"
                    value="{{ $existEntry?->cfu_fungi }}"
                    placeholder="—"
-                   data-loc="{{ $loc->pivot->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="f"
+                   data-loc="{{ $loc->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="f"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
                    class="w-12 rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-center text-gray-700
                           focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none cfu-input">
@@ -249,7 +249,7 @@
 
     {{-- Kesimpulan --}}
     <td class="px-2 py-2.5 text-center konklusi-cell"
-        id="konklusi-{{ $loc->pivot->id }}-{{ $instance }}"
+        id="konklusi-{{ $loc->id }}-{{ $instance }}"
         data-section-id="{{ $section->id }}"
         data-section-instance="{{ $section->id }}-{{ $instance }}"
         data-alert-t="{{ $loc->alert_limit_total ?? '' }}"

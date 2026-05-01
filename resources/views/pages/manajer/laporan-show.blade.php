@@ -309,7 +309,7 @@
                         @php
                             $msJamMulai = null; $msJamSelesai = null;
                             foreach ($section->locations as $loc2) {
-                                $e0 = $entryMap[$loc2->pivot->id][0][1] ?? $entryMap[$loc2->pivot->id][0][2] ?? null;
+                                $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
                                 if ($e0 && ($e0->start_time || $e0->end_time)) {
                                     $msJamMulai   = $e0->start_time;
                                     $msJamSelesai = $e0->end_time;
@@ -393,8 +393,8 @@
                         $locEntries = collect();
                         for ($p = 1; $p <= $section->max_column; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
-                                if (isset($entryMap[$loc->pivot->id][$p][$s])) {
-                                    $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
+                                if (isset($entryMap[$loc->id][$p][$s])) {
+                                    $locEntries->push($entryMap[$loc->id][$p][$s]);
                                 }
                             }
                         }
@@ -432,7 +432,7 @@
 
                         @if ($hasMachineSetup)
                         @php
-                            $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
+                            $msEntry = $entryMap[$loc->id][0][1] ?? $entryMap[$loc->id][0][2] ?? null;
                             $msTVal = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
@@ -455,7 +455,7 @@
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
-                            $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
+                            $existEntry = $entryMap[$loc->id][$col][$colAsgn] ?? null;
                             $tVal = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
 
@@ -554,7 +554,7 @@
 
         {{-- ── Per-section TTD ─────────────────────────────── --}}
         @php
-            $_sectionPivotIds = $section->locations->pluck('pivot.id')->toArray();
+            $_sectionPivotIds = $section->locations->pluck('id')->toArray();
             $_secAnalysts = [];
             foreach ($_sectionPivotIds as $_pid) {
                 foreach ($entryMap[$_pid] ?? [] as $_pMap) {

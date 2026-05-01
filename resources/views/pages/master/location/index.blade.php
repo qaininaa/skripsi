@@ -75,7 +75,7 @@
                             </td>
                             <td class="px-4 py-3.5 text-gray-600">{{ $loc->location_number ?? '-' }}</td>
                             <td class="px-4 py-3.5 text-gray-600">{{ $loc->getFormattedMeasurementType() }}</td>
-                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->frequency?->getIndonesianLabel() ?? '-' }}</td>
+                            <td class="px-4 py-3.5 text-gray-600">{{ $loc->getFrequencyLabel() }}</td>
                             <td class="px-4 py-3.5">
                                 <p class="text-xs text-gray-600">Batas Alert: {{ $loc->alert_limit_total ?? '-' }}</p>
                                 <p class="text-xs text-gray-500">Batas Aksi: {{ $loc->alert_action_total ?? '-' }}</p>

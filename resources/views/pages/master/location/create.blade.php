@@ -68,12 +68,12 @@
                 {{-- Frekuensi --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Frekuensi Pemantauan</label>
-                    <select name="frequency_id"
+                    <select name="frequency"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
                         <option value="">— Tidak Ditentukan —</option>
-                        @foreach ($frequencies as $freq)
-                            <option value="{{ $freq->id }}" {{ old('frequency_id') == $freq->id ? 'selected' : '' }}>
-                                {{ $freq->getIndonesianLabel() }}
+                        @foreach (\App\Models\ReportLocation::FREQUENCY_LABELS as $freqValue => $freqLabel)
+                            <option value="{{ $freqValue }}" {{ old('frequency') == $freqValue ? 'selected' : '' }}>
+                                {{ $freqLabel }}
                             </option>
                         @endforeach
                     </select>

@@ -412,7 +412,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @php
                     $msJamMulai = null; $msJamSelesai = null;
                     foreach ($section->locations as $loc2) {
-                        $e0 = $entryMap[$loc2->pivot->id][0][1] ?? $entryMap[$loc2->pivot->id][0][2] ?? null;
+                        $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
                         if ($e0 && ($e0->start_time || $e0->end_time)) {
                             $msJamMulai = $e0->start_time; $msJamSelesai = $e0->end_time; break;
                         }
@@ -497,8 +497,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
         <tbody>
             @php
-                $_freqOrderP   = ['Operasional', 'Harian', 'Mingguan', 'Bulanan', '6 Bulan'];
-                $_locsByFreqP  = $section->locations->groupBy(fn($loc) => $loc->frequency?->name ?? '__');
+                $_freqOrderP   = ['operational', 'daily', 'weekly', 'monthly', 'semi_annual'];
+                $_locsByFreqP  = $section->locations->groupBy(fn($loc) => $loc->frequency ?? '__');
                 $_freqKeysP    = collect($_freqOrderP)
                                     ->filter(fn($f) => $_locsByFreqP->has($f))
                                     ->merge($_locsByFreqP->keys()->filter(fn($k) => !in_array($k, $_freqOrderP) && $k !== '__'))
@@ -512,7 +512,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
             @if ($_showFHdrP)
             <tr>
                 <td colspan="{{ $_totalColsP }}" style="font-weight:700;text-align:left;padding:3px 4px;font-size:7.5pt;border-top:1.5px solid #444;letter-spacing:0.05em">
-                    FREQUENCY : {{ $_freqNameP === '__' ? 'TIDAK DITENTUKAN' : strtoupper($_freqNameP) }}
+                    FREQUENCY : {{ $_freqNameP === '__' ? 'TIDAK DITENTUKAN' : strtoupper(\App\Models\ReportLocation::frequencyLabel($_freqNameP)) }}
                 </td>
             </tr>
             @endif
@@ -522,7 +522,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 $locEntries = collect();
                 for ($p = 1; $p <= $section->max_column; $p++) {
                     for ($s = 1; $s <= 2; $s++) {
-                        if (isset($entryMap[$loc->pivot->id][$p][$s])) $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
+                        if (isset($entryMap[$loc->id][$p][$s])) $locEntries->push($entryMap[$loc->id][$p][$s]);
                     }
                 }
                 $maxT   = $locEntries->reduce(fn($carry, $e) => max($carry, ($cfuNum($e->cfu_bacteria) ?? 0) + ($cfuNum($e->cfu_fungi) ?? 0)), 0);
@@ -545,7 +545,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 {{-- Machine set-up --}}
                 @if ($hasMachineSetup)
                 @php
-                    $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
+                    $msEntry = $entryMap[$loc->id][0][1] ?? $entryMap[$loc->id][0][2] ?? null;
                     $msTVal  = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
                         ? $cfuTot($msEntry->cfu_bacteria, $msEntry->cfu_fungi) : null;
                 @endphp
@@ -558,7 +558,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @for ($col = 1; $col <= $maxCols; $col++)
                 @php
                     $colAsgn    = $secAssignments[$col] ?? 1;
-                    $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
+                    $existEntry = $entryMap[$loc->id][$col][$colAsgn] ?? null;
                     $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
                         ? $cfuTot($existEntry->cfu_bacteria, $existEntry->cfu_fungi) : null;
                 @endphp
@@ -619,7 +619,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
             $_ckHasTMS   = false;
             $_ckAllEmpty = true;
             foreach ($section->locations as $_loc) {
-                foreach ($entryMap[$_loc->pivot->id] ?? [] as $_period => $_shifts) {
+                foreach ($entryMap[$_loc->id] ?? [] as $_period => $_shifts) {
                     foreach ($_shifts as $_shift => $_e) {
                         $_ckAllEmpty = false;
                         $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
@@ -650,7 +650,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
     {{-- Tanda Tangan --}}
     @php
-        $_pSectionPivotIds = $section->locations->pluck('pivot.id')->toArray();
+        $_pSectionPivotIds = $section->locations->pluck('id')->toArray();
         $_pSecAnalysts = [];
         foreach ($_pSectionPivotIds as $_pid) {
             foreach ($entryMap[$_pid] ?? [] as $_pMap) {

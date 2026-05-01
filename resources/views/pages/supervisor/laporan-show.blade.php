@@ -402,7 +402,7 @@
                         @php
                             $msJamMulai = null; $msJamSelesai = null;
                             foreach ($section->locations as $loc2) {
-                                $e0 = $entryMap[$loc2->pivot->id][0][1] ?? $entryMap[$loc2->pivot->id][0][2] ?? null;
+                                $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
                                 if ($e0 && ($e0->start_time || $e0->end_time)) {
                                     $msJamMulai   = $e0->start_time;
                                     $msJamSelesai = $e0->end_time;
@@ -560,8 +560,8 @@
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @php
-                        $_freqOrder2   = ['Operasional', 'Harian', 'Mingguan', 'Bulanan', '6 Bulan'];
-                        $_locsByFreq2  = $section->locations->groupBy(fn($loc) => $loc->frequency?->name ?? '__');
+                        $_freqOrder2   = ['operational', 'daily', 'weekly', 'monthly', 'semi_annual'];
+                        $_locsByFreq2  = $section->locations->groupBy(fn($loc) => $loc->frequency ?? '__');
                         $_freqKeys2    = collect($_freqOrder2)
                                             ->filter(fn($f) => $_locsByFreq2->has($f))
                                             ->merge($_locsByFreq2->keys()->filter(fn($k) => !in_array($k, $_freqOrder2) && $k !== '__'))
@@ -575,7 +575,7 @@
                     @if ($_showFHdr2)
                     <tr class="bg-emerald-50 border-t border-emerald-200">
                         <td colspan="{{ $_totalCols2 }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
-                            FREKUENSI : {{ $_freqName2 === '__' ? 'Tidak Ditentukan' : strtoupper($_freqName2) }}
+                            FREKUENSI : {{ $_freqName2 === '__' ? 'Tidak Ditentukan' : strtoupper(\App\Models\ReportLocation::frequencyLabel($_freqName2)) }}
                         </td>
                     </tr>
                     @endif
@@ -585,8 +585,8 @@
                         $locEntries = collect();
                         for ($p = 1; $p <= $section->max_column; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
-                                if (isset($entryMap[$loc->pivot->id][$p][$s])) {
-                                    $locEntries->push($entryMap[$loc->pivot->id][$p][$s]);
+                                if (isset($entryMap[$loc->id][$p][$s])) {
+                                    $locEntries->push($entryMap[$loc->id][$p][$s]);
                                 }
                             }
                         }
@@ -625,7 +625,7 @@
                         {{-- Machine Set-up (hasMachineSetup) --}}
                         @if ($hasMachineSetup)
                         @php
-                            $msEntry = $entryMap[$loc->pivot->id][0][1] ?? $entryMap[$loc->pivot->id][0][2] ?? null;
+                            $msEntry = $entryMap[$loc->id][0][1] ?? $entryMap[$loc->id][0][2] ?? null;
                             $msTVal = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
@@ -649,7 +649,7 @@
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
-                            $existEntry = $entryMap[$loc->pivot->id][$col][$colAsgn] ?? null;
+                            $existEntry = $entryMap[$loc->id][$col][$colAsgn] ?? null;
                             $tVal = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
 
@@ -743,7 +743,7 @@
                         $_sHasTMS   = false;
                         $_sAllEmpty = true;
                         foreach ($section->locations as $_loc) {
-                            foreach ($entryMap[$_loc->pivot->id] ?? [] as $_period => $_shifts) {
+                            foreach ($entryMap[$_loc->id] ?? [] as $_period => $_shifts) {
                                 foreach ($_shifts as $_shift => $_e) {
                                     $_sAllEmpty = false;
                                     $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
@@ -774,7 +774,7 @@
 
         {{-- ── Per-section TTD ─────────────────────────────── --}}
         @php
-            $_sectionPivotIds = $section->locations->pluck('pivot.id')->toArray();
+            $_sectionPivotIds = $section->locations->pluck('id')->toArray();
             $_secAnalysts = [];
             foreach ($_sectionPivotIds as $_pid) {
                 foreach ($entryMap[$_pid] ?? [] as $_pMap) {

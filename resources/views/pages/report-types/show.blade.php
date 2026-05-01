@@ -251,11 +251,13 @@
                                 <select name="location_id" class="block w-full rounded border-gray-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                                     <option value="">-- Pilih Lokasi --</option>
                                     @foreach ($locations as $loc)
+                                        @if (! $loc->section_id || (string) $loc->section_id === (string) $section->id)
                                         @unless ($section->locations->contains($loc->id))
                                         <option value="{{ $loc->id }}">
                                             [{{ $loc->location_number ?? '-' }}] {{ $loc->room->room_name ?? '-' }} (Kelas {{ $loc->room->class ?? '-' }})
                                         </option>
                                         @endunless
+                                        @endif
                                     @endforeach
                                 </select>
                             </div>

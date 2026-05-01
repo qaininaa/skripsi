@@ -2,7 +2,7 @@
     $tabs = $tabs ?? [
         'pending'  => ['label' => 'Menunggu Review'],
         'approved' => ['label' => 'Disetujui'],
-        'rejected' => ['label' => 'Ditolak'],
+        'returned' => ['label' => 'Dikembalikan'],
     ];
 
     $accent = $accent ?? 'emerald';
@@ -76,6 +76,7 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dimonitoring Oleh</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dibaca Oleh</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tujuan Pengembalian</th>
                             <th class="px-5 py-3 {{ $mode === 'supervisor' ? 'text-center' : 'text-left' }} text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -84,6 +85,8 @@
                             @php
                                 $monitoringNames = $report->analysts->where('type', 'monitoring')->map(fn ($a) => optional($a->user)->name)->filter();
                                 $readingNames = $report->analysts->where('type', 'reading')->map(fn ($a) => optional($a->user)->name)->filter();
+                                $activeApproval = $report->approvals->firstWhere('id', $report->approval_id);
+                                $returnedToName = optional(optional($activeApproval)->returnedTo)->name;
                             @endphp
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-5 py-3.5 text-gray-700 whitespace-nowrap">
@@ -115,9 +118,16 @@
                                             Dikembalikan
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                                            Ditolak
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                                            Dikembalikan
                                         </span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 text-gray-700">
+                                    @if (in_array($report->approval_status, ['returned', 'rejected'], true))
+                                        {{ $returnedToName ?: '—' }}
+                                    @else
+                                        —
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5">

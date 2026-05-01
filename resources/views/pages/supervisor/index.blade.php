@@ -53,8 +53,8 @@
             </svg>
         </div>
         <div>
-            <p class="text-xs text-gray-500 font-medium">Ditolak</p>
-            <p class="text-2xl font-bold text-gray-800 mt-0.5">{{ $rejected }}</p>
+            <p class="text-xs text-gray-500 font-medium">Dikembalikan</p>
+            <p class="text-2xl font-bold text-gray-800 mt-0.5">{{ $returned }}</p>
         </div>
     </div>
 </div>
