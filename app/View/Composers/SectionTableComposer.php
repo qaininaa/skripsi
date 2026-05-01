@@ -57,8 +57,8 @@ class SectionTableComposer
         $totalCols = 5 + ($hasMachineSetup ? 3 : 0) + ($maxCols * $subColsPerExp) + 5;
 
         // ── Location grouping by frequency (for thead-row computation) ────────
-        $freqOrder   = ['Operasional', 'Harian', 'Mingguan', 'Bulanan', '6 Bulan'];
-        $locsByFreq  = $section->locations->groupBy(fn ($loc) => $loc->frequency?->name ?? '__');
+        $freqOrder   = ['operational', 'daily', 'weekly', 'monthly', 'semi_annual'];
+        $locsByFreq  = $section->locations->groupBy(fn ($loc) => $loc->frequency ?? '__');
         $freqKeys    = collect($freqOrder)
             ->filter(fn ($f) => $locsByFreq->has($f))
             ->merge($locsByFreq->keys()->filter(fn ($k) => ! in_array($k, $freqOrder) && $k !== '__'))

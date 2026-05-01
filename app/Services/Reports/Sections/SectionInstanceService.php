@@ -4,7 +4,7 @@ namespace App\Services\Reports\Sections;
 
 use App\Models\EnvSectionInstance;
 use App\Models\Report;
-use App\Models\ReportSectionLocation;
+use App\Models\ReportLocation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -95,43 +95,43 @@ class SectionInstanceService
 
     private function resolveCurrentInstanceCount(Report $report, string $sectionId): int
     {
-        $pivotIds = $this->getPivotIdsForSection($sectionId);
-        if ($pivotIds->isEmpty()) {
+        $locationIds = $this->getLocationIdsForSection($sectionId);
+        if ($locationIds->isEmpty()) {
             return 0;
         }
 
-        $countsByPivot = EnvSectionInstance::query()
+        $countsByLocation = EnvSectionInstance::query()
             ->where('report_id', $report->id)
-            ->whereIn('report_section_id', $pivotIds->all())
-            ->selectRaw('report_section_id, COUNT(*) as total')
-            ->groupBy('report_section_id')
-            ->pluck('total', 'report_section_id');
+            ->whereIn('location_id', $locationIds->all())
+            ->selectRaw('location_id, COUNT(*) as total')
+            ->groupBy('location_id')
+            ->pluck('total', 'location_id');
 
         $current = 0;
-        foreach ($pivotIds as $pivotId) {
-            $current = max($current, (int) ($countsByPivot[$pivotId] ?? 0));
+        foreach ($locationIds as $locationId) {
+            $current = max($current, (int) ($countsByLocation[$locationId] ?? 0));
         }
 
         return $current;
     }
 
     /**
-     * Sinkronkan jumlah instance per pivot section-location pada satu section.
+     * Sinkronkan jumlah instance per lokasi pada satu section.
      */
     private function syncEnvInstancesForSection(Report $report, string $sectionId, int $targetCount): void
     {
         $targetCount = max(1, min(5, $targetCount));
-        $pivotIds = $this->getPivotIdsForSection($sectionId);
+        $locationIds = $this->getLocationIdsForSection($sectionId);
 
-        if ($pivotIds->isEmpty()) {
+        if ($locationIds->isEmpty()) {
             return;
         }
 
-        DB::transaction(function () use ($report, $pivotIds, $targetCount): void {
-            foreach ($pivotIds as $pivotId) {
+        DB::transaction(function () use ($report, $locationIds, $targetCount): void {
+            foreach ($locationIds as $locationId) {
                 $baseQuery = EnvSectionInstance::query()
                     ->where('report_id', $report->id)
-                    ->where('report_section_id', $pivotId);
+                    ->where('location_id', $locationId);
 
                 $originals = (clone $baseQuery)
                     ->whereNull('parent_instance_id')
@@ -143,7 +143,7 @@ class SectionInstanceService
                 if (! $original) {
                     $original = EnvSectionInstance::create([
                         'report_id' => $report->id,
-                        'report_section_id' => $pivotId,
+                        'location_id' => $locationId,
                         'parent_instance_id' => null,
                         'reason' => null,
                     ]);
@@ -168,7 +168,7 @@ class SectionInstanceService
                     for ($i = 0; $i < ($desiredDuplicates - $currentDuplicates); $i++) {
                         EnvSectionInstance::create([
                             'report_id' => $report->id,
-                            'report_section_id' => $pivotId,
+                            'location_id' => $locationId,
                             'parent_instance_id' => $original->id,
                             'reason' => null,
                         ]);
@@ -192,9 +192,9 @@ class SectionInstanceService
     /**
      * @return Collection<int, string>
      */
-    private function getPivotIdsForSection(string $sectionId): Collection
+    private function getLocationIdsForSection(string $sectionId): Collection
     {
-        return ReportSectionLocation::query()
+        return ReportLocation::query()
             ->where('section_id', $sectionId)
             ->pluck('id');
     }
