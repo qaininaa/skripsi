@@ -50,7 +50,7 @@
     </div>
 
     {{-- Global delete modal: di luar overflow-hidden agar fixed inset-0 cover full screen --}}
-    <x-delete-modal />
+    <x-modals-delete-modal />
 
     </div>{{-- end x-data wrapper --}}
     @stack('scripts')
