@@ -93,9 +93,7 @@
 
         {{-- Admin QC only --}}
         @elseif(Auth::user()->role === 'admin')
-
-         {{-- Data Master dropdown --}}
-
+            
          <div class="pt-2 pb-1 px-3">
             <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Master Data</p>
         </div>
@@ -149,6 +147,10 @@
         {{-- Supervisor only --}}
         @elseif(Auth::user()->role === 'supervisor')
 
+         <div class="pt-2 pb-1 px-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Laporan</p>
+        </div>
+
         <a href="{{ route('supervisor.laporan-masuk') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('supervisor.laporan*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,8 +159,20 @@
             Laporan Masuk
         </a>
 
+        <a href="#"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('supervisor.laporan*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Sedang Dikerjakan
+        </a>
+
         {{-- Manajer only --}}
         @elseif(Auth::user()->role === 'manajer')
+
+        <div class="pt-2 pb-1 px-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Laporan</p>
+        </div>
 
         <a href="{{ route('manajer.laporan-masuk') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('manajer.laporan*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
@@ -168,9 +182,21 @@
             Laporan Masuk
         </a>
 
-        @endif
+        <a href="#"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('manajer.laporan*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Sedang Dikerjakan
+        </a>
 
+        @endif
+        
         @if(Auth::user()->role !== 'super')
+        <div class="pt-2 pb-1 px-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Arsip</p>
+        </div>
+
         <a href="{{ route('arsip-laporan.index') }}"
            class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('arsip-laporan.*') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
