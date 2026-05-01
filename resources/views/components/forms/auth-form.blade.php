@@ -72,7 +72,6 @@
         <span x-show="!loading">{{ $submitLabel }}</span>
         <span x-show="loading" class="flex items-center gap-2">
             <img src="{{ asset('icons/spinner.svg') }}" alt="" class="animate-spin w-4 h-4">
-            tes
             {{ $loadingLabel }}
         </span>
     </button>
