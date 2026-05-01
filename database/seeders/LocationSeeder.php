@@ -15,12 +15,10 @@ class LocationSeeder extends Seeder
         $laf1 = DB::table('rooms')->where('room_name', 'LAF Mesin Filling 2')->value('id');
         $fill2 = DB::table('rooms')->where('room_name', 'Filling Room 2')->value('id');
 
-        $daily = DB::table('frequencies')->where('name', 'daily')->value('id');
-
         $locations = [
             [
                 'room_id' => $laf1,
-                'frequency_id' => $daily,
+                'frequency' => 'daily',
                 'location_number' => 'SP1',
                 'measurement_type' => 'settle_plate',
                 'alert_limit_total' => null,
@@ -32,7 +30,7 @@ class LocationSeeder extends Seeder
             ],
             [
                 'room_id' => $laf1,
-                'frequency_id' => $daily,
+                'frequency' => 'daily',
                 'location_number' => 'AS1',
                 'measurement_type' => 'air_sampler',
                 'alert_limit_total' => null,
@@ -44,7 +42,7 @@ class LocationSeeder extends Seeder
             ],
             [
                 'room_id' => $fill2,
-                'frequency_id' => $daily,
+                'frequency' => 'daily',
                 'location_number' => 'SP1',
                 'measurement_type' => 'settle_plate',
                 'alert_limit_total' => 2,

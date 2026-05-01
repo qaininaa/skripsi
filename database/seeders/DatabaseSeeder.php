@@ -17,7 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PasswordSettingSeeder::class,
             AccountSeeder::class,
-            FrequencySeeder::class,
             RoomSeeder::class,
             LocationSeeder::class,
             ReportTypeSectionSeeder::class,

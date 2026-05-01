@@ -10,13 +10,11 @@ class ReportSectionLocationSeeder extends Seeder
 {
     public function run(): void
     {
-        // Seeder ini mengisi tabel pivot report_section (id_section ↔ id_location).
-        // Jalankan SETELAH: RoomSeeder, FrequencySeeder, LocationSeeder, ReportTypeSectionSeeder
+        // Seeder ini mengisi locations.section_id langsung.
+        // Jalankan SETELAH: RoomSeeder, LocationSeeder, ReportTypeSectionSeeder
         //
         // Cara kerja: untuk setiap lokasi, cari section dari report_type yang cocok
-        // berdasarkan measurement_type, lalu hubungkan ke pivot.
-
-        $now = now();
+        // berdasarkan measurement_type, lalu assign ke lokasi.
 
         // Ambil semua section beserta report_type code-nya
         $sections = DB::table('sections')
@@ -101,7 +99,7 @@ class ReportSectionLocationSeeder extends Seeder
             'Grade D Corridor 2' => 4,
         ];
 
-        $pivotRows = [];
+        $assigned = 0;
         foreach ($locations as $loc) {
             $annexCode = $roomToAnnex[$loc->room_name] ?? null;
             if (! $annexCode) {
@@ -113,20 +111,18 @@ class ReportSectionLocationSeeder extends Seeder
                 continue;
             }
 
-            $pivotRows[] = [
-                'id' => (string) Str::uuid(),
-                'section_id' => $sectionId,
-                'location_id' => $loc->id,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            $affected = DB::table('locations')
+                ->where('id', $loc->id)
+                ->whereNull('section_id')
+                ->update(['section_id' => $sectionId]);
+
+            $assigned += $affected;
         }
 
-        if (! empty($pivotRows)) {
-            DB::table('report_sections')->insertOrIgnore($pivotRows);
-            $this->command->info('Inserted '.count($pivotRows).' pivot row(s) into report_sections.');
+        if ($assigned > 0) {
+            $this->command->info('Assigned '.$assigned.' location(s) to sections.');
         } else {
-            $this->command->warn('No pivot rows inserted. Pastikan LocationSeeder dan ReportTypeSectionSeeder sudah dijalankan.');
+            $this->command->warn('No locations assigned. Pastikan LocationSeeder dan ReportTypeSectionSeeder sudah dijalankan.');
         }
     }
 }
