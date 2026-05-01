@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Frequency;
 use App\Models\ReportLocation;
 use App\Models\Room;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +15,7 @@ class PersonnelReportController extends Controller
         $search = $request->input('search');
         $roomId = $request->input('room_id');
 
-        $locations = ReportLocation::with(['room', 'frequency'])
+        $locations = ReportLocation::with(['room'])
             ->when($search, fn ($q) => $q->whereHas('room', fn ($q) => $q
                 ->where('room_name', 'like', "%{$search}%")
                 ->orWhere('room_number', 'like', "%{$search}%")
@@ -34,7 +33,7 @@ class PersonnelReportController extends Controller
     public function create(): View
     {
         $rooms = Room::orderBy('class', 'asc')->orderBy('room_name', 'asc')->get();
-        $frequencies = Frequency::orderBy('name')->get();
+        $frequencies = ReportLocation::FREQUENCY_LABELS;
 
         return view('pages.master.lokasi.create', compact('rooms', 'frequencies'));
     }
@@ -43,7 +42,7 @@ class PersonnelReportController extends Controller
     {
         $validated = $request->validate([
             'room_id' => ['required', 'exists:rooms,id'],
-            'frequency_id' => ['nullable', 'exists:frequencies,id'],
+            'frequency' => ['nullable', 'in:operational,daily,weekly,monthly,semi_annual'],
             'location_number' => ['nullable', 'string', 'max:50'],
             'measurement_type' => ['nullable', 'string', 'max:50'],
             'alert_limit_total' => ['nullable', 'integer', 'min:0', 'max:65535'],
@@ -62,7 +61,7 @@ class PersonnelReportController extends Controller
     public function edit(ReportLocation $lokasi): View
     {
         $rooms = Room::orderBy('class', 'asc')->orderBy('room_name', 'asc')->get();
-        $frequencies = Frequency::orderBy('name')->get();
+        $frequencies = ReportLocation::FREQUENCY_LABELS;
 
         return view('pages.master.lokasi.edit', compact('lokasi', 'rooms', 'frequencies'));
     }
@@ -71,7 +70,7 @@ class PersonnelReportController extends Controller
     {
         $validated = $request->validate([
             'room_id' => ['required', 'exists:rooms,id'],
-            'frequency_id' => ['nullable', 'exists:frequencies,id'],
+            'frequency' => ['nullable', 'in:operational,daily,weekly,monthly,semi_annual'],
             'location_number' => ['nullable', 'string', 'max:50'],
             'measurement_type' => ['nullable', 'string', 'max:50'],
             'alert_limit_total' => ['nullable', 'integer', 'min:0', 'max:65535'],

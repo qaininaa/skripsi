@@ -70,12 +70,16 @@ class ReportArchiveController extends Controller
         $managerApproval = $report->approvals->where('step', 3)->where('status', 'approved')->first();
         abort_unless($managerApproval, 404);
 
-        $report->load(['reportType.sections.locations.room', 'reportType.sections.locations.frequency', 'environmentalEntries']);
+        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance']);
         $report->applyReportTypeSnapshot();
 
         $entryMap = [];
         foreach ($report->environmentalEntries as $entry) {
-            $entryMap[$entry->report_section_id][$entry->period_number][$entry->shift] = $entry;
+            $locationId = optional($entry->envSectionInstance)->location_id;
+            if (! $locationId) {
+                continue;
+            }
+            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
         }
 
         $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
