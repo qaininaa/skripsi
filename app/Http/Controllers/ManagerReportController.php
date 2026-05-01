@@ -35,7 +35,7 @@ class ManagerReportController extends Controller
             'rejected' => $this->baseQuery($userId)->where('report_approvals.status', 'rejected')->count(),
         ];
 
-        $reports = Report::with(['reportType', 'approvals'])
+        $reports = Report::with(['reportType', 'approvals', 'analysts.user'])
             ->join('report_approvals', 'reports.id', '=', 'report_approvals.report_id')
             ->where('report_approvals.step', 3)
             ->where('report_approvals.user_id', $userId)
