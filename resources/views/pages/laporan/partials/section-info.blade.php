@@ -1,4 +1,4 @@
-{{-- ── Section 1: Pemantauan Ruang ─────────────────────── --}}
+{{-- Section 1: Pemantauan Ruang --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
         <h3 class="font-semibold text-sm text-gray-700">1. Pemantauan Ruang</h3>
@@ -38,7 +38,7 @@
                 @else
                     <select name="analyst_monitoring[]"
                         class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        <option value="" selected>— Tambahkan saya —</option>
+                        <option value="" selected>- Tambahkan saya -</option>
                         <option value="{{ $myId }}">{{ $myName }}</option>
                     </select>
                 @endif
@@ -65,39 +65,31 @@
                     $myId = auth()->id();
                     $myName = auth()->user()->name;
                     $readIds = $readingAnalysts->pluck('user_id')->toArray();
-                    // Pad to 2 slots
-                    $slot0 = $readIds[0] ?? null;
-                    $slot1 = $readIds[1] ?? null;
+                    $otherReadIds = array_values(array_filter($readIds, fn($id) => $id != $myId));
+                    $myInRead = in_array($myId, $readIds);
                 @endphp
-                @foreach ([[$slot0, 0], [$slot1, 1]] as [$slotVal, $ri])
-                    <div class="mb-1.5">
-                        @if($slotVal && $slotVal != $myId)
-                            {{-- Filled by another analyst: read-only chip --}}
-                            <input type="hidden" name="analyst_reading[]" value="{{ $slotVal }}">
-                            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-700">
-                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                {{ \App\Models\User::find($slotVal)?->name ?? '—' }}
-                            </div>
-                        @elseif($slotVal == $myId)
-                            {{-- Current user already in this slot --}}
-                            <input type="hidden" name="analyst_reading[]" value="{{ $myId }}">
-                            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 border border-sky-100 text-sm text-sky-700">
-                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                {{ $myName }} <span class="text-xs text-sky-500">(saya)</span>
-                            </div>
-                        @else
-                            {{-- Empty slot: current user can claim --}}
-                            <select name="analyst_reading[]"
-                                class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                <option value="">— Tambahkan saya —</option>
-                                @php $myAlreadyInRead = in_array($myId, $readIds); @endphp
-                                @if(!$myAlreadyInRead)
-                                    <option value="{{ $myId }}">{{ $myName }}</option>
-                                @endif
-                            </select>
-                        @endif
+                {{-- Preserve existing reading analysts (other than me) as hidden inputs + read-only chips --}}
+                @foreach($otherReadIds as $oid)
+                    <input type="hidden" name="analyst_reading[]" value="{{ $oid }}">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-700 mb-1.5">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ \App\Models\User::find($oid)?->name ?? 'N/A' }}
                     </div>
                 @endforeach
+                {{-- Current user slot --}}
+                @if($myInRead)
+                    <input type="hidden" name="analyst_reading[]" value="{{ $myId }}">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 border border-sky-100 text-sm text-sky-700 mb-1.5">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ $myName }} <span class="text-xs text-sky-500">(saya)</span>
+                    </div>
+                @else
+                    <select name="analyst_reading[]"
+                        class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="" selected>- Tambahkan saya -</option>
+                        <option value="{{ $myId }}">{{ $myName }}</option>
+                    </select>
+                @endif
             @elseif($isEditable && $isMonitoringPhase)
                 {{-- Disabled during monitoring phase --}}
                 @php $readIds = $readingAnalysts->pluck('user_id')->toArray(); @endphp
