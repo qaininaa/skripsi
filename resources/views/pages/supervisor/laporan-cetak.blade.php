@@ -464,6 +464,14 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         $colPeriod = ($hasColLabel && $maxCols > 1) ? ($romanNums[$col - 1] ?? $col) : '';
                         $colHeaderTitle = trim((($colLabel ?? '') !== '' ? ($colLabel . ' ') : '') . $colPeriod);
                     @endphp
+                    @if ($isSettlePlate)
+                    <div style="font-weight:700;display:flex;justify-content:center;align-items:center;text-align:center">
+                        {{ $colHeaderTitle }}
+                    </div>
+                    <div style="font-weight:700;margin-top:2px;display:flex;justify-content:center;align-items:center;text-align:center">
+                        SP ({{ $colName ?: '....' }})
+                    </div>
+                    @else
                     <div style="font-weight:700;display:flex;justify-content:center;align-items:center;text-align:center">
                         {{ $isSettlePlate ? 'SP' : 'Shift' }} ({{ $colName ?: '....' }})
                     </div>
@@ -472,6 +480,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         <span style="font-weight:700">{{ $colHeaderTitle }}</span>
                         @endif
                     </div>
+                    @endif
 
                     @if ($isSwabTime)
                     @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
@@ -609,7 +618,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         ? $cfuTot($existEntry->cfu_bacteria, $existEntry->cfu_fungi) : null;
                 @endphp
                 @if ($isPerLocation)
-                <td class="tc" style="font-size:7.5pt">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '' }}</td>
+                <td class="tc" style="font-size:7.5pt">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : 'N/A' }}</td>
                 @endif
                 <td class="tc">{{ $existEntry?->cfu_bacteria ?? 'N/A' }}</td>
                 <td class="tc">{{ $existEntry?->cfu_fungi ?? 'N/A' }}</td>
