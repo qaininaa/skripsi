@@ -47,15 +47,15 @@
 
 <div>
     <label for="{{ $passwordId }}" class="block text-sm/6 font-medium text-gray-900">{{ $passwordLabel }}</label>
-    <div class="mt-2 relative" x-data="{ show: false }">
-        <input id="{{ $passwordId }}" :type="show ? 'text' : 'password'"
+    <div class="mt-2 relative">
+        <input id="{{ $passwordId }}" type="password"
                @if($withForm || $passwordName) name="{{ $passwordName }}" @endif
                required autocomplete="{{ $passwordAutocomplete }}"
                class="block w-full rounded-md bg-white px-3 py-1.5 pr-10 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-emerald-600 sm:text-sm/6" />
-        <button type="button" @click="show = !show"
+        <button type="button" data-toggle-password="{{ $passwordId }}"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none">
-            <img x-show="!show" src="{{ asset('icons/eye.svg') }}" alt="Tampilkan password" class="w-4 h-4">
-            <img x-show="show"  src="{{ asset('icons/eye-slash.svg') }}" alt="Sembunyikan password" class="w-4 h-4">
+            <img data-icon-eye src="{{ asset('icons/eye.svg') }}" alt="Tampilkan password" class="w-4 h-4">
+            <img data-icon-eye-slash src="{{ asset('icons/eye-slash.svg') }}" alt="Sembunyikan password" class="w-4 h-4 hidden">
         </button>
     </div>
     @if($withForm)
@@ -79,3 +79,24 @@
 
 </form>
 @endif
+
+@once
+<script>
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-toggle-password]');
+    if (!btn) return;
+
+    const inputId = btn.getAttribute('data-toggle-password');
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const eye = btn.querySelector('[data-icon-eye]');
+    const eyeSlash = btn.querySelector('[data-icon-eye-slash]');
+    const isPassword = input.type === 'password';
+
+    input.type = isPassword ? 'text' : 'password';
+    eye?.classList.toggle('hidden', isPassword);
+    eyeSlash?.classList.toggle('hidden', !isPassword);
+});
+</script>
+@endonce
