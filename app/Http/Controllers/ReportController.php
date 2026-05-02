@@ -31,9 +31,33 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
+        $userId = Auth::id();
+
+        $analystVisibleStatuses = [
+            'pending',
+            'monitoring',
+            'reading',
+            'submitted',
+            'returned',
+            'approved',
+        ];
+
         // Baca filter dari URL. Contoh: /laporan?status=reading → $status = 'reading'
         // Kalau tidak ada query string → default 'all' (tampilkan semua status)
         $status = $request->query('status', 'all');
+        if ($status !== 'all' && ! in_array($status, $analystVisibleStatuses, true)) {
+            $status = 'all';
+        }
+
+        $baseQuery = Report::query()
+            ->whereIn('status', $analystVisibleStatuses)
+            ->where(function ($query) use ($userId) {
+                $query->where('status', '!=', 'returned')
+                    ->orWhereHas('approvals', function ($approvalQuery) use ($userId) {
+                        $approvalQuery->where('status', 'returned')
+                            ->where('returned_to_user_id', $userId);
+                    });
+            });
 
         // Hitung jumlah laporan per status untuk badge counter di tab navigasi.
         // Cara kerja chaining-nya:
@@ -42,7 +66,7 @@ class ReportController extends Controller
         //                              ['monitoring' => [Report, Report], 'reading' => [Report], ...]
         //   ->map->count()           → shorthand untuk ->map(fn($group) => $group->count())
         //                              hasil: ['monitoring' => 2, 'reading' => 1, ...]
-        $rawCounts = Report::get(['status'])->groupBy('status')->map->count();
+        $rawCounts = (clone $baseQuery)->get(['status'])->groupBy('status')->map->count();
 
         // Bungkus ke collect() dengan default 0 untuk SETIAP status yang mungkin ada.
         // Alasan: kalau belum ada laporan berstatus 'approved', $rawCounts['approved'] tidak ada
@@ -60,7 +84,8 @@ class ReportController extends Controller
         //   reportType   → nama/jenis laporan (mis: "Udara Ruang Produksi")
         //   approvals.user → riwayat approval beserta nama user approver
         //   lockedByUser   → user yang sedang mengerjakan / memegang kunci laporan
-        $query = Report::with(['reportType', 'approvals.user', 'lockedByUser'])
+        $query = (clone $baseQuery)
+            ->with(['reportType', 'approvals.user', 'lockedByUser'])
             ->orderByDesc('created_at');
 
         // Tambah klausa WHERE hanya jika ada filter aktif.
