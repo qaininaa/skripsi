@@ -111,7 +111,7 @@
                                             'approved'   => ['bg-green-100 text-green-700',    'Disetujui'],
                                             default      => ['bg-gray-100 text-gray-600',      $item->status],
                                         };
-                                        $lockedName = ($item->status === 'monitoring' && $item->lockedByUser)
+                                        $lockedName = (in_array($item->status, ['monitoring', 'reading'], true) && $item->lockedByUser)
                                             ? $item->lockedByUser->name : null;
                                     @endphp
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badge[0] }}">
