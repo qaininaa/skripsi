@@ -251,35 +251,44 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         <tr><td colspan="2" class="sec-hdr">1. Pemantauan Ruang</td></tr>
         <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->created_at->isoFormat('D MMMM Y') }}</td></tr>
         @php $names = \App\Models\User::whereIn('id', array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []))->pluck('name'); @endphp
-        <tr><td>Nama Analis</td><td>{{ $names->isNotEmpty() ? $names->join(' / ') : '—' }}</td></tr>
+        <tr><td>Nama Analis</td><td>{{ $names->isNotEmpty() ? $names->join(' , ') : '' }}</td></tr>
         <tr><td>Nama Produk</td><td>{{ $report->product_name }}</td></tr>
         <tr><td>Nomor Batch Produk</td><td>{{ $report->batch_number ?: '' }}</td></tr>
     </table>
 
     {{-- ── 2. Identitas Instrumen ───────────────────── --}}
     @if ($needsAirSampler)
-    @php $as = $hd['air_sampler'] ?? []; @endphp
+    @php $as = $report->instrumentIdentities->first(); @endphp
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">2. Identitas Instrumen</td></tr>
-        <tr><td style="width:45%">Nama Alat</td><td class="fw">{{ $as['nama_alat'] ?? 'Air Sampler' }}</td></tr>
-        <tr><td>No. ID Air Sampler</td><td>{{ $as['no_id'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Kalibrasi Air Sampler</td><td>{{ $as['calibration_date'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Due Date Kalibrasi Air Sampler</td><td>{{ $as['due_date'] ?? '' }}</td></tr>
+        <tr><td style="width:45%">Nama Alat</td><td class="fw">{{ $as?->tool_name ?? 'Air Sampler' }}</td></tr>
+        <tr><td>No. ID Air Sampler</td><td>{{ $as?->no_id ?? '' }}</td></tr>
+        <tr><td>Tanggal Kalibrasi Air Sampler</td><td>{{ $as?->calibration_date?->format('d/m/Y') ?? '' }}</td></tr>
+        <tr><td>Tanggal Due Date Kalibrasi Air Sampler</td><td>{{ $as?->due_date?->format('d/m/Y') ?? '' }}</td></tr>
     </table>
     @endif
 
     {{-- ── 3. Identitas Medium ──────────────────────── --}}
-    @php $mediumGroups = $report->reportType->medium_groups ?? []; @endphp
-    @if (!empty($mediumGroups))
+    @php
+        $mediumTypeList = $report->reportType->media
+            ->sortBy(fn ($m) => str_contains(strtolower($m->name), 'swab') ? 1 : 0)
+            ->values();
+        $mediumMap = $report->mediumIdentities->keyBy('name');
+    @endphp
+    @if ($mediumTypeList->isNotEmpty())
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">3. Identitas Medium</td></tr>
-        @foreach ($mediumGroups as $medKey => $medLabel)
-        @php $med = $hd[$medKey] ?? []; @endphp
-        <tr><td style="width:45%">Nomor Batch {{ $medLabel }}</td><td>{{ $med['nomor_batch'] ?? '' }}</td></tr>
-        @if (!str_contains(strtolower($medLabel), 'swab'))
-        <tr><td>Nomor GPT {{ $medLabel }}</td><td>{{ $med['nomor_gpt'] ?? '' }}</td></tr>
+        @foreach ($mediumTypeList as $medType)
+        @php
+            $medName = $medType->name;
+            $med = $mediumMap->get($medName);
+            $isSwab = str_contains(strtolower($medName), 'swab');
+        @endphp
+        <tr><td style="width:45%">Nomor Batch {{ $medName }}</td><td>{{ $med?->batch_number ?? '' }}</td></tr>
+        @if (!$isSwab)
+        <tr><td>Nomor GPT {{ $medName }}</td><td>{{ $med?->gpt_number ?? '' }}</td></tr>
         @endif
-        <tr><td>Tanggal ED {{ $medLabel }}</td><td>{{ $med['expiry_date'] ?? '' }}</td></tr>
+        <tr><td>Tanggal ED {{ $medName }}</td><td>{{ $med?->expiration_date?->format('d/m/Y') ?? '' }}</td></tr>
         @if (!$loop->last)
         <tr><td colspan="2" style="border-left:1px solid #000;border-right:1px solid #000;padding:5px"></td></tr>
         @endif
@@ -300,41 +309,46 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         <hr class="doc-title-line">
     </div>
 
+    @php
+        $incubatorConfigs = $report->reportType->incubatorConfigs;
+        $incubatorMap = $report->incubators->keyBy('report_type_incubator_id');
+        $hasMediumSwab = $report->reportType->media
+            ->contains(fn ($m) => str_contains(strtolower($m->name), 'swab'));
+        $mediumTypeLabels = array_merge(
+            ['monitoring' => 'Medium Monitoring'],
+            $hasMediumSwab ? ['swab' => 'Swab'] : []
+        );
+    @endphp
+    @if ($incubatorConfigs->isNotEmpty())
     <table class="dt dt-auto dt-compact">
         <tr><td colspan="4" class="sec-hdr">4. Proses Inkubasi Medium Monitoring</td></tr>
-        @foreach ([
-            'inkubator_20_25' => ['label' => 'Inkubator Suhu 20–25°C', 'min_days' => 3],
-            'inkubator_30_35' => ['label' => 'Inkubator Suhu 30–35°C', 'min_days' => 2],
-        ] as $inkKey => $inkInfo)
-        @php $ink = $hd[$inkKey] ?? []; @endphp
-        <tr><td style="width:35%">Nama Alat</td><td colspan="3" class="fw">{{ $inkInfo['label'] }}</td></tr>
-        <tr><td>No. ID Inkubator</td><td colspan="3">{{ $ink['no_id'] ?? '' }}</td></tr>
-        <tr><td>Tanggal Kalibrasi Inkubator</td><td colspan="3">{{ isset($ink['calibration_date']) ? \Carbon\Carbon::parse($ink['calibration_date'])->format('d/m/Y') : '' }}</td></tr>
-        <tr><td>Tanggal Due Date Kalibrasi Inkubator</td><td colspan="3">{{ isset($ink['due_date']) ? \Carbon\Carbon::parse($ink['due_date'])->format('d/m/Y') : '' }}</td></tr>
-        {{-- Medium Monitoring --}}
+        @foreach ($incubatorConfigs as $config)
+        @php
+            $ink = $incubatorMap->get($config->id);
+            $inkEntries = ($ink?->entries ?? collect())->keyBy('medium_type');
+        @endphp
+        <tr><td style="width:35%">Nama Alat</td><td colspan="3" class="fw">Inkubator Suhu {{ $config->temperature_label }}</td></tr>
+        <tr><td>No. ID Inkubator</td><td colspan="3">{{ $ink?->no_id ?? '' }}</td></tr>
+        <tr><td>Tanggal Kalibrasi Inkubator</td><td colspan="3">{{ $ink?->calibration_date?->format('d/m/Y') ?? '' }}</td></tr>
+        <tr><td>Tanggal Due Date Kalibrasi Inkubator</td><td colspan="3">{{ $ink?->due_date_calibration?->format('d/m/Y') ?? '' }}</td></tr>
+        @foreach ($mediumTypeLabels as $mediumType => $mediumLabel)
+        @php $entry = $inkEntries->get($mediumType); @endphp
         <tr>
-            <td rowspan="8" style="vertical-align:middle">Tanggal Inkubasi Medium (min {{ $inkInfo['min_days'] }} hari)</td>
-            <td rowspan="4" class="tc" style="vertical-align:middle;width:14%">Medium<br>Monitoring</td>
-            <td>Tanggal Masuk Inkubator: {{ isset($ink['date_in']) ? \Carbon\Carbon::parse($ink['date_in'])->format('d/m/Y') : '' }}</td>
-            <td style="width:14%">Jam: {{ $ink['time_in'] ?? '' }}</td>
+            <td rowspan="4" style="vertical-align:middle">Tanggal Inkubasi {{ $mediumLabel }} (min {{ $config->min_days }} hari)</td>
+            <td rowspan="4" class="tc" style="vertical-align:middle;width:14%">{{ $mediumLabel }}</td>
+            <td>Tanggal Masuk Inkubator: {{ $entry?->date_in?->format('d/m/Y') ?? '' }}</td>
+            <td style="width:14%">Jam: {{ $entry?->time_in ?? '' }}</td>
         </tr>
-        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . \Carbon\Carbon::parse($ink['incubated_date'])->format('d/m/Y') : '' }}</td></tr>
-        <tr><td>Tanggal Keluar Inkubator: {{ isset($ink['date_out']) ? \Carbon\Carbon::parse($ink['date_out'])->format('d/m/Y') : '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
-        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . \Carbon\Carbon::parse($ink['removed_date'])->format('d/m/Y') : '' }}</td></tr>
-        {{-- Swab --}}
-        <tr>
-            <td rowspan="4" class="tc" style="vertical-align:middle">Swab</td>
-            <td>Tanggal Masuk Inkubator: {{ isset($ink['date_in']) ? \Carbon\Carbon::parse($ink['date_in'])->format('d/m/Y') : '' }}</td>
-            <td>Jam: {{ $ink['time_in'] ?? '' }}</td>
-        </tr>
-        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $ink['incubated_by'] ?? '' }}{{ isset($ink['incubated_date']) ? ', ' . \Carbon\Carbon::parse($ink['incubated_date'])->format('d/m/Y') : '' }}</td></tr>
-        <tr><td>Tanggal Keluar Inkubator: {{ isset($ink['date_out']) ? \Carbon\Carbon::parse($ink['date_out'])->format('d/m/Y') : '' }}</td><td>Jam: {{ $ink['time_out'] ?? '' }}</td></tr>
-        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $ink['removed_by'] ?? '' }}{{ isset($ink['removed_date']) ? ', ' . \Carbon\Carbon::parse($ink['removed_date'])->format('d/m/Y') : '' }}</td></tr>
+        <tr><td colspan="2">Diinkubasi oleh (paraf, inisial, tanggal): {{ $entry?->incubatedBy?->name ?? '' }}{{ $entry?->date_in ? ', ' . $entry->date_in->format('d/m/Y') : '' }}</td></tr>
+        <tr><td>Tanggal Keluar Inkubator: {{ $entry?->date_out?->format('d/m/Y') ?? '' }}</td><td>Jam: {{ $entry?->time_out ?? '' }}</td></tr>
+        <tr><td colspan="2">Dikeluarkan oleh (paraf, inisial, tanggal): {{ $entry?->removedBy?->name ?? '' }}{{ $entry?->date_out ? ', ' . $entry->date_out->format('d/m/Y') : '' }}</td></tr>
+        @endforeach
         @if (!$loop->last)
         <tr><td colspan="4" style="border:none;padding:5px"></td></tr>
         @endif
         @endforeach
     </table>
+    @endif
     <div class="pg-footer"></div>
 </div>
 @endif
@@ -427,11 +441,14 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                     }
                 @endphp
                 <th colspan="3" style="font-size:7pt;line-height:1.35;vertical-align:top;padding:3px 2px">
-                    <div style="font-weight:700">Machine set-up</div>
-                    <div style="font-weight:400;margin-top:2px">
+                    <div style="font-weight:700;display:flex;justify-content:center;align-items:center;text-align:center">Machine set-up</div>
+                    <div style="font-weight:400;margin-top:2px;display:flex;justify-content:center;align-items:center;text-align:center;visibility:hidden">
+                        SP: -
+                    </div>
+                    <div style="font-weight:400;margin:2px -2px 0;border-top:1px solid #000;padding-top:2px;display:flex;flex-direction:column;align-items:center;text-align:center">
                         JAM<br>
-                        Mulai Sebar Petri:<br>{{ $msJamMulai ?: '-:-' }}<br><br>
-                        Selesai<br>Pemantauan:<br>{{ $msJamSelesai ?: '-:-' }}
+                        Mulai Sebar Petri:<br>{{ $msJamMulai ?: 'N/A:N/A' }}<br><br>
+                        Selesai<br>Pemantauan:<br>{{ $msJamSelesai ?: 'N/A:N/A' }}
                     </div>
                 </th>
                 @endif
@@ -447,8 +464,14 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         $colPeriod = ($hasColLabel && $maxCols > 1) ? ($romanNums[$col - 1] ?? $col) : '';
                         $colHeaderTitle = trim((($colLabel ?? '') !== '' ? ($colLabel . ' ') : '') . $colPeriod);
                     @endphp
-                    <div style="font-weight:700">{{ $colHeaderTitle }}</div>
-                    <div style="font-weight:400;margin-top:2px">{{ $isSettlePlate ? 'SP' : 'Shift' }}: {{ $colName ?: '-' }}</div>
+                    <div style="font-weight:700;display:flex;justify-content:center;align-items:center;text-align:center">
+                        {{ $isSettlePlate ? 'SP' : 'Shift' }} ({{ $colName ?: '....' }})
+                    </div>
+                    <div style="font-weight:400;margin:2px -2px 0;border-top:1px solid #000;padding-top:2px;display:flex;justify-content:center;align-items:center;text-align:center">
+                        @if ($hasColLabel)
+                        <span style="font-weight:700">{{ $colHeaderTitle }}</span>
+                        @endif
+                    </div>
 
                     @if ($isSwabTime)
                     @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
@@ -456,12 +479,12 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         JAM<br>Mulai Swab:<br>
                         @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                         @php $st = $swabColTimes[$swabKey] ?? []; @endphp
-                        {{ $swabLabel }}: {{ ($st['mulai'] ?? '') ?: '-:-' }}<br>
+                        {{ $swabLabel }}: {{ ($st['mulai'] ?? '') ?: 'N/A:N/A' }}<br>
                         @endforeach
                         <br>Selesai<br>Pemantauan:<br>
                         @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                         @php $st = $swabColTimes[$swabKey] ?? []; @endphp
-                        {{ $swabLabel }}: {{ ($st['selesai'] ?? '') ?: '-:-' }}<br>
+                        {{ $swabLabel }}: {{ ($st['selesai'] ?? '') ?: 'N/A:N/A' }}<br>
                         @endforeach
                     </div>
                     @endif
@@ -471,13 +494,13 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         $stA = $hd['settle_times'][$section->id][$col]['a'] ?? [];
                         $stB = $hd['settle_times'][$section->id][$col]['b'] ?? [];
                     @endphp
-                    <div style="font-weight:400;margin-top:2px">
+                    <div style="font-weight:400;margin-top:2px;{{ $isSettlePlate ? 'margin-left:-2px;margin-right:-2px;border-top:1px solid #000;padding-top:2px;' : '' }}">
                         JAM<br>Mulai Sebar Petri:<br>
-                        A: {{ ($stA['start_time'] ?? '') ?: '-:-' }}<br>
-                        B: {{ ($stB['start_time'] ?? '') ?: '-:-' }}<br><br>
+                        A: {{ ($stA['start_time'] ?? '') ?: 'N/A:N/A' }}<br>
+                        B: {{ ($stB['start_time'] ?? '') ?: 'N/A:N/A' }}<br><br>
                         Selesai<br>Pemantauan:<br>
-                        A: {{ ($stA['end_time'] ?? '') ?: '-:-' }}<br>
-                        B: {{ ($stB['end_time'] ?? '') ?: '-:-' }}
+                        A: {{ ($stA['end_time'] ?? '') ?: 'N/A:N/A' }}<br>
+                        B: {{ ($stB['end_time'] ?? '') ?: 'N/A:N/A' }}
                     </div>
                     @endif
 
@@ -486,10 +509,16 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         $expJam = $hd['exposure_times'][$section->id][$col] ?? [];
                         $expJamMulai   = $expJam['start_time'] ?? null;
                         $expJamSelesai = $expJam['end_time'] ?? null;
+                        $jamMulaiLabel = $section->measurement_type === 'contact_plate'
+                            ? 'Mulai Contact Plate'
+                            : 'Mulai Sebar Petri';
                     @endphp
-                    <div style="font-weight:400;margin-top:2px">
-                        Mulai: {{ $expJamMulai ?: '-:-' }}<br>
-                        Selesai: {{ $expJamSelesai ?: '-:-' }}
+                    <div style="font-weight:400;margin-top:2px;display:flex;flex-direction:column;align-items:center;text-align:center">
+                        <span style="font-weight:700">JAM</span>
+                        {{ $jamMulaiLabel }}:<br>
+                        {{ $expJamMulai ?: 'N/A:N/A' }}<br><br>
+                        Selesai Pemantauan:<br>
+                        {{ $expJamSelesai ?: 'N/A:N/A' }}
                     </div>
                     @endif
                 </th>
@@ -566,9 +595,9 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                     $msTVal  = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
                         ? $cfuTot($msEntry->cfu_bacteria, $msEntry->cfu_fungi) : null;
                 @endphp
-                <td class="tc">{{ $msEntry?->cfu_bacteria ?? '' }}</td>
-                <td class="tc">{{ $msEntry?->cfu_fungi ?? '' }}</td>
-                <td class="tc fw">{{ $msTVal ?? '' }}</td>
+                <td class="tc">{{ $msEntry?->cfu_bacteria ?? 'N/A' }}</td>
+                <td class="tc">{{ $msEntry?->cfu_fungi ?? 'N/A' }}</td>
+                <td class="tc">{{ $msTVal ?? 'N/A' }}</td>
                 @endif
 
                 {{-- Data columns --}}
@@ -582,9 +611,9 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @if ($isPerLocation)
                 <td class="tc" style="font-size:7.5pt">{{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '' }}</td>
                 @endif
-                <td class="tc">{{ $existEntry?->cfu_bacteria ?? '' }}</td>
-                <td class="tc">{{ $existEntry?->cfu_fungi ?? '' }}</td>
-                <td class="tc fw">{{ $tVal ?? '' }}</td>
+                <td class="tc">{{ $existEntry?->cfu_bacteria ?? 'N/A' }}</td>
+                <td class="tc">{{ $existEntry?->cfu_fungi ?? 'N/A' }}</td>
+                <td class="tc">{{ $tVal ?? 'N/A' }}</td>
                 @endfor
 
                 {{-- Alert Limit --}}
@@ -661,7 +690,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         @elseif ($secKesp === 'TMS')
             <span class="fw">TIDAK MEMENUHI SPESIFIKASI</span>
         @else
-            <span>-</span>
+            <span>N/A</span>
         @endif
     </div>
 

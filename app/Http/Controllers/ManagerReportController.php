@@ -393,7 +393,18 @@ class ManagerReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'approvals.user', 'sectionColumnNames']);
+        $report->load([
+            'reportType.sections.locations.room',
+            'reportType.media',
+            'reportType.incubatorConfigs',
+            'environmentalEntries.envSectionInstance',
+            'approvals.user',
+            'sectionColumnNames',
+            'instrumentIdentities',
+            'mediumIdentities',
+            'incubators.entries.incubatedBy',
+            'incubators.entries.removedBy',
+        ]);
         $report->applyReportTypeSnapshot();
         $entryMap = [];
         foreach ($report->environmentalEntries as $entry) {
