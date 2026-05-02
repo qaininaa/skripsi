@@ -472,6 +472,7 @@ window.personnelLimits = {
 @php
     $monSigs = $personnelSignatures->get('monitoring', collect())->filter(fn ($sig) => $sig->user)->values();
     $readSigs = $personnelSignatures->get('reading', collect())->filter(fn ($sig) => $sig->user)->values();
+    $personnelHasData = $monSigs->isNotEmpty() || $readSigs->isNotEmpty();
 @endphp
 
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
@@ -558,7 +559,7 @@ window.personnelLimits = {
         <div class="border border-gray-200 rounded-xl p-4 min-h-[170px] flex flex-col">
             <p class="text-xs font-semibold text-gray-600 mb-3">Direview oleh:</p>
             <div class="flex-1 flex flex-col gap-3 justify-center text-center">
-                @if ($supApproval?->user)
+                @if ($personnelHasData && $supApproval?->user)
                     <p class="text-sm font-semibold text-gray-700">{{ $supApproval->user->name }}</p>
                     @if ($supApproval->signed_at)
                     <div class="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
@@ -582,7 +583,7 @@ window.personnelLimits = {
         <div class="border border-gray-200 rounded-xl p-4 min-h-[170px] flex flex-col">
             <p class="text-xs font-semibold text-gray-600 mb-3">Disetujui oleh:</p>
             <div class="flex-1 flex flex-col gap-3 justify-center text-center">
-                @if ($mngrApproval?->user)
+                @if ($personnelHasData && $mngrApproval?->user)
                     <p class="text-sm font-semibold text-gray-700">{{ $mngrApproval->user->name }}</p>
                     @if ($mngrApproval->signed_at)
                     <div class="inline-flex items-center justify-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
