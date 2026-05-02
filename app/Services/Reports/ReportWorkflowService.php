@@ -47,6 +47,12 @@ class ReportWorkflowService
             || ($report->status === 'monitoring' && $report->locked_by === null)) {
             $report->update(['status' => 'monitoring', 'locked_by' => $userId]);
 
+            Analyst::updateOrCreate([
+                'report_id' => $report->id,
+                'user_id'   => $userId,
+                'type'      => 'monitoring',
+            ]);
+
         } elseif ($report->status === 'reading' && $report->locked_by === null) {
             $report->update(['locked_by' => $userId]);
 

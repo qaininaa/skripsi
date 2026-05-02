@@ -28,20 +28,12 @@
                         {{ \App\Models\User::find($oid)?->name ?? 'N/A' }}
                     </div>
                 @endforeach
-                {{-- Current user slot --}}
-                @if($myInMon)
-                    <input type="hidden" name="analyst_monitoring[]" value="{{ $myId }}">
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 border border-sky-100 text-sm text-sky-700 mb-1.5">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        {{ $myName }} <span class="text-xs text-sky-500">(saya)</span>
-                    </div>
-                @else
-                    <select name="analyst_monitoring[]"
-                        class="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        <option value="" selected>- Tambahkan saya -</option>
-                        <option value="{{ $myId }}">{{ $myName }}</option>
-                    </select>
-                @endif
+                {{-- Current user is always auto-included during monitoring phase --}}
+                <input type="hidden" name="analyst_monitoring[]" value="{{ $myId }}">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 border border-sky-100 text-sm text-sky-700 mb-1.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    {{ $myName }} <span class="text-xs text-sky-500">(saya)</span>
+                </div>
             @elseif ($isEditable && !$isMonitoringPhase)
                 {{-- Read-only during reading phase: monitoring is already finalized --}}
                 @php $monIds = $monitoringAnalysts->pluck('user_id')->toArray(); @endphp
