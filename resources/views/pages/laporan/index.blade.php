@@ -22,7 +22,6 @@
         'reading'     => ['label' => 'Sedang Dibaca',       'color' => 'indigo'],
         'submitted'   => ['label' => 'Dikirim',             'color' => 'blue'],
         'returned'    => ['label' => 'Dikembalikan',        'color' => 'orange'],
-        'approved'    => ['label' => 'Disetujui',           'color' => 'green'],
     ];
 
     $total = $counts->sum();
@@ -109,7 +108,6 @@
                                             'submitted'  => ['bg-blue-100 text-blue-700',      'Dikirim ke Supervisor'],
                                             'pending_manager' => ['bg-sky-100 text-sky-700',   'Dikirim ke Manajer'],
                                             'returned'   => ['bg-orange-100 text-orange-700',  'Dikembalikan'],
-                                            'approved'   => ['bg-green-100 text-green-700',    'Disetujui'],
                                             default      => ['bg-gray-100 text-gray-600',      $item->status],
                                         };
                                         $lockedName = (in_array($item->status, ['monitoring', 'reading'], true) && $item->lockedByUser)
@@ -132,7 +130,7 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
-                                    @if (in_array($item->status, ['submitted', 'pending_manager', 'approved']))
+                                    @if (in_array($item->status, ['submitted', 'pending_manager']))
                                         <a href="{{ route('laporan.isi', $item) }}"
                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-medium hover:bg-gray-100 transition-colors border border-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

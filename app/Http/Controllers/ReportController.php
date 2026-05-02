@@ -40,7 +40,6 @@ class ReportController extends Controller
             'submitted',
             'pending_manager',
             'returned',
-            'approved',
         ];
 
         // Baca filter dari URL. Contoh: /laporan?status=reading → $status = 'reading'
@@ -78,7 +77,6 @@ class ReportController extends Controller
             'reading' => $rawCounts['reading'] ?? 0,
             'submitted' => ($rawCounts['submitted'] ?? 0) + ($rawCounts['pending_manager'] ?? 0),
             'returned' => $rawCounts['returned'] ?? 0,
-            'approved' => $rawCounts['approved'] ?? 0,
         ]);
 
         // Query laporan dengan eager load relasi yang dipakai di kartu/tabel view:
