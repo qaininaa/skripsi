@@ -65,13 +65,15 @@
     @else
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
             @if ($report->status === 'submitted') bg-blue-50 text-blue-700
+            @elseif ($report->status === 'pending_manager') bg-sky-50 text-sky-700
             @elseif ($report->status === 'approved') bg-green-50 text-green-700
             @else bg-gray-100 text-gray-500 @endif">
             @php
                 $statusLabel = [
                     'monitoring' => 'Sedang Dimonitoring',
                     'reading'    => 'Sedang Dibaca',
-                    'submitted'  => 'Dikirim',
+                    'submitted'  => 'Dikirim ke Supervisor',
+                    'pending_manager' => 'Dikirim ke Manajer',
                     'approved'   => 'Disetujui',
                     'pending'    => 'Menunggu',
                 ][$report->status] ?? $report->status;

@@ -106,23 +106,33 @@
                                             'pending'    => ['bg-gray-100 text-gray-600',     'Belum Dikerjakan'],
                                             'monitoring' => ['bg-yellow-100 text-yellow-700',  'Sedang Dimonitoring'],
                                             'reading'    => ['bg-indigo-100 text-indigo-700',  'Sedang Dibaca'],
-                                            'submitted'  => ['bg-blue-100 text-blue-700',      'Dikirim'],
+                                            'submitted'  => ['bg-blue-100 text-blue-700',      'Dikirim ke Supervisor'],
+                                            'pending_manager' => ['bg-sky-100 text-sky-700',   'Dikirim ke Manajer'],
                                             'returned'   => ['bg-orange-100 text-orange-700',  'Dikembalikan'],
                                             'approved'   => ['bg-green-100 text-green-700',    'Disetujui'],
                                             default      => ['bg-gray-100 text-gray-600',      $item->status],
                                         };
                                         $lockedName = (in_array($item->status, ['monitoring', 'reading'], true) && $item->lockedByUser)
                                             ? $item->lockedByUser->name : null;
+                                        $targetApproval = match($item->status) {
+                                            'submitted' => $item->approvals->firstWhere('step', 2),
+                                            'pending_manager' => $item->approvals->firstWhere('step', 3),
+                                            default => null,
+                                        };
+                                        $targetName = $targetApproval?->user?->name;
                                     @endphp
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badge[0] }}">
                                         {{ $badge[1] }}
                                     </span>
+                                    @if ($targetName)
+                                        <div class="text-[11px] text-gray-400 mt-0.5">ke {{ $targetName }}</div>
+                                    @endif
                                     @if ($lockedName)
                                         <div class="text-[11px] text-gray-400 mt-0.5">oleh {{ $lockedName }}</div>
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 text-center">
-                                    @if (in_array($item->status, ['submitted', 'approved']))
+                                    @if (in_array($item->status, ['submitted', 'pending_manager', 'approved']))
                                         <a href="{{ route('laporan.isi', $item) }}"
                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-medium hover:bg-gray-100 transition-colors border border-gray-100">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

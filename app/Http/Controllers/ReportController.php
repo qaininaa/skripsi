@@ -38,6 +38,7 @@ class ReportController extends Controller
             'monitoring',
             'reading',
             'submitted',
+            'pending_manager',
             'returned',
             'approved',
         ];
@@ -75,7 +76,7 @@ class ReportController extends Controller
             'pending' => $rawCounts['pending'] ?? 0,
             'monitoring' => $rawCounts['monitoring'] ?? 0,
             'reading' => $rawCounts['reading'] ?? 0,
-            'submitted' => $rawCounts['submitted'] ?? 0,
+            'submitted' => ($rawCounts['submitted'] ?? 0) + ($rawCounts['pending_manager'] ?? 0),
             'returned' => $rawCounts['returned'] ?? 0,
             'approved' => $rawCounts['approved'] ?? 0,
         ]);
@@ -91,7 +92,11 @@ class ReportController extends Controller
         // Tambah klausa WHERE hanya jika ada filter aktif.
         // 'all' → tidak difilter, semua status ikut tampil.
         if ($status !== 'all') {
-            $query->where('status', $status);
+            if ($status === 'submitted') {
+                $query->whereIn('status', ['submitted', 'pending_manager']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         // Paginate 15 item per halaman.
