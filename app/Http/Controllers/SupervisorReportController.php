@@ -116,6 +116,7 @@ class SupervisorReportController extends Controller
             'reportType.personnelMethods.samplingPoints',
             'reportType.personnelMethods.limits',
             'environmentalEntries',
+            'sectionColumnNames',
             'approvals.user',
             'analysts.user',
             'signatures',
@@ -390,7 +391,7 @@ class SupervisorReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'approvals.user', 'sectionColumnNames']);
         $report->applyReportTypeSnapshot();
 
         // Build instance ordering: instance_id → {location_id}

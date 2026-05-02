@@ -70,7 +70,7 @@ class ReportArchiveController extends Controller
         $managerApproval = $report->approvals->where('step', 3)->where('status', 'approved')->first();
         abort_unless($managerApproval, 404);
 
-        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance']);
+        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'sectionColumnNames']);
         $report->applyReportTypeSnapshot();
 
         $entryMap = [];

@@ -98,6 +98,7 @@ class ManagerReportController extends Controller
             'reportType.personnelMethods.samplingPoints',
             'reportType.personnelMethods.limits',
             'environmentalEntries',
+            'sectionColumnNames',
             'approvals.user',
             'analysts.user',
             'signatures',
@@ -392,7 +393,7 @@ class ManagerReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
-        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'approvals.user']);
+        $report->load(['reportType.sections.locations.room', 'environmentalEntries.envSectionInstance', 'approvals.user', 'sectionColumnNames']);
         $report->applyReportTypeSnapshot();
         $entryMap = [];
         foreach ($report->environmentalEntries as $entry) {

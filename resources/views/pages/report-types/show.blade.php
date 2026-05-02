@@ -115,7 +115,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
-                        <input type="text" name="column_label" value="Exposure" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                        <input type="text" name="column_label" value="Exposure" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom</label>
@@ -157,7 +157,7 @@
                             <h4 class="text-sm font-semibold text-gray-800">{{ $section->name }}</h4>
                             <p class="text-xs text-gray-500">
                                 {{ $section->measurement_unit }} ·
-                                {{ $section->max_column }}x {{ $section->column_label }}
+                                {{ $section->max_column }}x {{ $section->column_label ?: 'Exposure' }}
                                 @if ($section->time_slot_type !== 'none')
                                     · Waktu: {{ ['single' => '1 slot', 'per_location' => 'Per Lokasi', 'dual_ab' => 'A/B', 'swab' => 'S1/S1-2/S1-3'][$section->time_slot_type] ?? $section->time_slot_type }}
                                 @endif
@@ -201,7 +201,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
-                                <input type="text" name="column_label" value="{{ $section->column_label }}" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                                <input type="text" name="column_label" value="{{ $section->column_label }}" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom</label>

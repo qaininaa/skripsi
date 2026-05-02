@@ -9,6 +9,7 @@ use App\Models\PersonnelRow;
 use App\Models\PersonnelSamplingEntry;
 use App\Models\Report;
 use App\Models\ReportEnvironmentalEntry;
+use App\Models\ReportSectionColumn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -164,6 +165,7 @@ class ReportEntryService
         [$hd, $owners] = $this->saveHeaderData($request, $report, $hd);
 
         $this->saveAnalysts($request, $report);
+        $this->saveSectionColumnNames($request, $report);
 
         $shiftAssignment = $request->input('shift_assignment', []);
         if (! empty($shiftAssignment)) {
@@ -786,6 +788,55 @@ class ReportEntryService
         }
 
         return $savedSectionIds;
+    }
+
+    private function saveSectionColumnNames(Request $request, Report $report): void
+    {
+        $columnNames = $request->input('column_names', []);
+        if (! is_array($columnNames) || empty($columnNames)) {
+            return;
+        }
+
+        foreach ($columnNames as $sectionId => $instanceData) {
+            if (! is_array($instanceData) || empty($instanceData)) {
+                continue;
+            }
+
+            $firstKey = array_key_first($instanceData);
+            $isFlatColumns = $firstKey !== null && ! is_array($instanceData[$firstKey]);
+            if ($isFlatColumns) {
+                $instanceData = [1 => $instanceData];
+            }
+
+            foreach ($instanceData as $instanceNum => $columns) {
+                if (! is_array($columns) || empty($columns)) {
+                    continue;
+                }
+
+                $instanceNumber = max(1, (int) $instanceNum);
+
+                foreach ($columns as $period => $label) {
+                    $periodNumber = (int) $period;
+                    if ($periodNumber < 1) {
+                        continue;
+                    }
+
+                    $value = is_string($label) ? trim($label) : null;
+
+                    ReportSectionColumn::updateOrCreate(
+                        [
+                            'report_id' => $report->id,
+                            'section_id' => $sectionId,
+                            'instance_number' => $instanceNumber,
+                            'period_number' => $periodNumber,
+                        ],
+                        [
+                            'label' => $value !== '' ? $value : null,
+                        ]
+                    );
+                }
+            }
+        }
     }
 
     /**

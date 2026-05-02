@@ -74,7 +74,43 @@
         @endphp
         <th class="px-2 py-1.5 text-center font-semibold border-r border-sky-100 whitespace-nowrap"
             colspan="{{ $subColsPerExp }}">
-            {{ $colLabel }} {{ $maxCols > 1 ? ($romanNums[$col - 1] ?? $col) : '' }}
+            @php
+                $columnNameVal = $columnNames[$col] ?? null;
+                $hasColLabel = (($colLabel ?? '') !== '');
+                $colPeriod = ($hasColLabel && $maxCols > 1) ? ($romanNums[$col - 1] ?? $col) : '';
+                $colHeaderTitle = trim((($colLabel ?? '') !== '' ? ($colLabel . ' ') : '') . $colPeriod);
+            @endphp
+            {{ $colHeaderTitle }}
+
+            @if ($isSettlePlate)
+            @if ($isEditable && $isMonitoring)
+            <div class="mt-1 flex items-center justify-center gap-1 text-[10px] font-normal text-gray-600">
+                <span class="text-[9px] font-bold text-gray-500">SP:</span>
+                <input type="text"
+                       name="column_names[{{ $section->id }}][{{ $instance }}][{{ $col }}]"
+                       value="{{ $columnNameVal }}"
+                       placeholder="SP"
+                       maxlength="100"
+                       class="w-20 rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+            </div>
+            @else
+            <div class="text-[10px] text-gray-500 mt-1">SP: {{ $columnNameVal ?: 'N/A' }}</div>
+            @endif
+            @else
+            @if ($isEditable && $isMonitoring)
+            <div class="mt-1 flex items-center justify-center gap-1 text-[10px] font-normal text-gray-600">
+                <span class="text-[9px] font-bold text-gray-500">Shift:</span>
+                <input type="text"
+                       name="column_names[{{ $section->id }}][{{ $instance }}][{{ $col }}]"
+                       value="{{ $columnNameVal }}"
+                       placeholder="Shift"
+                       maxlength="100"
+                       class="w-20 rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+            </div>
+            @else
+            <div class="text-[10px] text-gray-500 mt-1">Shift: {{ $columnNameVal ?: 'N/A' }}</div>
+            @endif
+            @endif
 
             {{-- Swab time slots --}}
             @if ($isSwabTime)

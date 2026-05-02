@@ -30,6 +30,7 @@ class ReportViewService
         'incubators.entries.incubatedBy',
         'incubators.entries.removedBy',
         'analysts.user',
+        'sectionColumnNames',
         'signatures.user',
         'reportType.personnelMethods.activities',
         'reportType.personnelMethods.samplingPoints',

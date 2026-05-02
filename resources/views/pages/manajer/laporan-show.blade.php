@@ -262,8 +262,10 @@
         $isPerLocation  = $section->time_slot_type === 'per_location';
         $isDualAB       = $section->time_slot_type === 'dual_ab';
         $isSwabTime     = $section->time_slot_type === 'swab';
+        $isSettlePlate  = $section->measurement_type === 'settle_plate';
         $hasShiftToggle = (bool) $section->has_shift_toggle;
-        $colLabel       = $section->column_label ?? 'Exposure';
+        $colLabelRaw    = is_string($section->column_label) ? trim($section->column_label) : null;
+        $colLabel       = $colLabelRaw !== '' ? $colLabelRaw : null;
 
         $maxCols       = $section->max_column;
         $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
@@ -273,6 +275,12 @@
         for ($c = 1; $c <= $maxCols; $c++) {
             $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
         }
+        $secColumnNames = $report->sectionColumnNames
+            ->where('section_id', $section->id)
+            ->where('instance_number', 1)
+            ->keyBy(fn($r) => (int) $r->period_number)
+            ->map(fn($r) => $r->label)
+            ->all();
         $secNote = $hd['section_notes'][$section->id] ?? [];
         $subColsPerExp = $isPerLocation ? 4 : 3;
     @endphp
@@ -325,10 +333,21 @@
                         </th>
                         @endif
                         @for ($col = 1; $col <= $maxCols; $col++)
-                        @php $colAsgn = $secAssignments[$col] ?? 1; @endphp
+                        @php
+                            $colAsgn = $secAssignments[$col] ?? 1;
+                            $colName = $secColumnNames[$col] ?? null;
+                        @endphp
                         <th class="px-2 py-1.5 text-center font-semibold border-r border-emerald-100 whitespace-nowrap"
                             colspan="{{ $subColsPerExp }}">
-                            {{ $colLabel }} {{ $maxCols > 1 ? ($romanNums[$col - 1] ?? $col) : '' }}
+                            @php
+                                $hasColLabel = (($colLabel ?? '') !== '');
+                                $colPeriod = ($hasColLabel && $maxCols > 1) ? ($romanNums[$col - 1] ?? $col) : '';
+                                $colHeaderTitle = trim((($colLabel ?? '') !== '' ? ($colLabel . ' ') : '') . $colPeriod);
+                            @endphp
+                            {{ $colHeaderTitle }}
+                            <div class="text-[10px] text-gray-500 mt-1">
+                                {{ $isSettlePlate ? 'SP' : 'Shift' }}: {{ $colName ?: '—' }}
+                            </div>
                             @if ($isSwabTime)
                             @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">

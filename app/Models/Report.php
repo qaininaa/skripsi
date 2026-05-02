@@ -111,6 +111,17 @@ class Report extends Model
         return $this->hasMany(ReportSignature::class);
     }
 
+    /**
+     * Label kolom per section/instance/period (SP/Shift) untuk laporan ini.
+     */
+    public function sectionColumnNames()
+    {
+        return $this->hasMany(ReportSectionColumn::class)
+            ->orderBy('section_id')
+            ->orderBy('instance_number')
+            ->orderBy('period_number');
+    }
+
     public function personnelInstances()
     {
         return $this->hasMany(PersonnelInstance::class)->orderBy('created_at');

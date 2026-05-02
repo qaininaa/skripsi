@@ -31,6 +31,37 @@
     </div>
 
     {{-- Navigation --}}
+    @php
+        $sidebarIncomingCount = 0;
+        $sidebarOngoingCount = 0;
+        $currentRole = Auth::user()->role;
+
+        if (in_array($currentRole, ['supervisor', 'manajer'], true)) {
+            $userId = Auth::id();
+
+            $sidebarIncomingCount = \App\Models\ReportApproval::query()
+                ->where('step', $currentRole === 'supervisor' ? 2 : 3)
+                ->where('user_id', $userId)
+                ->where('status', 'pending')
+                ->count();
+
+            $sidebarOngoingCount = \App\Models\Report::query()
+                ->whereDoesntHave('approvals', function ($query) {
+                    $query->where('step', 3)->where('status', 'approved');
+                })
+                ->where(function ($query) {
+                    $query->whereIn('status', ['pending', 'monitoring', 'reading'])
+                        ->orWhereHas('approvals', function ($approvalQuery) {
+                            $approvalQuery->where('step', 2)->where('status', 'pending');
+                        })
+                        ->orWhereHas('approvals', function ($approvalQuery) {
+                            $approvalQuery->where('step', 3)->where('status', 'pending');
+                        });
+                })
+                ->count();
+        }
+    @endphp
+
     <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
 
     <div class="pt-2 pb-1 px-3">
@@ -152,19 +183,33 @@
         </div>
 
         <a href="{{ route('supervisor.laporan-masuk') }}"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('supervisor.laporan-masuk') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-            </svg>
-            Laporan Masuk
+           class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('supervisor.laporan-masuk') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+            <span class="flex items-center gap-3 min-w-0">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <span>Laporan Masuk</span>
+            </span>
+            @if ($sidebarIncomingCount > 0)
+                <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold bg-red-100 text-red-700">
+                    {{ $sidebarIncomingCount }}
+                </span>
+            @endif
         </a>
 
         <a href="{{ route('supervisor.laporan-sedang-dikerjakan') }}"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('supervisor.laporan-sedang-dikerjakan') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Sedang Dikerjakan
+           class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('supervisor.laporan-sedang-dikerjakan') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+            <span class="flex items-center gap-3 min-w-0">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Sedang Dikerjakan</span>
+            </span>
+            @if ($sidebarOngoingCount > 0)
+                <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold bg-emerald-100 text-emerald-700">
+                    {{ $sidebarOngoingCount }}
+                </span>
+            @endif
         </a>
 
         {{-- Manajer only --}}
@@ -175,19 +220,33 @@
         </div>
 
         <a href="{{ route('manajer.laporan-masuk') }}"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('manajer.laporan-masuk') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-            </svg>
-            Laporan Masuk
+           class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('manajer.laporan-masuk') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+            <span class="flex items-center gap-3 min-w-0">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <span>Laporan Masuk</span>
+            </span>
+            @if ($sidebarIncomingCount > 0)
+                <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold bg-red-100 text-red-700">
+                    {{ $sidebarIncomingCount }}
+                </span>
+            @endif
         </a>
 
         <a href="{{ route('manajer.laporan-sedang-dikerjakan') }}"
-           class="flex items-center gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('manajer.laporan-sedang-dikerjakan') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Sedang Dikerjakan
+           class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg {{ request()->routeIs('manajer.laporan-sedang-dikerjakan') ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-green-50 hover:text-green-800' }} font-medium text-sm transition-colors">
+            <span class="flex items-center gap-3 min-w-0">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Sedang Dikerjakan</span>
+            </span>
+            @if ($sidebarOngoingCount > 0)
+                <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold bg-emerald-100 text-emerald-700">
+                    {{ $sidebarOngoingCount }}
+                </span>
+            @endif
         </a>
 
         @endif

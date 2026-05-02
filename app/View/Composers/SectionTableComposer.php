@@ -30,7 +30,9 @@ class SectionTableComposer
         $isPerLocation   = $section->time_slot_type === 'per_location';
         $isDualAB        = $section->time_slot_type === 'dual_ab';
         $isSwabTime      = $section->time_slot_type === 'swab';
-        $colLabel        = $section->column_label ?? 'Exposure';
+        $isSettlePlate   = $section->measurement_type === 'settle_plate';
+        $colLabelRaw     = is_string($section->column_label) ? trim($section->column_label) : null;
+        $colLabel        = $colLabelRaw !== '' ? $colLabelRaw : null;
         $subColsPerExp   = $isPerLocation ? 4 : 3;
 
         // ── Phase flags ───────────────────────────────────────────────────────
@@ -50,6 +52,17 @@ class SectionTableComposer
         for ($c = 1; $c <= $maxCols; $c++) {
             $secAssignments[$c] = isset($savedAsgn[$c]) ? (int) $savedAsgn[$c] : 1;
         }
+
+        // ── Per-column display names (settle: SP, others: Shift) ─────────────
+        $columnRows = $report->relationLoaded('sectionColumnNames')
+            ? $report->sectionColumnNames
+            : $report->sectionColumnNames()->get();
+        $columnNames = $columnRows
+            ->where('section_id', $section->id)
+            ->where('instance_number', (int) $instance)
+            ->keyBy(fn ($r) => (int) $r->period_number)
+            ->map(fn ($r) => $r->label)
+            ->all();
 
         // ── Total column count for colspan calculations ────────────────────────
         // Fixed: No. | Nama Ruangan | Kelas | No. Ruangan | No. Lokasi = 5
@@ -82,13 +95,14 @@ class SectionTableComposer
         $view->with(compact(
             // Type flags
             'hasMachineSetup', 'hasTime', 'isPerLocation', 'isDualAB', 'isSwabTime',
+            'isSettlePlate',
             'colLabel', 'subColsPerExp',
             // Phase
             'isMonitoring', 'isReading',
             // Machine set-up
             'ms0Owner', 'ms0Locked', 'msHasTime',
             // Columns
-            'secAssignments', 'maxCols', 'romanNums', 'hdOwners',
+            'secAssignments', 'columnNames', 'maxCols', 'romanNums', 'hdOwners',
             // Layout helpers
             'totalCols',
             // Frequency grouping
