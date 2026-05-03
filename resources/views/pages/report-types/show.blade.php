@@ -222,10 +222,6 @@
                                     <input type="checkbox" name="has_machine_setup" value="1" {{ $section->has_machine_setup ? 'checked' : '' }} class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                                     <span>Machine Set-up</span>
                                 </label>
-                                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                                    <input type="checkbox" name="has_shift_toggle" value="1" {{ $section->has_shift_toggle ? 'checked' : '' }} class="rounded border-gray-300 text-green-600 focus:ring-green-500">
-                                    <span>Shift Toggle</span>
-                                </label>
                             </div>
                         </div>
                         <div class="flex justify-end gap-2">
