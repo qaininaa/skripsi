@@ -43,8 +43,14 @@
     $personnelMethods = $report->reportType->personnelMethods ?? collect();
     $personnelInstances = $report->personnelInstances ?? collect();
     $personnelSignatures = $report->personnelSignatures->groupBy('role');
-    $supApproval = $report->approvals->firstWhere('step', 2);
-    $mngrApproval = $report->approvals->firstWhere('step', 3);
+    $latestApprovalByStep = static function (int $step) use ($report) {
+        return $report->approvals
+            ->where('step', $step)
+            ->sortByDesc(fn ($row) => $row->updated_at?->getTimestamp() ?? $row->created_at?->getTimestamp() ?? 0)
+            ->first();
+    };
+    $supApproval = $latestApprovalByStep(2);
+    $mngrApproval = $latestApprovalByStep(3);
     // Users that can receive the return:
     $allReturnableIds = $report->analysts->pluck('user_id')->unique()->toArray();
     $returnableAnalysts = \App\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
@@ -893,34 +899,48 @@
 
         {{-- ── Per-section TTD ─────────────────────────────── --}}
         @php
-            $_sectionPivotIds = $section->locations->pluck('id')->toArray();
-            $_secAnalysts = [];
-            foreach ($_sectionPivotIds as $_pid) {
-                foreach ($entryMap[$_pid] ?? [] as $_instMap) {
-                    foreach ($_instMap as $_pMap) {
-                        foreach ($_pMap as $_e) {
-                            if ($_e->analyst_id) $_secAnalysts[(string) $_e->analyst_id] = true;
-                        }
-                    }
+            // Primary source (current schema): report_section_signatures table.
+            $_sectionSigs = $report->signatures->where('section_id', $section->id);
+            $_secMonSigs = $_sectionSigs->where('role', 'monitoring')->sortBy('signed_at');
+            $_secReadSigs = $_sectionSigs->where('role', 'reading')->sortBy('signed_at');
+
+            $_secMonIds = array_values(array_unique(
+                $_secMonSigs->pluck('user_id')->filter()->map(fn ($id) => (string) $id)->all()
+            ));
+            $_secReadIds = array_values(array_unique(
+                $_secReadSigs->pluck('user_id')->filter()->map(fn ($id) => (string) $id)->all()
+            ));
+
+            $_secMonTs = [];
+            foreach ($_secMonSigs as $_sig) {
+                if ($_sig->user_id && $_sig->signed_at) {
+                    $_secMonTs[(string) $_sig->user_id] = $_sig->signed_at;
                 }
             }
-            $_secAnalystIds = array_keys($_secAnalysts);
-            $_allMonIds  = $report->analysts->where('type', 'monitoring')->pluck('user_id')->map('strval')->toArray();
-            $_allReadIds = $report->analysts->where('type', 'reading')->pluck('user_id')->map('strval')->toArray();
-            $_secMonTs   = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
-            $_secReadTs  = $hd['section_ttd_reading'][(string) $section->id]    ?? [];
-            $_secMonIds  = array_values(array_unique(array_merge(
-                array_intersect($_secAnalystIds, $_allMonIds),
-                array_intersect(array_keys($_secMonTs), $_allMonIds)
-            )));
-            $_secReadIds = array_values(array_unique(
-                array_intersect(array_keys($_secReadTs), $_allReadIds)
-            ));
-            $_supApproval  = $report->approvals->firstWhere('step', 2);
-            $_mngrApproval = $report->approvals->firstWhere('step', 3);
+            $_secReadTs = [];
+            foreach ($_secReadSigs as $_sig) {
+                if ($_sig->user_id && $_sig->signed_at) {
+                    $_secReadTs[(string) $_sig->user_id] = $_sig->signed_at;
+                }
+            }
+
+            // Fallback source (legacy data): header_data section_ttd_*.
+            if (empty($_secMonIds) && empty($_secReadIds)) {
+                $_allMonIds = $report->analysts->where('type', 'monitoring')->pluck('user_id')->map('strval')->toArray();
+                $_allReadIds = $report->analysts->where('type', 'reading')->pluck('user_id')->map('strval')->toArray();
+                $_legacyMonTs = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
+                $_legacyReadTs = $hd['section_ttd_reading'][(string) $section->id] ?? [];
+
+                $_secMonIds = array_values(array_unique(array_intersect(array_keys($_legacyMonTs), $_allMonIds)));
+                $_secReadIds = array_values(array_unique(array_intersect(array_keys($_legacyReadTs), $_allReadIds)));
+                $_secMonTs = $_legacyMonTs;
+                $_secReadTs = $_legacyReadTs;
+            }
+
+            $_supApproval = $supApproval;
+            $_mngrApproval = $mngrApproval;
             $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
-            $_secUserMap   = \App\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
-            $_sectionHasData = !empty($_secMonIds) || !empty($_secReadIds);
+            $_secUserMap = \App\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
         @endphp
         <div class="px-5 py-4 border-t border-gray-100">
             <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Tanda Tangan & Verifikasi</p>
@@ -981,7 +1001,7 @@
                 <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                     <p class="text-[11px] font-semibold text-gray-600 mb-2">Direview oleh:</p>
                     <div class="flex-1 flex flex-col gap-2 justify-center">
-                        @if ($_sectionHasData && $_supApproval?->user)
+                        @if ($_supApproval?->user)
                         <div class="text-center">
                             <p class="text-sm font-semibold text-gray-700">{{ $_supApproval->user->name }}</p>
                             @if ($_supApproval->signed_at)
@@ -1002,7 +1022,7 @@
                 <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                     <p class="text-[11px] font-semibold text-gray-600 mb-2">Disetujui oleh:</p>
                     <div class="flex-1 flex flex-col gap-2 justify-center">
-                        @if ($_sectionHasData && $_mngrApproval?->user)
+                        @if ($_mngrApproval?->user)
                         <div class="text-center">
                             <p class="text-sm font-semibold text-gray-700">{{ $_mngrApproval->user->name }}</p>
                             @if ($_mngrApproval->signed_at)
