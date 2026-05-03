@@ -10,7 +10,7 @@ class PersonnelActivity extends Model
 {
     use HasUuids;
 
-    protected $fillable = ['personnel_section_method_id', 'activity'];
+    protected $fillable = ['personnel_section_method_id', 'activity', 'sort_order'];
 
     public function method(): BelongsTo
     {

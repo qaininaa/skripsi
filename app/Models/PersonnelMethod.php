@@ -22,7 +22,10 @@ class PersonnelMethod extends Model
 
     public function activities(): HasMany
     {
-        return $this->hasMany(PersonnelActivity::class, 'personnel_section_method_id');
+        return $this->hasMany(PersonnelActivity::class, 'personnel_section_method_id')
+            ->orderBy('sort_order')
+            ->orderBy('created_at')
+            ->orderBy('id');
     }
 
     public function samplingPoints(): HasMany

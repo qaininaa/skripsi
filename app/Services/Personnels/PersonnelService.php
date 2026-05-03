@@ -15,8 +15,8 @@ class PersonnelService
         [
             'method'          => 'Cawan Kontak',
             'activities'      => [
-                'Akhir proses analisa',
                 'Keluar ruang filling',
+                'Akhir proses analisa',
             ],
             'sampling_points' => [
                 'Dahi',
@@ -34,10 +34,10 @@ class PersonnelService
         [
             'method'          => 'Finger Dab',
             'activities'      => [
-                'Intervensi',
-                'Akhir proses analisa',
                 'Selesai set up',
                 'Keluar ruang filling',
+                'Intervensi',
+                'Akhir proses analisa',
             ],
             'sampling_points' => [
                 'Tangan Kanan',
@@ -62,8 +62,11 @@ class PersonnelService
                 'method' => $data['method'],
             ]);
 
-            foreach ($data['activities'] as $activity) {
-                $method->activities()->create(['activity' => $activity]);
+            foreach ($data['activities'] as $index => $activity) {
+                $method->activities()->create([
+                    'activity' => $activity,
+                    'sort_order' => $index + 1,
+                ]);
             }
 
             foreach ($data['sampling_points'] as $point) {

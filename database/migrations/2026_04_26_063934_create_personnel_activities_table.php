@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('personnel_section_method_id')->constrained('personnel_section_methods')->cascadeOnDelete();
             $table->string('activity');
+            $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
         });
     }
