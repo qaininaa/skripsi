@@ -123,7 +123,7 @@
                             <option value="none">Tidak ada</option>
                             <option value="single">1 slot (Mulai–Selesai)</option>
                             <option value="per_location">Per Lokasi (1 slot/lokasi)</option>
-                            <option value="dual_ab">2 slot (A &amp; B)</option>
+                            <option value="dual_ab">2 slot (A & B)</option>
                             <option value="swab">3 slot (S1, S1-2, S1-3)</option>
                         </select>
                     </div>
@@ -209,7 +209,7 @@
                                     <option value="none" {{ $section->time_slot_type === 'none' ? 'selected' : '' }}>Tidak ada</option>
                                     <option value="single" {{ $section->time_slot_type === 'single' ? 'selected' : '' }}>1 slot (Mulai–Selesai)</option>
                                     <option value="per_location" {{ $section->time_slot_type === 'per_location' ? 'selected' : '' }}>Per Lokasi (1 slot/lokasi)</option>
-                                    <option value="dual_ab" {{ $section->time_slot_type === 'dual_ab' ? 'selected' : '' }}>2 slot (A &amp; B)</option>
+                                    <option value="dual_ab" {{ $section->time_slot_type === 'dual_ab' ? 'selected' : '' }}>2 slot (A & B)</option>
                                     <option value="swab" {{ $section->time_slot_type === 'swab' ? 'selected' : '' }}>3 slot (S1, S1-2, S1-3)</option>
                                 </select>
                             </div>

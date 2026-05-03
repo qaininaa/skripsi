@@ -12,6 +12,33 @@
     $routeApprove = $reviewRole . '.laporan.approve';
     $routeReturn  = $reviewRole . '.laporan.return';
     $isEditable   = $approval->isPending();
+    $reviewTimeRequiresAnalystValue = $reviewRole === 'supervisor';
+    $reviewTimePlaceholder = $reviewTimeRequiresAnalystValue ? 'N/A' : '—';
+    $canEditReviewTime = static function (...$values) use ($isEditable, $reviewTimeRequiresAnalystValue): bool {
+        if (! $isEditable) {
+            return false;
+        }
+        if (! $reviewTimeRequiresAnalystValue) {
+            return true;
+        }
+        foreach ($values as $value) {
+            if (filled($value)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+    $formatReviewTimeValue = static function ($value) use ($reviewTimePlaceholder): string {
+        return filled($value) ? (string) $value : $reviewTimePlaceholder;
+    };
+    $formatReviewTimeRange = static function ($start, $end) use ($reviewTimePlaceholder): string {
+        if (! filled($start) && ! filled($end)) {
+            return $reviewTimePlaceholder;
+        }
+
+        return ($start ?: $reviewTimePlaceholder) . ' – ' . ($end ?: $reviewTimePlaceholder);
+    };
     $canEditPersonnelTime = $isEditable;
     $personnelMethods = $report->reportType->personnelMethods ?? collect();
     $personnelInstances = $report->personnelInstances ?? collect();
@@ -316,11 +343,12 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
-                        @if ($isEditable)
+                        @php $canEditIncubatorTimeIn = $canEditReviewTime($inkRecord?->time_in); @endphp
+                        @if ($canEditIncubatorTimeIn)
                         <input type="time" name="incubator[{{ $inkRti->id }}][time_in]" value="{{ $inkRecord?->time_in ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->time_in ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm {{ filled($inkRecord?->time_in) ? 'text-gray-700' : 'text-gray-400 italic' }}">{{ $formatReviewTimeValue($inkRecord?->time_in) }}</div>
                         @endif
                     </div>
                 </div>
@@ -350,11 +378,12 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
-                        @if ($isEditable)
+                        @php $canEditIncubatorTimeOut = $canEditReviewTime($inkRecord?->time_out); @endphp
+                        @if ($canEditIncubatorTimeOut)
                         <input type="time" name="incubator[{{ $inkRti->id }}][time_out]" value="{{ $inkRecord?->time_out ?? '' }}"
                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->time_out ?? '—' }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm {{ filled($inkRecord?->time_out) ? 'text-gray-700' : 'text-gray-400 italic' }}">{{ $formatReviewTimeValue($inkRecord?->time_out) }}</div>
                         @endif
                     </div>
                 </div>
@@ -481,11 +510,12 @@
                         @endphp
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100" colspan="3">
                             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
-                            @if ($isEditable)
                             @php
                                 $msHdMulai   = $msJamMulai;
                                 $msHdSelesai = $msJamSelesai;
+                                $canEditMachineSetupTime = $canEditReviewTime($msHdMulai, $msHdSelesai);
                             @endphp
+                            @if ($canEditMachineSetupTime)
                             <div class="flex justify-center items-center gap-1">
                                 <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
                                        value="{{ $msHdMulai }}"
@@ -496,8 +526,8 @@
                                        class="rounded border border-emerald-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                             </div>
                             @else
-                            <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
-                                {{ $msJamMulai ? $msJamMulai . ' – ' . ($msJamSelesai ?? '—') : '—' }}
+                            <div class="text-[10px] font-normal whitespace-nowrap {{ filled($msHdMulai) || filled($msHdSelesai) ? 'text-gray-500' : 'text-gray-400 italic' }}">
+                                {{ $formatReviewTimeRange($msHdMulai, $msHdSelesai) }}
                             </div>
                             @endif
                         </th>
@@ -525,7 +555,11 @@
                             @if ($isEditable)
                             <div class="space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
-                                @php $st = $secTimesFromEntries[$col]['swab'][$swabKey] ?? []; @endphp
+                                @php
+                                    $st = $secTimesFromEntries[$col]['swab'][$swabKey] ?? [];
+                                    $canEditSwabTime = $canEditReviewTime($st['mulai'] ?? null, $st['selesai'] ?? null);
+                                @endphp
+                                @if ($canEditSwabTime)
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
                                     <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][mulai]"
@@ -536,13 +570,19 @@
                                            value="{{ $st['selesai'] ?? '' }}"
                                            class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                                 </div>
+                                @else
+                                <div class="flex items-center justify-center gap-0.5 text-[10px]">
+                                    <span class="font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
+                                    <span class="{{ filled($st['mulai'] ?? null) || filled($st['selesai'] ?? null) ? 'text-gray-500' : 'text-gray-400 italic' }}">{{ $formatReviewTimeRange($st['mulai'] ?? null, $st['selesai'] ?? null) }}</span>
+                                </div>
+                                @endif
                                 @endforeach
                             </div>
                             @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                                 @php $st = $secTimesFromEntries[$col]['swab'][$swabKey] ?? []; @endphp
-                                <div>{{ $swabLabel }}: {{ ($st['mulai'] ?? '') ?: '—' }} – {{ ($st['selesai'] ?? '') ?: '—' }}</div>
+                                <div>{{ $swabLabel }}: {{ $formatReviewTimeRange($st['mulai'] ?? null, $st['selesai'] ?? null) }}</div>
                                 @endforeach
                             </div>
                             @endif
@@ -553,7 +593,11 @@
                             @if ($isEditable)
                             <div class="space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                                @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
+                                @php
+                                    $stAB = $secTimesFromEntries[$col][$ab] ?? [];
+                                    $canEditDualTime = $canEditReviewTime($stAB['start_time'] ?? null, $stAB['end_time'] ?? null);
+                                @endphp
+                                @if ($canEditDualTime)
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
                                     <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][start_time]"
@@ -564,13 +608,19 @@
                                            value="{{ $stAB['end_time'] ?? '' }}"
                                            class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                                 </div>
+                                @else
+                                <div class="flex items-center justify-center gap-0.5 text-[10px]">
+                                    <span class="font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
+                                    <span class="{{ filled($stAB['start_time'] ?? null) || filled($stAB['end_time'] ?? null) ? 'text-gray-500' : 'text-gray-400 italic' }}">{{ $formatReviewTimeRange($stAB['start_time'] ?? null, $stAB['end_time'] ?? null) }}</span>
+                                </div>
+                                @endif
                                 @endforeach
                             </div>
                             @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
                                 @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
-                                <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
+                                <div>{{ $abLabel }}: {{ $formatReviewTimeRange($stAB['start_time'] ?? null, $stAB['end_time'] ?? null) }}</div>
                                 @endforeach
                             </div>
                             @endif
@@ -581,8 +631,9 @@
                             @php
                                 $expJamMulai   = $secTimesFromEntries[$col]['start_time'] ?? null;
                                 $expJamSelesai = $secTimesFromEntries[$col]['end_time']   ?? null;
+                                $canEditSingleTime = $canEditReviewTime($expJamMulai, $expJamSelesai);
                             @endphp
-                            @if ($isEditable)
+                            @if ($canEditSingleTime)
                             <div class="space-y-0.5 mt-1">
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
@@ -598,9 +649,9 @@
                                 </div>
                             </div>
                             @else
-                            <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
-                                <div>Mulai: {{ $expJamMulai ?: '—' }}</div>
-                                <div>Selesai: {{ $expJamSelesai ?: '—' }}</div>
+                            <div class="text-[10px] space-y-0.5 mt-1 {{ filled($expJamMulai) || filled($expJamSelesai) ? 'text-gray-500' : 'text-gray-400 italic' }}">
+                                <div>Mulai: {{ $formatReviewTimeValue($expJamMulai) }}</div>
+                                <div>Selesai: {{ $formatReviewTimeValue($expJamSelesai) }}</div>
                             </div>
                             @endif
                             @endif
@@ -979,6 +1030,7 @@
         'isMonitoringPhase' => false,
         'isReadingPhase' => false,
         'canEditPersonnelTime' => $canEditPersonnelTime,
+        'restrictPersonnelTimeToExisting' => $reviewTimeRequiresAnalystValue,
         'canManagePersonnelPages' => $isEditable,
         'personnelMethods' => $personnelMethods,
         'personnelInstances' => $personnelInstances,

@@ -131,7 +131,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800">Pemantauan Personel</h3>
-                        <p class="text-xs text-gray-500">Aktifkan jika laporan ini mencakup seksi pemantauan personel (Cawan Kontak &amp; Finger Dab).</p>
+                        <p class="text-xs text-gray-500">Aktifkan jika laporan ini mencakup seksi pemantauan personel (Cawan Kontak & Finger Dab).</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="hidden" name="has_personnel" value="0">

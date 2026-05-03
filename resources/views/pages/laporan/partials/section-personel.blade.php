@@ -11,6 +11,9 @@
       personnel_rows        1 per person dalam instance
       personnel_sampling_entries  1 per (row, sampling_point)
 --}}
+@php
+    $restrictPersonnelTimeToExisting = $restrictPersonnelTimeToExisting ?? false;
+@endphp
 @if ($report->reportType->has_personnel && $personnelMethods->isNotEmpty())
 
 <script>
@@ -280,7 +283,7 @@ window.personnelLimits = {
 
                     {{-- Jam Pemantauan --}}
                     <td rowspan="{{ $pointCount }}" class="border border-gray-300 px-1 py-1 text-center align-middle">
-                        @if (($isEditable && $isMonitoringPhase) || ($canEditPersonnelTime && $row !== null))
+                        @if (($isEditable && $isMonitoringPhase) || ($canEditPersonnelTime && $row !== null && (!$restrictPersonnelTimeToExisting || filled($row?->monitoring_time))))
                         <input type="time"
                                name="personnel[{{ $instId }}][row][{{ $p }}][time]"
                                value="{{ $row?->monitoring_time ?? '' }}"
@@ -484,7 +487,7 @@ window.personnelLimits = {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M12 9v2m0 4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
             </svg>
-            Tanda tangan terisi saat Simpan &amp; Selesaikan / Kirim, bukan saat Simpan Draft.
+            Tanda tangan terisi saat Simpan & Selesaikan / Kirim, bukan saat Simpan Draft.
         </span>
         @endif
     </div>

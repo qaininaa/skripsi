@@ -36,7 +36,7 @@
 {{-- Modal: Handover / Selesaikan Monitoring --}}
 <x-modals.auth-modal
     modal-id="handover-modal"
-    title="Simpan &amp; Serahkan Laporan"
+    title="Simpan & Serahkan Laporan"
     on-close="closeHandoverModal()"
     confirm-id="hm-confirm"
     confirm-label="Lanjutkan"
@@ -63,7 +63,7 @@
         <label class="flex gap-3 items-start cursor-pointer rounded-xl border border-gray-200 p-3 hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors">
             <input type="radio" name="hm-action" value="finish_monitoring" class="mt-0.5 accent-emerald-500" onchange="onHmActionChange()">
             <div>
-                <div class="text-sm font-medium text-gray-800">Selesaikan Monitoring &amp; Mulai Pembacaan</div>
+                <div class="text-sm font-medium text-gray-800">Selesaikan Monitoring & Mulai Pembacaan</div>
                 <div class="text-xs text-gray-500 mt-0.5">Data monitoring sudah lengkap, lanjut ke tahap baca</div>
             </div>
         </label>
