@@ -311,21 +311,57 @@ class SupervisorReportController extends Controller
         $report->loadMissing('reportType.incubatorConfigs');
         foreach ($request->input('incubator', []) as $rtiId => $inkData) {
             $rti = $report->reportType->incubatorConfigs->firstWhere('id', $rtiId);
-            if ($rti) {
-                $report->incubators()->updateOrCreate(
+            if ($rti && is_array($inkData)) {
+                $monitoringData = is_array($inkData['monitoring'] ?? null) ? $inkData['monitoring'] : [];
+
+                $incubator = $report->incubators()->updateOrCreate(
                     ['report_type_incubator_id' => $rti->id],
                     [
-                        'no_id'                => $inkData['no_id']            ?? null ?: null,
+                        'no_id'                => $inkData['no_id'] ?? null ?: null,
                         'calibration_date'     => $inkData['calibration_date'] ?? null ?: null,
-                        'due_date_calibration' => $inkData['due_date']         ?? null ?: null,
-                        'incubated_by'         => $inkData['incubated_by']     ?? null ?: null,
-                        'date_in'              => $inkData['date_in']          ?? null ?: null,
-                        'time_in'              => $inkData['time_in']          ?? null ?: null,
-                        'removed_by'           => $inkData['removed_by']       ?? null ?: null,
-                        'date_out'             => $inkData['date_out']         ?? null ?: null,
-                        'time_out'             => $inkData['time_out']         ?? null ?: null,
+                        'due_date_calibration' => $inkData['due_date_calibration'] ?? ($inkData['due_date'] ?? null) ?: null,
+                        'incubated_by'         => $inkData['incubated_by'] ?? ($monitoringData['incubated_by'] ?? null) ?: null,
+                        'date_in'              => $inkData['date_in'] ?? ($monitoringData['date_in'] ?? null) ?: null,
+                        'time_in'              => $inkData['time_in'] ?? ($monitoringData['time_in'] ?? null) ?: null,
+                        'removed_by'           => $inkData['removed_by'] ?? ($monitoringData['removed_by'] ?? null) ?: null,
+                        'date_out'             => $inkData['date_out'] ?? ($monitoringData['date_out'] ?? null) ?: null,
+                        'time_out'             => $inkData['time_out'] ?? ($monitoringData['time_out'] ?? null) ?: null,
                     ]
                 );
+
+                $entryPayloads = [];
+                foreach ($inkData as $mediumType => $entryData) {
+                    if (is_array($entryData) && in_array((string) $mediumType, ['monitoring', 'swab'], true)) {
+                        $entryPayloads[$mediumType] = $entryData;
+                    }
+                }
+                if (empty($entryPayloads) && (
+                    isset($inkData['incubated_by']) || isset($inkData['date_in']) || isset($inkData['time_in']) ||
+                    isset($inkData['removed_by']) || isset($inkData['date_out']) || isset($inkData['time_out'])
+                )) {
+                    $entryPayloads['monitoring'] = [
+                        'incubated_by' => $inkData['incubated_by'] ?? null,
+                        'date_in'      => $inkData['date_in'] ?? null,
+                        'time_in'      => $inkData['time_in'] ?? null,
+                        'removed_by'   => $inkData['removed_by'] ?? null,
+                        'date_out'     => $inkData['date_out'] ?? null,
+                        'time_out'     => $inkData['time_out'] ?? null,
+                    ];
+                }
+
+                foreach ($entryPayloads as $mediumType => $entryData) {
+                    $incubator->entries()->updateOrCreate(
+                        ['medium_type' => $mediumType],
+                        [
+                            'incubated_by' => $entryData['incubated_by'] ?? null ?: null,
+                            'date_in'      => $entryData['date_in'] ?? null ?: null,
+                            'time_in'      => $entryData['time_in'] ?? null ?: null,
+                            'removed_by'   => $entryData['removed_by'] ?? null ?: null,
+                            'date_out'     => $entryData['date_out'] ?? null ?: null,
+                            'time_out'     => $entryData['time_out'] ?? null ?: null,
+                        ]
+                    );
+                }
             }
         }
 
