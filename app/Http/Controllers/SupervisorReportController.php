@@ -431,6 +431,9 @@ class SupervisorReportController extends Controller
             'reportType.sections.locations.room',
             'reportType.media',
             'reportType.incubatorConfigs',
+            'reportType.personnelMethods.activities',
+            'reportType.personnelMethods.samplingPoints',
+            'reportType.personnelMethods.limits',
             'environmentalEntries.envSectionInstance',
             'approvals.user',
             'sectionColumnNames',
@@ -438,6 +441,8 @@ class SupervisorReportController extends Controller
             'mediumIdentities',
             'incubators.entries.incubatedBy',
             'incubators.entries.removedBy',
+            'personnelInstances.rows.samplingEntries',
+            'personnelSignatures.user',
         ]);
         $report->applyReportTypeSnapshot();
 

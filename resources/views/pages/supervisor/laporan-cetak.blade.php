@@ -141,6 +141,11 @@ table.dt th,table.dt td{border:1px solid #000;padding:2px 2px;vertical-align:mid
 table.dt th{font-size:7pt;font-weight:700;text-align:center}
 table.dt td{font-size:8pt}
 .tc{text-align:center}.tl{text-align:left}.fw{font-weight:700}
+table.dt.dt-personnel th,table.dt.dt-personnel td{word-wrap:normal;word-break:normal;overflow-wrap:normal}
+table.dt.dt-personnel .p-act{width:150px}
+table.dt.dt-personnel .p-point{width:160px}
+table.dt.dt-personnel .p-class{width:35px}
+table.dt.dt-personnel .p-cfu{width:28px}
 table.dt-auto{table-layout:auto}
 table.dt-auto th,table.dt-auto td{padding:15px 8px;white-space:normal;word-wrap:break-word}
 table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-wrap:break-word}
@@ -745,6 +750,346 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     <div class="pg-footer"></div>
 </div>
 @endforeach
+
+@php
+    $personnelMethods = $report->reportType->personnelMethods ?? collect();
+    $personnelInstances = $report->personnelInstances ?? collect();
+    $hasPersonnelMonitoring = (bool) ($report->reportType->has_personnel ?? false)
+        && $personnelMethods->isNotEmpty()
+        && $personnelInstances->isNotEmpty();
+@endphp
+
+@if ($hasPersonnelMonitoring)
+    @php
+        $instancesByPage = $personnelInstances
+            ->groupBy('page_number')
+            ->sortKeys()
+            ->map(fn ($grp) => $grp->keyBy('personnel_section_method_id'));
+
+        $maxExistingPage = (int) ($instancesByPage->keys()->max() ?? 1);
+        $totalPersonnelPages = max(2, $maxExistingPage);
+        $personnelPages = collect(range(1, $totalPersonnelPages));
+    @endphp
+
+    @foreach ($personnelPages as $pageNum)
+        @php
+            $pageInstancesByMethod = $instancesByPage->get($pageNum, collect());
+            $fallbackPageOneByMethod = $instancesByPage->get(1, collect());
+            $personCount = $pageNum === 1 ? 2 : 4;
+            $pageNoteSource = $pageInstancesByMethod
+                ->first(fn ($inst) => filled($inst->note) || filled($inst->deviation))
+                ?? $pageInstancesByMethod->first();
+            $pageNote = [
+                'note' => $pageNoteSource?->note ?? '',
+                'deviation' => $pageNoteSource?->deviation ?? '',
+            ];
+        @endphp
+        <div class="doc-page portrait">
+            <div class="pg-hdr">
+                <div class="doc-num">{{ $report->reportType->annex_number }}</div>
+                <div class="doc-title">{{ strtoupper($report->reportType->name) }}</div>
+                <hr class="doc-title-line">
+            </div>
+
+            @if ($pageNum === 1)
+                <table class="dt dt-auto" style="margin-bottom:8px">
+                    <tr><td colspan="2" class="sec-hdr">Pemantauan Higienitas Personil Rutin</td></tr>
+                    <tr><td style="width:45%">Tanggal Pemantauan</td><td>{{ $report->created_at->isoFormat('D MMMM Y') }}</td></tr>
+                    <tr><td>Nama Produk</td><td>{{ $report->product_name ?? '' }}</td></tr>
+                    <tr><td>No Batch Produk</td><td>{{ $report->batch_number ?? '' }}</td></tr>
+                </table>
+
+                <table class="dt" style="margin-bottom:8px">
+                    <thead>
+                        <tr>
+                            <th rowspan="3" style="width:22px">No</th>
+                            <th rowspan="3" style="width:95px">Metode</th>
+                            <th rowspan="3" style="width:115px">Spesifikasi</th>
+                            <th colspan="4">Kelas</th>
+                        </tr>
+                        <tr>
+                            <th colspan="2">B</th>
+                            <th colspan="2">C</th>
+                        </tr>
+                        <tr>
+                            <th>T</th><th>F</th><th>T</th><th>F</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($personnelMethods as $idx => $method)
+                            @php
+                                $limits = $method->limits->keyBy(fn ($l) => $l->class . '_' . $l->limit_type);
+                                $bAlert = $limits->get('b_alert');
+                                $bAction = $limits->get('b_action');
+                                $cAlert = $limits->get('c_alert');
+                                $cAction = $limits->get('c_action');
+                            @endphp
+                            <tr>
+                                <td rowspan="2" class="tc">{{ $idx + 1 }}</td>
+                                <td rowspan="2" class="tc">
+                                    {{ $method->method }}<br>
+                                    <span style="font-size:7pt">(CFU/plate)</span>
+                                </td>
+                                <td class="tl">Alert Limit</td>
+                                <td class="tc">{{ $bAlert ? ($bAlert->cfu_total == 1 ? '<1' : $bAlert->cfu_total) : '' }}</td>
+                                <td class="tc">{{ $bAlert ? ($bAlert->cfu_fungi == 1 ? '<1' : $bAlert->cfu_fungi) : '' }}</td>
+                                <td class="tc">{{ $cAlert ? ($cAlert->cfu_total == 1 ? '<1' : $cAlert->cfu_total) : '' }}</td>
+                                <td class="tc">{{ $cAlert ? ($cAlert->cfu_fungi == 1 ? '<1' : $cAlert->cfu_fungi) : '' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="tl">Action Limit</td>
+                                <td class="tc">{{ $bAction ? ($bAction->cfu_total == 1 ? '<1' : $bAction->cfu_total) : '' }}</td>
+                                <td class="tc">{{ $bAction ? ($bAction->cfu_fungi == 1 ? '<1' : $bAction->cfu_fungi) : '' }}</td>
+                                <td class="tc">{{ $cAction ? ($cAction->cfu_total == 1 ? '<1' : $cAction->cfu_total) : '' }}</td>
+                                <td class="tc">{{ $cAction ? ($cAction->cfu_fungi == 1 ? '<1' : $cAction->cfu_fungi) : '' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+
+            @foreach ($personnelMethods as $method)
+                @php
+                    $isFingerDab = str_contains(strtolower($method->method), 'finger')
+                        || str_contains(strtolower($method->method), 'dab');
+                    $instance = $pageInstancesByMethod->get($method->id);
+                    $sourceInstance = $instance;
+                    if ($pageNum === 2 && ! $sourceInstance) {
+                        $sourceInstance = $fallbackPageOneByMethod->get($method->id);
+                    }
+                    $existingRows = ($sourceInstance?->rows ?? collect())->keyBy('row_order');
+                    $points = $method->samplingPoints;
+                    $pointCount = max(1, $points->count());
+                @endphp
+
+                <table class="dt dt-personnel" style="margin-bottom:8px">
+                    <colgroup>
+                        <col style="width:90px">
+                        <col style="width:66px">
+                        <col class="p-act">
+                        <col class="p-point">
+                        <col class="p-class">
+                        <col class="p-cfu">
+                        <col class="p-cfu">
+                        <col class="p-cfu">
+                        <col style="width:62px">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th colspan="9" class="tl" style="font-size:8pt">Metode {{ $method->method }}</th>
+                        </tr>
+                        <tr>
+                            <th rowspan="2" style="width:90px">Nama Personel</th>
+                            <th rowspan="2" style="width:66px">Jam Pemantauan<br><span style="font-weight:400">(Jam : menit)</span></th>
+                            <th rowspan="2">Aktivitas</th>
+                            <th rowspan="2">Titik Sampling</th>
+                            <th rowspan="2">Kelas</th>
+                            <th colspan="3">Hasil Pengamatan<br>(CFU/plate)</th>
+                            <th rowspan="2" style="width:62px">Kesimpulan</th>
+                        </tr>
+                        <tr>
+                            <th>B</th>
+                            <th>F</th>
+                            <th>T</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for ($p = 0; $p < $personCount; $p++)
+                            @php
+                                $row = $existingRows->get($p) ?? $existingRows->get($p + 1);
+                                $rowActivities = collect($row?->activities ?? [])->map(fn ($id) => (string) $id)->all();
+                                $rowCfu = $row ? $row->samplingEntries->keyBy('sampling_point_id') : collect();
+                                $rowClass = $isFingerDab ? 'B' : strtoupper($row?->class ?? 'B / C');
+                                $timeVal = $row?->monitoring_time
+                                    ? \Illuminate\Support\Str::substr((string) $row->monitoring_time, 0, 5)
+                                    : 'N/A';
+                            @endphp
+                            @foreach ($points as $pi => $point)
+                                @php
+                                    $se = $rowCfu->get($point->id);
+                                    $kesimpulan = in_array($se?->kesimpulan, ['MS', 'TMS'], true) ? $se->kesimpulan : 'MS / TMS';
+                                @endphp
+                                <tr>
+                                    @if ($pi === 0)
+                                        <td rowspan="{{ $pointCount }}" class="tc">{{ $row?->personnel_name ?? 'N/A' }}</td>
+                                        <td rowspan="{{ $pointCount }}" class="tc">{{ $timeVal }}</td>
+                                        <td rowspan="{{ $pointCount }}" class="tl" style="padding-left:4px;white-space:normal;word-break:normal">
+                                            @if ($method->activities->isNotEmpty())
+                                                @foreach ($method->activities as $act)
+                                                    @php $isChecked = in_array((string) $act->id, $rowActivities, true); @endphp
+                                                    <div>{{ $isChecked ? '☑' : '☐' }} {{ $act->activity }}</div>
+                                                @endforeach
+                                            @else
+                                                <div>N/A</div>
+                                            @endif
+                                        </td>
+                                    @endif
+                                    <td class="tc" style="white-space:normal;word-break:normal">{{ $point->sampling_point ?? 'N/A' }}</td>
+                                    @if ($pi === 0)
+                                        <td rowspan="{{ $pointCount }}" class="tc">{{ $rowClass }}</td>
+                                    @endif
+                                    <td class="tc">{{ $se?->cfu_bacteria ?? '' }}</td>
+                                    <td class="tc">{{ $se?->cfu_fungi ?? '' }}</td>
+                                    <td class="tc">{{ $se?->cfu_total ?? '' }}</td>
+                                    <td class="tc">{{ $kesimpulan }}</td>
+                                </tr>
+                            @endforeach
+                        @endfor
+                    </tbody>
+                </table>
+            @endforeach
+
+            @if ($pageNum >= 2)
+                <div style="margin-top:6px;font-size:8pt;line-height:1.5">
+                    <div style="display:flex;align-items:flex-start;gap:5px;margin-bottom:2px;">
+                        <span class="fw" style="display:inline-block;width:48px">Catatan</span>
+                        <span>:</span>
+                        <span style="display:inline-block;min-height:10px">{{ $pageNote['note'] ?: '' }}</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:5px;">
+                        <span class="fw" style="display:inline-block;width:48px">Deviasi</span>
+                        <span>:</span>
+                        <span style="display:inline-block;min-height:10px">{{ $pageNote['deviation'] ?: '' }}</span>
+                    </div>
+                </div>
+
+                <div style="font-size:7.5pt;margin-top:8px;line-height:1.5">
+                    Keterangan :<br>
+                    B : Total Bakteri<br>
+                    F : Total Fungi<br>
+                    T : Total Bakteri + Fungi<br>
+                    MS : Memenuhi Spesifikasi<br>
+                    TMS : Tidak Memenuhi Spesifikasi<br>
+                    <sup>1)</sup> Lingkari salah satu
+                </div>
+            @endif
+            <div class="pg-footer"></div>
+        </div>
+    @endforeach
+
+    @php
+        $personnelRows = $personnelInstances->flatMap->rows;
+        $personnelSamplingEntries = $personnelRows->flatMap->samplingEntries;
+        $hasPersonnelConclusion = $personnelSamplingEntries
+            ->contains(fn ($entry) => in_array($entry->kesimpulan, ['MS', 'TMS'], true));
+        $hasPersonnelTms = $personnelSamplingEntries
+            ->contains(fn ($entry) => $entry->kesimpulan === 'TMS');
+
+        $conclusionText = null;
+        if ($hasPersonnelConclusion) {
+            $conclusionText = $hasPersonnelTms
+                ? 'TIDAK MEMENUHI SPESIFIKASI'
+                : 'MEMENUHI SPESIFIKASI';
+        }
+
+        $monitoringPersonnelSigs = $report->personnelSignatures
+            ->where('role', 'monitoring')
+            ->filter(fn ($sig) => $sig->user)
+            ->sortBy(fn ($sig) => $sig->signed_at?->getTimestamp() ?? $sig->created_at?->getTimestamp() ?? 0)
+            ->values();
+
+        $readingPersonnelSigs = $report->personnelSignatures
+            ->where('role', 'reading')
+            ->filter(fn ($sig) => $sig->user)
+            ->sortBy(fn ($sig) => $sig->signed_at?->getTimestamp() ?? $sig->created_at?->getTimestamp() ?? 0)
+            ->values();
+
+        $latestApprovalByStep = static function (int $step) use ($report) {
+            return $report->approvals
+                ->where('step', $step)
+                ->sortByDesc(fn ($row) => $row->updated_at?->getTimestamp() ?? $row->created_at?->getTimestamp() ?? 0)
+                ->first();
+        };
+
+        $personnelSupApproval = $latestApprovalByStep(2);
+        $personnelMngrApproval = $latestApprovalByStep(3);
+    @endphp
+
+    <div class="doc-page portrait">
+        <div class="pg-hdr">
+            <div class="doc-num">{{ $report->reportType->annex_number }}</div>
+            <div class="doc-title">{{ strtoupper($report->reportType->name) }}</div>
+            <hr class="doc-title-line">
+        </div>
+
+        <div style="margin-top:6px;margin-bottom:8px;font-size:8pt">
+            <span class="fw">Kesimpulan</span>
+            :
+            @if ($conclusionText)
+                {{ $conclusionText }}
+            @else
+                MEMENUHI SPESIFIKASI / TIDAK MEMENUHI SPESIFIKASI<sup>1)</sup>
+            @endif
+        </div>
+
+        <table class="dt sig-tbl" style="margin-top:10px">
+            <tr>
+                <td style="width:25%;font-weight:700">Dimonitoring oleh:</td>
+                <td style="width:25%;font-weight:700">Dibaca oleh:</td>
+                <td style="width:25%;font-weight:700">Direview oleh:</td>
+                <td style="width:25%;font-weight:700">Disetujui oleh:</td>
+            </tr>
+            <tr>
+                <td style="height:24mm;vertical-align:top;text-align:center">
+                    <div style="padding-top:4mm">
+                        @foreach ($monitoringPersonnelSigs as $sig)
+                            <div>
+                                <div style="font-weight:700">{{ $sig->user->name }}</div>
+                                @if ($sig->signed_at)
+                                    <div style="font-size:16px;line-height:1">&#10003;</div>
+                                    <div style="font-size:10px">{{ $sig->signed_at->isoFormat('D MMM Y') }}</div>
+                                    <div style="font-size:10px">{{ $sig->signed_at->isoFormat('HH:mm') }}</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </td>
+                <td style="height:24mm;vertical-align:top;text-align:center">
+                    <div style="padding-top:4mm">
+                        @foreach ($readingPersonnelSigs as $sig)
+                            <div>
+                                <div style="font-weight:700">{{ $sig->user->name }}</div>
+                                @if ($sig->signed_at)
+                                    <div style="font-size:16px;line-height:1">&#10003;</div>
+                                    <div style="font-size:10px">{{ $sig->signed_at->isoFormat('D MMM Y') }}</div>
+                                    <div style="font-size:10px">{{ $sig->signed_at->isoFormat('HH:mm') }}</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </td>
+                <td style="height:24mm;vertical-align:middle;text-align:center">
+                    @if ($personnelSupApproval?->user)
+                        <div style="font-weight:700">{{ $personnelSupApproval->user->name }}</div>
+                        @if ($personnelSupApproval->signed_at)
+                            <div style="font-size:16px;line-height:1">&#10003;</div>
+                            <div style="font-size:10px">{{ \Illuminate\Support\Carbon::parse($personnelSupApproval->signed_at)->isoFormat('D MMM Y') }}</div>
+                            <div style="font-size:10px">{{ \Illuminate\Support\Carbon::parse($personnelSupApproval->signed_at)->isoFormat('HH:mm') }}</div>
+                        @endif
+                    @endif
+                </td>
+                <td style="height:24mm;vertical-align:middle;text-align:center">
+                    @if ($personnelMngrApproval?->user)
+                        <div style="font-weight:700">{{ $personnelMngrApproval->user->name }}</div>
+                        @if ($personnelMngrApproval->signed_at)
+                            <div style="font-size:16px;line-height:1">&#10003;</div>
+                            <div style="font-size:10px">{{ \Illuminate\Support\Carbon::parse($personnelMngrApproval->signed_at)->isoFormat('D MMM Y') }}</div>
+                            <div style="font-size:10px">{{ \Illuminate\Support\Carbon::parse($personnelMngrApproval->signed_at)->isoFormat('HH:mm') }}</div>
+                        @endif
+                    @endif
+                </td>
+            </tr>
+            <tr>
+                <td>(Analis Lab. Mikrobiologi)</td>
+                <td>(Analis Lab. Mikrobiologi)</td>
+                <td>(Supervisor Mikrobiologi)</td>
+                <td>(Jr. Manager Lab. Mikrobiologi)</td>
+            </tr>
+        </table>
+        <div style="font-size:7.5pt;margin-top:8px"><sup>1)</sup> Lingkari salah satu</div>
+        <div class="pg-footer"></div>
+    </div>
+@endif
 </div>{{-- /zoom-wrap --}}
 </div>{{-- /zoom-outer --}}
 

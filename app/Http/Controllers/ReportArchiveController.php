@@ -129,12 +129,18 @@ class ReportArchiveController extends Controller
             'reportType.sections.locations.room',
             'reportType.media',
             'reportType.incubatorConfigs',
+            'reportType.personnelMethods.activities',
+            'reportType.personnelMethods.samplingPoints',
+            'reportType.personnelMethods.limits',
             'environmentalEntries.envSectionInstance',
             'sectionColumnNames',
             'instrumentIdentities',
             'mediumIdentities',
             'incubators.entries.incubatedBy',
             'incubators.entries.removedBy',
+            'approvals.user',
+            'personnelInstances.rows.samplingEntries',
+            'personnelSignatures.user',
         ]);
         $report->applyReportTypeSnapshot();
 
