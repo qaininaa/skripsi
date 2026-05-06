@@ -7,9 +7,10 @@ use App\Domains\ReportType\Http\Controllers\ReportTypeController;
 use App\Domains\ReportType\Http\Controllers\ReportLocationController;
 use App\Domains\ReportType\Http\Controllers\ReportSectionController;
 use App\Domains\ReportAssignment\Http\Controllers\ReportAssignmentController;
+use App\Domains\AnalystReport\ReportClaiming\Http\Controllers\ReportClaimingController;
+use App\Domains\AnalystReport\ReportDrafting\Http\Controllers\ReportDraftingController;
 use App\Domains\ReportPreview\Http\Controllers\ReportPreviewController;
 use App\Domains\ReportPreview\Http\Controllers\ReportPreviewStructureController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ManagerReportController;
 use App\Http\Controllers\PasswordSettingController;
@@ -98,11 +99,11 @@ Route::middleware(['auth', 'password.check', 'role:analis'])
             return view('pages.dashboard.analis');
         })->name('dashboard.analis');
 
-        Route::get('laporan', [ReportController::class, 'index'])->name('laporan.index');
-        Route::get('laporan/{report}/isi', [ReportController::class, 'isi'])->name('laporan.isi');
+        Route::get('laporan', [ReportClaimingController::class, 'index'])->name('laporan.index');
+        Route::get('laporan/{report}/isi', [ReportClaimingController::class, 'isi'])->name('laporan.isi');
         Route::get('laporan/{report}/lihat', [ReportPreviewController::class, 'show'])->name('laporan.lihat');
-        Route::post('laporan/{report}/save', [ReportController::class, 'save'])->name('laporan.save');
-        Route::post('laporan/verify-password', [ReportController::class, 'verifyPassword'])->name('laporan.verify-password');
+        Route::post('laporan/{report}/save', [ReportDraftingController::class, 'save'])->name('laporan.save');
+        Route::post('laporan/verify-password', [ReportDraftingController::class, 'verifyPassword'])->name('laporan.verify-password');
     });
 
 // Dashboard & Laporan Masuk Supervisor

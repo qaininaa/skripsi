@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Auth;
  * ReportWorkflowService
  *
  * Menangani semua logika alur kerja (workflow) laporan:
- *   - Klaim / penguncian laporan ke analis
  *   - Pencatatan partisipasi analis
  *   - Stamping tanda tangan per seksi
  *   - Transisi status: finish_monitoring, submit, submit_revision, handover
@@ -21,49 +20,6 @@ use Illuminate\Support\Facades\Auth;
  */
 class ReportWorkflowService
 {
-    /**
-     * Ambil data approval yang menyebabkan laporan dikembalikan (status 'returned').
-     * Mengembalikan null jika tidak ada, atau jika laporan tidak sedang berstatus 'returned'.
-     */
-    public function getReturnedApproval(Report $report): ?ReportApproval
-    {
-        return ReportApproval::where('report_id', $report->id)
-            ->where('status', 'returned')
-            ->with('user')
-            ->first();
-    }
-
-    /**
-     * Klaim laporan ke analis yang sedang login.
-     *
-     * Kondisi yang membolehkan klaim:
-     *   - Status 'pending' atau 'returned' → set status = 'monitoring', locked_by = user ini
-     *   - Status 'monitoring' dan locked_by null → set locked_by = user ini
-     *   - Status 'reading' dan locked_by null → set locked_by = user ini + catat sebagai analis pembaca
-     */
-    public function claimReport(Report $report, string $userId): void
-    {
-        if (in_array($report->status, ['pending', 'returned'])
-            || ($report->status === 'monitoring' && $report->locked_by === null)) {
-            $report->update(['status' => 'monitoring', 'locked_by' => $userId]);
-
-            Analyst::updateOrCreate([
-                'report_id' => $report->id,
-                'user_id'   => $userId,
-                'type'      => 'monitoring',
-            ]);
-
-        } elseif ($report->status === 'reading' && $report->locked_by === null) {
-            $report->update(['locked_by' => $userId]);
-
-            Analyst::updateOrCreate([
-                'report_id' => $report->id,
-                'user_id'   => $userId,
-                'type'      => 'reading',
-            ]);
-        }
-    }
-
     /**
      * Catat partisipasi analis yang sedang login di tabel 'analysts'.
      * Dipanggil setiap kali analis menyimpan data laporan.
