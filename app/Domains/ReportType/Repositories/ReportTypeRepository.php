@@ -9,8 +9,16 @@ use App\Models\MediumType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
+/**
+ * Repository for report type aggregate persistence and query operations.
+ */
 class ReportTypeRepository
 {
+    /**
+     * Get paginated report types for management page.
+     *
+     * @return LengthAwarePaginator<int, ReportType>
+     */
     public function paginateForManagement(int $perPage = 10): LengthAwarePaginator
     {
         return ReportType::query()
@@ -19,11 +27,21 @@ class ReportTypeRepository
             ->paginate($perPage);
     }
 
+    /**
+     * Create a report type record.
+     *
+     * @param  array<string, mixed>  $payload
+     */
     public function create(array $payload): ReportType
     {
         return ReportType::create($payload);
     }
 
+    /**
+     * Update an existing report type record.
+     *
+     * @param  array<string, mixed>  $payload
+     */
     public function update(ReportType $reportType, array $payload): ReportType
     {
         $reportType->update($payload);
@@ -31,22 +49,34 @@ class ReportTypeRepository
         return $reportType;
     }
 
+    /**
+     * Delete a report type record.
+     */
     public function delete(ReportType $reportType): void
     {
         $reportType->delete();
     }
 
+    /**
+     * Check whether report type already has report instances.
+     */
     public function hasReports(ReportType $reportType): bool
     {
         return $reportType->reports()->exists();
     }
 
+    /**
+     * Remove all related medium and incubator type rows for a report type.
+     */
     public function clearMediumAndIncubatorTypes(ReportType $reportType): void
     {
         $reportType->mediumTypes()->delete();
         $reportType->incubatorTypes()->delete();
     }
 
+    /**
+     * Add medium type row for a report type.
+     */
     public function addMediumType(ReportType $reportType, string $label): void
     {
         MediumType::create([
@@ -55,6 +85,9 @@ class ReportTypeRepository
         ]);
     }
 
+    /**
+     * Add incubator type row for a report type.
+     */
     public function addIncubatorType(ReportType $reportType, string $label, int $minDay): void
     {
         IncubatorType::create([
@@ -64,6 +97,11 @@ class ReportTypeRepository
         ]);
     }
 
+    /**
+     * Fetch locations list used by report type show page.
+     *
+     * @return Collection<int, Location>
+     */
     public function locationsForShow(): Collection
     {
         return Location::query()

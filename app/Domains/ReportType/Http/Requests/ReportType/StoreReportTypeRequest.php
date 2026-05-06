@@ -2,6 +2,4 @@
 
 namespace App\Domains\ReportType\Http\Requests;
 
-class StoreReportTypeRequest extends ReportTypeRequest
-{
-}
+class StoreReportTypeRequest extends ReportTypeRequest {}

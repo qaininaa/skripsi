@@ -2,6 +2,7 @@
 
 namespace App\Domains\ReportType\Services;
 
+use App\Domains\Location\Models\Location;
 use App\Domains\ReportType\Models\ReportType;
 use App\Domains\ReportType\Repositories\ReportTypeRepository;
 use App\Models\AuditLog;
@@ -9,6 +10,9 @@ use App\Services\Personnels\PersonnelService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
+/**
+ * Service for report type aggregate management use-cases.
+ */
 class ReportTypeService
 {
     public function __construct(
@@ -16,11 +20,31 @@ class ReportTypeService
         private PersonnelService $personnelService,
     ) {}
 
+    /**
+     * Get paginated report types for management page.
+     *
+     * @return LengthAwarePaginator<int, ReportType>
+     */
     public function paginateForManagement(): LengthAwarePaginator
     {
         return $this->repository->paginateForManagement(15);
     }
 
+    /**
+     * Create report type including related medium and incubator rows.
+     *
+     * @param array{
+     *   sop_code: string,
+     *   sop_version: string,
+     *   name: string,
+     *   annex_number: int,
+     *   has_personnel?: bool,
+     *   medium_labels?: array<int, string|null>,
+     *   incubator_labels?: array<int, string|null>,
+     *   incubator_min_days?: array<int, int|string|null>
+     * } $validated
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     public function create(array $validated, array $meta): ReportType
     {
         $reportType = $this->repository->create([
@@ -39,6 +63,21 @@ class ReportTypeService
         return $reportType;
     }
 
+    /**
+     * Update report type and synchronize related medium/incubator rows.
+     *
+     * @param array{
+     *   sop_code: string,
+     *   sop_version: string,
+     *   name: string,
+     *   annex_number: int,
+     *   has_personnel?: bool,
+     *   medium_labels?: array<int, string|null>,
+     *   incubator_labels?: array<int, string|null>,
+     *   incubator_min_days?: array<int, int|string|null>
+     * } $validated
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     public function update(ReportType $reportType, array $validated, array $meta): ReportType
     {
         $wasPersonnel = (bool) $reportType->has_personnel;
@@ -67,6 +106,11 @@ class ReportTypeService
         return $reportType;
     }
 
+    /**
+     * Delete report type and write audit log.
+     *
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     public function delete(ReportType $reportType, array $meta): void
     {
         $name = $reportType->name;
@@ -77,16 +121,29 @@ class ReportTypeService
         $this->auditLog('delete_report_type', "Menghapus jenis laporan: {$name} ({$annex})", $meta);
     }
 
+    /**
+     * Check whether report type has related reports.
+     */
     public function hasReports(ReportType $reportType): bool
     {
         return $this->repository->hasReports($reportType);
     }
 
+    /**
+     * Get ordered location list for report type show page.
+     *
+     * @return Collection<int, Location>
+     */
     public function locationsForShow(): Collection
     {
         return $this->repository->locationsForShow();
     }
 
+    /**
+     * Synchronize medium labels into medium type rows.
+     *
+     * @param  array<int, string|null>  $labels
+     */
     private function syncMedia(ReportType $reportType, array $labels): void
     {
         foreach ($labels as $label) {
@@ -97,6 +154,12 @@ class ReportTypeService
         }
     }
 
+    /**
+     * Synchronize incubator labels and minimum days into incubator type rows.
+     *
+     * @param  array<int, string|null>  $labels
+     * @param  array<int, int|string|null>  $minDays
+     */
     private function syncIncubators(ReportType $reportType, array $labels, array $minDays): void
     {
         foreach ($labels as $index => $label) {
@@ -111,6 +174,11 @@ class ReportTypeService
         }
     }
 
+    /**
+     * Write audit log for report type action.
+     *
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     private function auditLog(string $action, string $description, array $meta): void
     {
         AuditLog::create([
