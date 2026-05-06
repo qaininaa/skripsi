@@ -10,19 +10,27 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserService
 {
-    private const DEFAULT_PASSWORD = 'ethica';
-
     public function __construct(private UserRepository $repository) {}
 
+    /**
+     * Get paginated users for management page.
+     *
+     * @return LengthAwarePaginator<int, User>
+     */
     public function paginateForManagement(?string $search, ?string $role): LengthAwarePaginator
     {
         return $this->repository->paginateForManagement($search, $role, 10);
     }
 
+    /**
+     * Create new user with default password and audit log.
+     *
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     public function create(UserDTO $dto, array $meta): User
     {
         $payload = $dto->toCreatePayload();
-        $payload['password'] = self::DEFAULT_PASSWORD;
+        $payload['password'] = (string) config('default_user_password');
         $payload['last_password_changed_at'] = null;
 
         $user = $this->repository->create($payload);
@@ -32,10 +40,15 @@ class UserService
         return $user;
     }
 
+    /**
+     * Reset user password to default and create audit log.
+     *
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     public function resetPassword(User $user, array $meta): User
     {
         $payload = [
-            'password' => self::DEFAULT_PASSWORD,
+            'password' => (string) config('default_user_password'),
             'last_password_changed_at' => null,
         ];
 
@@ -46,6 +59,11 @@ class UserService
         return $updatedUser;
     }
 
+    /**
+     * Delete user and create audit log.
+     *
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     public function delete(User $user, array $meta): void
     {
         $info = "{$user->name} ({$user->username})";
@@ -55,11 +73,19 @@ class UserService
         $this->auditLog('delete_user', "Menghapus pengguna: {$info}", $meta);
     }
 
+    /**
+     * Check manager role uniqueness.
+     */
     public function isManajerTaken(?string $excludeUserId = null): bool
     {
         return $this->repository->isManajerTaken($excludeUserId);
     }
 
+    /**
+     * Write audit log entry for user management actions.
+     *
+     * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
+     */
     private function auditLog(string $action, string $description, array $meta): void
     {
         AuditLog::create([

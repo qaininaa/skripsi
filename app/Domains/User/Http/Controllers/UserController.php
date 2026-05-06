@@ -42,7 +42,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('users.index')
-            ->with('success', 'Pengguna baru berhasil dibuat. Password default: ethica.');
+            ->with('success', 'Pengguna baru berhasil dibuat. Password default.');
     }
 
     public function resetPassword(Request $request, User $user): RedirectResponse
@@ -51,7 +51,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('users.index')
-            ->with('success', "Password pengguna {$user->username} direset ke default: ethica.");
+            ->with('success', "Password pengguna {$user->username} direset ke default");
     }
 
     public function destroy(Request $request, User $user): RedirectResponse
