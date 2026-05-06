@@ -123,7 +123,7 @@
                             <td class="px-6 py-3.5 text-sm text-gray-400">{{ $user->created_at?->format('d M Y') ?? '—' }}</td>
                             <td class="px-6 py-3.5">
                                 <div class="flex justify-end items-center gap-2">
-                                    <form action="{{ route('users.reset-password', $user) }}" method="POST" onsubmit="return confirm('Reset password pengguna ini ke default (ethica)?');">
+                                    <form action="{{ route('users.reset-password', $user) }}" method="POST" onsubmit="return confirm('Reset password pengguna ini ke default?');">
                                         @csrf
                                         <button type="submit" class="btn-action-edit">
                                             Reset Password

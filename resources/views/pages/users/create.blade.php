@@ -56,7 +56,7 @@
                 </div>
 
                 <div class="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
-                    <strong>Password Default:</strong> Akun baru otomatis dibuat dengan password <span class="font-semibold">ethica</span>. Jika perlu, gunakan tombol Reset Password di daftar pengguna untuk mengembalikan ke default.
+                    <strong>Password Default:</strong> Akun baru otomatis dibuat dengan password <span class="font-semibold">default</span>. Jika perlu, gunakan tombol Reset Password di daftar pengguna untuk mengembalikan ke default.
                 </div>
 
                 <div class="pt-2 flex justify-end gap-3">
