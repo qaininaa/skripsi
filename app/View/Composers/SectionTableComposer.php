@@ -30,7 +30,7 @@ class SectionTableComposer
         $isPerLocation   = $section->time_slot_type === 'per_location';
         $isDualAB        = $section->time_slot_type === 'dual_ab';
         $isSwabTime      = $section->time_slot_type === 'swab';
-        $isSettlePlate   = $section->measurement_type === 'settle_plate';
+        $isSettlePlate   = $section->measurement_key === 'settle_plate';
         $colLabelRaw     = is_string($section->column_label) ? trim($section->column_label) : null;
         $colLabel        = $colLabelRaw !== '' ? $colLabelRaw : null;
         $subColsPerExp   = $isPerLocation ? 4 : 3;

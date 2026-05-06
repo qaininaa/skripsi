@@ -3,9 +3,9 @@
 namespace App\Services\Masters\ReportManagements;
 
 use App\Models\AuditLog;
+use App\Models\IncubatorType;
+use App\Models\MediumType;
 use App\Models\ReportType;
-use App\Models\ReportTypeIncubator;
-use App\Models\ReportTypeMedium;
 use App\Services\Personnels\PersonnelService;
 use Illuminate\Http\Request;
 
@@ -45,8 +45,8 @@ class ReportTypeService
         ]);
 
         // hapus lama, sync baru
-        $reportType->media()->delete();
-        $reportType->incubatorConfigs()->delete();
+        $reportType->mediumTypes()->delete();
+        $reportType->incubatorTypes()->delete();
         $this->syncMedia($reportType, $validated['medium_labels'] ?? []);
         $this->syncIncubators($reportType, $validated['incubator_labels'] ?? [], $validated['incubator_min_days'] ?? []);
 
@@ -79,7 +79,7 @@ class ReportTypeService
         foreach ($labels as $label) {
             $label = trim($label);
             if ($label !== '') {
-                ReportTypeMedium::create([
+                MediumType::create([
                     'report_type_id' => $reportType->id,
                     'name'           => $label,
                 ]);
@@ -92,10 +92,10 @@ class ReportTypeService
         foreach ($labels as $i => $label) {
             $label = trim($label);
             if ($label !== '') {
-                ReportTypeIncubator::create([
+                IncubatorType::create([
                     'report_type_id'    => $reportType->id,
                     'temperature_label' => $label,
-                    'min_days'          => (int) ($minDays[$i] ?? 3),
+                    'min_day'           => (int) ($minDays[$i] ?? 3),
                 ]);
             }
         }

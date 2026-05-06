@@ -86,6 +86,7 @@
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis Laporan</th>
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama Produk</th>
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Batch Produk</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status Print</th>
                                 <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
@@ -108,6 +109,25 @@
                                         {{ $report->batch_number ?: '-' }}
                                     </td>
                                     <td class="px-5 py-3.5">
+                                        @if ($report->printed_at)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                                Sudah Print
+                                            </span>
+                                            <p class="mt-1 text-[11px] text-gray-500">
+                                                {{ $report->printed_at->isoFormat('D MMM Y, HH:mm') }}
+                                            </p>
+                                            @if ($report->printedByUser)
+                                                <p class="text-[11px] text-gray-400">
+                                                    oleh {{ $report->printedByUser->name }}
+                                                </p>
+                                            @endif
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                                Belum Print
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-5 py-3.5">
                                         <a href="{{ route('arsip-laporan.show', ['report' => $report->id, 'folder' => $activeFolder['key']]) }}"
                                             target="_blank" rel="noopener noreferrer"
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-medium hover:bg-green-100 transition-colors">
@@ -115,7 +135,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
-                                            Detail
+                                            Print
                                         </a>
                                     </td>
                                 </tr>

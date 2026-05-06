@@ -1,5 +1,5 @@
 {{-- ── Section 2: Identitas Instrumen — Air Sampler ────── --}}
-{{-- Data disimpan ke tabel instrument_identities via $instrument (InstrumentIdentity model) --}}
+{{-- Data disimpan ke tabel instrument_entries via $instrument (InstrumentEntry model) --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
         <h3 class="font-semibold text-sm text-gray-700">2. Identitas Instrumen </h3>

@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class ReportTypeMedium extends Model
+class MediumType extends Model
 {
     use HasUuids;
 
-    protected $table = 'report_type_mediums';
+    protected $table = 'medium_types';
 
     protected $fillable = ['report_type_id', 'name'];
 

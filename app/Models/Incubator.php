@@ -22,19 +22,11 @@ class Incubator extends Model
         'no_id',
         'calibration_date',
         'due_date_calibration',
-        'incubated_by',
-        'date_in',
-        'time_in',
-        'removed_by',
-        'date_out',
-        'time_out',
     ];
 
     protected $casts = [
         'calibration_date'     => 'date',
         'due_date_calibration' => 'date',
-        'date_in'              => 'date',
-        'date_out'             => 'date',
     ];
 
     public function report(): BelongsTo
@@ -42,9 +34,14 @@ class Incubator extends Model
         return $this->belongsTo(Report::class);
     }
 
+    public function incubatorType(): BelongsTo
+    {
+        return $this->belongsTo(IncubatorType::class, 'report_type_incubator_id');
+    }
+
     public function reportTypeIncubator(): BelongsTo
     {
-        return $this->belongsTo(ReportTypeIncubator::class);
+        return $this->incubatorType();
     }
 
     public function entries(): HasMany

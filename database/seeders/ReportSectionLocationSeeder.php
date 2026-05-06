@@ -25,7 +25,7 @@ class ReportSectionLocationSeeder extends Seeder
         // Kelompokkan: sectionByTypeAndAnnex[18]['settle_plate'] = section_id
         $sectionMap = [];
         foreach ($sections as $s) {
-            $sectionMap[$s->rt_code][$s->measurement_type] = $s->id;
+            $sectionMap[$s->rt_code][$this->normalizeMeasurementType($s->measurement_type)] = $s->id;
         }
 
         // Ambil semua lokasi
@@ -34,8 +34,19 @@ class ReportSectionLocationSeeder extends Seeder
             ->select('locations.id', 'locations.measurement_type', 'rooms.room_name')
             ->get();
 
-        // Map berdasarkan annex_number integer (18, 24, 3, 4)
+        // Map berdasarkan annex_number integer
         $roomToAnnex = [
+            // Annex 17 — Filling Line 1
+            'LAF Mesin Filling 1' => 17,
+            'Filling Room 1' => 17,
+            'Material Airlock In 2' => 17,
+            'Material Airlock Out 2' => 17,
+            'Equipment Store 3' => 17,
+            'Personnel Airlock In 2' => 17,
+            'Personnel Airlock Out 2' => 17,
+            'Change Room In 2' => 17,
+            'Change Room Out 2' => 17,
+
             // Annex 18 — Filling Line 2
             'LAF Mesin Filling 2' => 18,
             'Filling Room 2' => 18,
@@ -106,7 +117,8 @@ class ReportSectionLocationSeeder extends Seeder
                 continue;
             }
 
-            $sectionId = $sectionMap[$annexCode][$loc->measurement_type] ?? null;
+            $normalizedType = $this->normalizeMeasurementType($loc->measurement_type);
+            $sectionId = $sectionMap[$annexCode][$normalizedType] ?? null;
             if (! $sectionId) {
                 continue;
             }

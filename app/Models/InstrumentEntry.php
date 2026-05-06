@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Model;
  * Mewakili satu instrumen (Air Sampler) yang digunakan dalam sebuah laporan.
  * Setiap laporan bisa punya lebih dari satu Air Sampler.
  */
-class InstrumentIdentity extends Model
+class InstrumentEntry extends Model
 {
     use HasUuids;
+
+    protected $table = 'instrument_entries';
 
     protected $fillable = [
         'report_id',

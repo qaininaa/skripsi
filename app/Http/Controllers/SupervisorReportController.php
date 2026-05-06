@@ -111,7 +111,7 @@ class SupervisorReportController extends Controller
 
         $report->load([
             'reportType.sections.locations.room',
-            'reportType.media',
+            'reportType.mediumTypes',
             'reportType.personnelMethods.activities',
             'reportType.personnelMethods.samplingPoints',
             'reportType.personnelMethods.limits',
@@ -121,7 +121,7 @@ class SupervisorReportController extends Controller
             'analysts.user',
             'signatures',
             'mediumIdentities',
-            'instrumentIdentities',
+            'instrumentEntries',
             'incubators',
             'personnelInstances.rows.samplingEntries',
             'personnelSignatures.user',
@@ -282,7 +282,7 @@ class SupervisorReportController extends Controller
 
         $entryService = app(ReportEntryService::class);
 
-        // Identitas instrumen (Air Sampler) → instrument_identities
+        // Identitas instrumen (Air Sampler) → instrument_entries
         $asData = $request->input('header_data.air_sampler');
         if (is_array($asData)) {
             $entryService->saveInstrumentFromArray($asData, $report);
@@ -290,9 +290,9 @@ class SupervisorReportController extends Controller
 
         // Identitas medium agar → medium_identities
         if ($request->has('medium')) {
-            $report->load('reportType.media');
+            $report->load('reportType.mediumTypes');
             foreach ($request->input('medium', []) as $medName => $data) {
-                $medium = $report->reportType->media->firstWhere('name', $medName);
+                $medium = $report->reportType->mediumTypes->firstWhere('name', $medName);
                 if ($medium) {
                     $report->mediumIdentities()->updateOrCreate(
                         ['name' => $medName],
@@ -307,25 +307,18 @@ class SupervisorReportController extends Controller
             }
         }
 
-        // Data inkubator → incubators (form: incubator[<report_type_incubator_id>][field])
-        $report->loadMissing('reportType.incubatorConfigs');
+        // Data inkubator info → incubators (form: incubator[<report_type_incubator_id>][field])
+        // Data in/out medium disimpan di incubator_entries.
+        $report->loadMissing('reportType.incubatorTypes');
         foreach ($request->input('incubator', []) as $rtiId => $inkData) {
-            $rti = $report->reportType->incubatorConfigs->firstWhere('id', $rtiId);
+            $rti = $report->reportType->incubatorTypes->firstWhere('id', $rtiId);
             if ($rti && is_array($inkData)) {
-                $monitoringData = is_array($inkData['monitoring'] ?? null) ? $inkData['monitoring'] : [];
-
                 $incubator = $report->incubators()->updateOrCreate(
                     ['report_type_incubator_id' => $rti->id],
                     [
                         'no_id'                => $inkData['no_id'] ?? null ?: null,
                         'calibration_date'     => $inkData['calibration_date'] ?? null ?: null,
                         'due_date_calibration' => $inkData['due_date_calibration'] ?? ($inkData['due_date'] ?? null) ?: null,
-                        'incubated_by'         => $inkData['incubated_by'] ?? ($monitoringData['incubated_by'] ?? null) ?: null,
-                        'date_in'              => $inkData['date_in'] ?? ($monitoringData['date_in'] ?? null) ?: null,
-                        'time_in'              => $inkData['time_in'] ?? ($monitoringData['time_in'] ?? null) ?: null,
-                        'removed_by'           => $inkData['removed_by'] ?? ($monitoringData['removed_by'] ?? null) ?: null,
-                        'date_out'             => $inkData['date_out'] ?? ($monitoringData['date_out'] ?? null) ?: null,
-                        'time_out'             => $inkData['time_out'] ?? ($monitoringData['time_out'] ?? null) ?: null,
                     ]
                 );
 
@@ -427,17 +420,22 @@ class SupervisorReportController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
+        $report->forceFill([
+            'printed_at' => now(),
+            'printed_by' => $userId,
+        ])->save();
+
         $report->load([
             'reportType.sections.locations.room',
-            'reportType.media',
-            'reportType.incubatorConfigs',
+            'reportType.mediumTypes',
+            'reportType.incubatorTypes',
             'reportType.personnelMethods.activities',
             'reportType.personnelMethods.samplingPoints',
             'reportType.personnelMethods.limits',
             'environmentalEntries.envSectionInstance',
             'approvals.user',
             'sectionColumnNames',
-            'instrumentIdentities',
+            'instrumentEntries',
             'mediumIdentities',
             'incubators.entries.incubatedBy',
             'incubators.entries.removedBy',
@@ -457,7 +455,9 @@ class SupervisorReportController extends Controller
             $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
         }
 
-        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
+        $sectionTypes = $report->reportType->sections
+            ->map(fn ($section) => $section->measurement_key)
+            ->unique();
         $needsAirSampler = $sectionTypes->contains('air_sampler');
         $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();

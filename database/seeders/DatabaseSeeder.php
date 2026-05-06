@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
             RoomSeeder::class,
             LocationSeeder::class,
             ReportTypeSectionSeeder::class,
-            ReportSectionLocationSeeder::class,
         ]);
     }
 }

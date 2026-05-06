@@ -65,7 +65,7 @@ class PersonnelService
             foreach ($data['activities'] as $index => $activity) {
                 $method->activities()->create([
                     'activity' => $activity,
-                    'sort_order' => $index + 1,
+                    'order' => $index + 1,
                 ]);
             }
 

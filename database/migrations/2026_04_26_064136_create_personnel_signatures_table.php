@@ -15,7 +15,7 @@ return new class extends Migration
         $table->uuid('id')->primary();
         $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
         $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
-        $table->string('role'); // 'monitoring' / 'reading'
+        $table->string('role'); 
         $table->timestamp('signed_at')->nullable();
         $table->timestamps();
 });

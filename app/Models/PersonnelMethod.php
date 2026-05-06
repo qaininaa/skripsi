@@ -23,7 +23,7 @@ class PersonnelMethod extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(PersonnelActivity::class, 'personnel_section_method_id')
-            ->orderBy('sort_order')
+            ->orderBy('order')
             ->orderBy('created_at')
             ->orderBy('id');
     }

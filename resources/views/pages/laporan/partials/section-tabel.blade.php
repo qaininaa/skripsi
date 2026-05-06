@@ -11,13 +11,13 @@
             <span class="text-xs font-bold text-sky-600">{{ $secNum }}</span>
         </div>
         <div>
-            <h3 class="font-semibold text-sm text-gray-700 flex items-center gap-2">
+            <h3 class="font-semibold text-sm text-gray-700">
                 {{ $section->measurement_unit }}
                 @if ($instance > 1)
                 <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-600">Duplikat {{ $instance }}</span>
                 @endif
             </h3>
-            <p class="text-xs text-gray-400 mt-0.5">{{ $section->name }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ $section->measurement_type }}</p>
         </div>
 
         {{-- Admin-only: duplikat / hapus duplikat --}}

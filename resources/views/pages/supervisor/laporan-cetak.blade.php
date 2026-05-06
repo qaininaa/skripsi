@@ -263,7 +263,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
     {{-- ── 2. Identitas Instrumen ───────────────────── --}}
     @if ($needsAirSampler)
-    @php $as = $report->instrumentIdentities->first(); @endphp
+    @php $as = $report->instrumentEntries->first(); @endphp
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">2. Identitas Instrumen</td></tr>
         <tr><td style="width:45%">Nama Alat</td><td class="fw">{{ $as?->tool_name ?? 'Air Sampler' }}</td></tr>
@@ -275,7 +275,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
     {{-- ── 3. Identitas Medium ──────────────────────── --}}
     @php
-        $mediumTypeList = $report->reportType->media
+        $mediumTypeList = $report->reportType->mediumTypes
             ->sortBy(fn ($m) => str_contains(strtolower($m->name), 'swab') ? 1 : 0)
             ->values();
         $mediumMap = $report->mediumIdentities->keyBy('name');
@@ -315,19 +315,19 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     </div>
 
     @php
-        $incubatorConfigs = $report->reportType->incubatorConfigs;
+        $incubatorTypes = $report->reportType->incubatorTypes;
         $incubatorMap = $report->incubators->keyBy('report_type_incubator_id');
-        $hasMediumSwab = $report->reportType->media
+        $hasMediumSwab = $report->reportType->mediumTypes
             ->contains(fn ($m) => str_contains(strtolower($m->name), 'swab'));
         $mediumTypeLabels = array_merge(
             ['monitoring' => 'Medium Monitoring'],
             $hasMediumSwab ? ['swab' => 'Swab'] : []
         );
     @endphp
-    @if ($incubatorConfigs->isNotEmpty())
+    @if ($incubatorTypes->isNotEmpty())
     <table class="dt dt-auto dt-compact">
         <tr><td colspan="4" class="sec-hdr">4. Proses Inkubasi Medium Monitoring</td></tr>
-        @foreach ($incubatorConfigs as $config)
+        @foreach ($incubatorTypes as $config)
         @php
             $ink = $incubatorMap->get($config->id);
             $inkEntries = ($ink?->entries ?? collect())->keyBy('medium_type');
@@ -339,7 +339,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         @foreach ($mediumTypeLabels as $mediumType => $mediumLabel)
         @php $entry = $inkEntries->get($mediumType); @endphp
         <tr>
-            <td rowspan="4" style="vertical-align:middle">Tanggal Inkubasi {{ $mediumLabel }} (min {{ $config->min_days }} hari)</td>
+            <td rowspan="4" style="vertical-align:middle">Tanggal Inkubasi {{ $mediumLabel }} (min {{ $config->min_day }} hari)</td>
             <td rowspan="4" class="tc" style="vertical-align:middle;width:14%">{{ $mediumLabel }}</td>
             <td>Tanggal Masuk Inkubator: {{ $entry?->date_in?->format('d/m/Y') ?? '' }}</td>
             <td style="width:14%">Jam: {{ $entry?->time_in ?? '' }}</td>
@@ -384,8 +384,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     $isPerLocation  = $section->time_slot_type === 'per_location';
     $isDualAB       = $section->time_slot_type === 'dual_ab';
     $isSwabTime     = $section->time_slot_type === 'swab';
-    $isSettlePlate  = $section->measurement_type === 'settle_plate';
-    $hasShiftToggle = (bool) $section->has_shift_toggle;
+    $isSettlePlate  = $section->measurement_key === 'settle_plate';
+    $hasShiftToggle = true;
     $colLabelRaw    = is_string($section->column_label) ? trim($section->column_label) : null;
     $colLabel       = $colLabelRaw !== '' ? $colLabelRaw : null;
 
@@ -523,7 +523,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                         $expJam = $hd['exposure_times'][$section->id][$col] ?? [];
                         $expJamMulai   = $expJam['start_time'] ?? null;
                         $expJamSelesai = $expJam['end_time'] ?? null;
-                        $jamMulaiLabel = $section->measurement_type === 'contact_plate'
+                        $jamMulaiLabel = $section->measurement_key === 'contact_plate'
                             ? 'Mulai Contact Plate'
                             : 'Mulai Sebar Petri';
                     @endphp
@@ -651,7 +651,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
     {{-- Keterangan --}}
     <div style="font-size:7.5pt;margin:3px 0">
-        @if ($section->measurement_type === 'swab')
+        @if ($section->measurement_key === 'swab')
         *) diisi jika dibutuhkan<br>
         @endif
         Keterangan:<br>

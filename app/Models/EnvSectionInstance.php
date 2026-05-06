@@ -89,7 +89,7 @@ class EnvSectionInstance extends Model
      */
     public function signatures(): HasMany
     {
-        return $this->hasMany(ReportSignature::class, 'env_section_instance_id');
+        return $this->hasMany(SectionSignature::class, 'env_section_instance_id');
     }
 
     // ── HELPERS ───────────────────────────────────────────────────────────────

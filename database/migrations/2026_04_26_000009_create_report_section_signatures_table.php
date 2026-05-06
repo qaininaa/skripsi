@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('report_section_signatures', function (Blueprint $table) {
+        Schema::create('sectionSignatures', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
             $table->foreignUuid('section_id')->constrained('sections')->cascadeOnDelete();
@@ -21,7 +21,6 @@ return new class extends Migration
             $table->timestamp('signed_at')->nullable();
             $table->timestamps();
 
-            // Satu user hanya boleh punya satu TTD per instance seksi per role per laporan
             $table->unique(['report_id', 'section_id', 'instance_number', 'user_id', 'role'], 'signature_unique');
         });
     }
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('report_section_signatures');
+        Schema::dropIfExists('sectionSignatures');
     }
 };

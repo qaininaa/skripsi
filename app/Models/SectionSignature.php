@@ -15,11 +15,11 @@ use Illuminate\Database\Eloquent\Model;
  *  - supervisor : supervisor yang mereview
  *  - manager    : manager yang menyetujui
  */
-class ReportSignature extends Model
+class SectionSignature extends Model
 {
     use HasUuids;
 
-    protected $table = 'report_section_signatures';
+    protected $table = 'sectionSignatures';
 
     protected $fillable = [
         'report_id',

@@ -5,7 +5,7 @@ namespace App\Services\Reports;
 use App\Models\Analyst;
 use App\Models\Report;
 use App\Models\ReportApproval;
-use App\Models\ReportSignature;
+use App\Models\SectionSignature;
 use App\Models\PersonnelSignature;
 use Illuminate\Support\Facades\Auth;
 
@@ -96,7 +96,7 @@ class ReportWorkflowService
         $role = $report->status === 'reading' ? 'reading' : 'monitoring';
         foreach (array_keys($savedSectionIds) as $_sidInst) {
             [$_secId, $_instNum] = explode('|', $_sidInst, 2) + [1 => '1'];
-            ReportSignature::updateOrCreate(
+            SectionSignature::updateOrCreate(
                 [
                     'report_id'       => $report->id,
                     'section_id'      => $_secId,

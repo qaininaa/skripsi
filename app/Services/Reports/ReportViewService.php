@@ -20,18 +20,18 @@ class ReportViewService
      */
     public const RELATIONS = [
         'reportType.sections.locations.room',
-        'reportType.incubatorConfigs',
-        'reportType.media',
+        'reportType.incubatorTypes',
+        'reportType.mediumTypes',
         'environmentalEntries',
         'approvals.user',
         'lockedByUser',
-        'instrumentIdentities',
+        'instrumentEntries',
         'mediumIdentities',
         'incubators.entries.incubatedBy',
         'incubators.entries.removedBy',
         'analysts.user',
         'sectionColumnNames',
-        'signatures.user',
+        'sectionSignatures.user',
         'reportType.personnelMethods.activities',
         'reportType.personnelMethods.samplingPoints',
         'reportType.personnelMethods.limits',
@@ -68,13 +68,13 @@ class ReportViewService
         $sectionInstances = $this->sectionService->buildSectionInstances($report);
 
         // Kelompokkan tanda tangan by compound key 'section_id|instance_number'.
-        $sectionSignatures = $report->signatures->groupBy(
+        $sectionSignatures = $report->sectionSignatures->groupBy(
             fn ($sig) => $sig->section_id . '|' . $sig->instance_number
         );
 
-        $instrument       = $report->instrumentIdentities->first();
+        $instrument       = $report->instrumentEntries->first();
         $incubators       = $report->incubators->keyBy('report_type_incubator_id');
-        $incubatorConfigs = $report->reportType->incubatorConfigs;
+        $incubatorTypes = $report->reportType->incubatorTypes;
         $mediums          = $report->mediumIdentities->keyBy('name');
 
         $personnelMethods    = $report->reportType->personnelMethods;
@@ -109,7 +109,7 @@ class ReportViewService
             'myShift'           => 1,
             'instrument'        => $instrument,
             'incubators'        => $incubators,
-            'incubatorConfigs'  => $incubatorConfigs,
+            'incubatorTypes'  => $incubatorTypes,
             'mediums'           => $mediums,
             'monitoringAnalysts' => $monitoringAnalysts,
             'readingAnalysts'   => $readingAnalysts,

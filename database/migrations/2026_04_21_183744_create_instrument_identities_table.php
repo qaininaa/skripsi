@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('instrument_identities', function (Blueprint $table) {
+        Schema::create('instrument_entries', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
             $table->string('tool_name')->default('Air Sampler');
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('instrument_identities');
+        Schema::dropIfExists('instrument_entries');
     }
 };

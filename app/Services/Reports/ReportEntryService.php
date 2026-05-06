@@ -233,7 +233,7 @@ class ReportEntryService
             return;
         }
         $asData = $request->input('air_sampler', []);
-        $report->instrumentIdentities()->updateOrCreate(
+        $report->instrumentEntries()->updateOrCreate(
             ['tool_name' => $asData['tool_name'] ?? 'Air Sampler'],
             [
                 'no_id'            => $asData['no_id']            ?? null ?: null,
@@ -248,9 +248,9 @@ class ReportEntryService
         if (! $request->has('medium')) {
             return;
         }
-        $report->load('reportType.media');
+        $report->load('reportType.mediumTypes');
         foreach ($request->input('medium', []) as $medKey => $data) {
-            $medium = $report->reportType->media->firstWhere('name', $medKey);
+            $medium = $report->reportType->mediumTypes->firstWhere('name', $medKey);
             if ($medium) {
                 $report->mediumIdentities()->updateOrCreate(
                     ['name' => $medKey],
@@ -280,10 +280,10 @@ class ReportEntryService
             return $freshHd;
         }
 
-        $report->loadMissing('reportType.incubatorConfigs');
+        $report->loadMissing('reportType.incubatorTypes');
 
         foreach ($request->input('incubator', []) as $tempKey => $data) {
-            $rti = $report->reportType->incubatorConfigs->firstWhere('id', $tempKey);
+            $rti = $report->reportType->incubatorTypes->firstWhere('id', $tempKey);
             if (! $rti || ! is_array($data)) {
                 continue;
             }
@@ -512,7 +512,7 @@ class ReportEntryService
                     'class'           => $cls,
                     'location_number' => $num,
                 ];
-                $locationSectionType[$locationId]     = $_sec->measurement_type;
+                $locationSectionType[$locationId]     = $_sec->measurement_key;
                 $locationSectionId[$locationId]       = $_sec->id;
                 $locationSectionTimeSlot[$locationId] = $_sec->time_slot_type;
             }
@@ -1031,12 +1031,12 @@ class ReportEntryService
     }
 
     /**
-     * Simpan identitas instrumen (air sampler) langsung ke tabel instrument_identities.
+     * Simpan identitas instrumen (air sampler) langsung ke tabel instrument_entries.
      * Digunakan oleh supervisor/manajer yang menerima data via header_data[air_sampler].
      */
     public function saveInstrumentFromArray(array $asData, Report $report): void
     {
-        $report->instrumentIdentities()->updateOrCreate(
+        $report->instrumentEntries()->updateOrCreate(
             ['tool_name' => $asData['tool_name'] ?? 'Air Sampler'],
             [
                 'no_id'            => $asData['no_id']            ?? null ?: null,

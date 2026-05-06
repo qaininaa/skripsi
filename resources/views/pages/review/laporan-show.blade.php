@@ -57,7 +57,7 @@
     // For manajer: also supervisor
     $returnSupervisor = $returnSupervisor ?? null; // passed from controller for manajer only
     // Table-based lookups (no more $hd for these)
-    $airSamplerRecord = $report->instrumentIdentities->firstWhere('tool_name', 'Air Sampler');
+    $airSamplerRecord = $report->instrumentEntries->firstWhere('tool_name', 'Air Sampler');
     $incubatorByRtiId = $report->incubators->keyBy('report_type_incubator_id');
 @endphp
 
@@ -211,7 +211,7 @@
 
     {{-- ── 3. Identitas Medium ────────────────────────────── --}}
     @php
-        $mediumTypeList = $report->relationLoaded('reportType') ? $report->reportType->media : collect();
+        $mediumTypeList = $report->relationLoaded('reportType') ? $report->reportType->mediumTypes : collect();
         $mediumByName   = $report->mediumIdentities->keyBy('name');
     @endphp
     @if ($needsMedium && $mediumTypeList->isNotEmpty())
@@ -273,11 +273,11 @@
         <div class="px-5 py-3.5 border-b border-gray-100">
             <h3 class="font-semibold text-sm text-gray-700">4. Proses Inkubasi Medium Monitoring</h3>
         </div>
-        @foreach ($report->reportType->incubatorConfigs->sortByDesc('min_days') as $inkRti)
+        @foreach ($report->reportType->incubatorTypes->sortByDesc('min_day') as $inkRti)
         @php
             $inkRecord = $incubatorByRtiId[$inkRti->id] ?? null;
             $inkLabel  = $inkRti->temperature_label;
-            $inkMin    = $inkRti->min_days;
+            $inkMin    = $inkRti->min_day;
         @endphp
         <div class="p-5 space-y-4 @if(!$loop->last) border-b border-gray-100 @endif">
             <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{{ $inkLabel }}</p>
@@ -426,8 +426,8 @@
         $isPerLocation  = $section->time_slot_type === 'per_location';
         $isDualAB       = $section->time_slot_type === 'dual_ab';
         $isSwabTime     = $section->time_slot_type === 'swab';
-        $isSettlePlate  = $section->measurement_type === 'settle_plate';
-        $hasShiftToggle = (bool) $section->has_shift_toggle;
+        $isSettlePlate  = $section->measurement_key === 'settle_plate';
+        $hasShiftToggle = true;
         $colLabelRaw    = is_string($section->column_label) ? trim($section->column_label) : null;
         $colLabel       = $colLabelRaw !== '' ? $colLabelRaw : null;
 
@@ -845,7 +845,7 @@
         </div>
 
         <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-gray-400">
-            @if ($section->measurement_type === 'swab')
+            @if ($section->measurement_key === 'swab')
             <p class="mb-1"><span class="text-gray-500">*)</span> diisi jika dibutuhkan</p>
             @endif
             <strong class="text-gray-500">Keterangan:</strong>
@@ -899,8 +899,8 @@
 
         {{-- ── Per-section TTD ─────────────────────────────── --}}
         @php
-            // Primary source (current schema): report_section_signatures table.
-            $_sectionSigs = $report->signatures->where('section_id', $section->id);
+            // Primary source (current schema): sectionSignatures table.
+            $_sectionSigs = $report->sectionSignatures->where('section_id', $section->id);
             $_secMonSigs = $_sectionSigs->where('role', 'monitoring')->sortBy('signed_at');
             $_secReadSigs = $_sectionSigs->where('role', 'reading')->sortBy('signed_at');
 

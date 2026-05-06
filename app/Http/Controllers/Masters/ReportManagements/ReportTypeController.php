@@ -41,15 +41,22 @@ class ReportTypeController extends Controller
 
     public function show(ReportType $reportType): View
     {
-        $reportType->load(['sections.locations.room', 'media', 'incubatorConfigs']);
-        $locations = ReportLocation::with('room')->orderBy('room_id')->orderBy('location_number')->get();
+        $reportType->load(['sections.locations.room', 'media', 'incubatorTypes']);
+        $locations = ReportLocation::query()
+            ->select('locations.*')
+            ->join('rooms', 'rooms.id', '=', 'locations.room_id')
+            ->orderByRaw("CASE rooms.class WHEN 'A' THEN 1 WHEN 'B' THEN 2 WHEN 'C' THEN 3 WHEN 'D' THEN 4 WHEN 'E' THEN 5 ELSE 99 END")
+            ->orderBy('rooms.room_name')
+            ->orderBy('locations.location_number')
+            ->with('room')
+            ->get();
 
         return view('pages.report-types.show', compact('reportType', 'locations'));
     }
 
     public function edit(ReportType $reportType): View
     {
-        $reportType->load(['media', 'incubatorConfigs']);
+        $reportType->load(['media', 'incubatorTypes']);
 
         return view('pages.report-types.edit', compact('reportType'));
     }

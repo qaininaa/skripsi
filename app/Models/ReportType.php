@@ -13,14 +13,24 @@ class ReportType extends Model
         'name', 'annex_number', 'sop_code', 'sop_version', 'has_personnel',
     ];
 
+    public function mediumTypes()
+    {
+        return $this->hasMany(MediumType::class);
+    }
+
     public function media()
     {
-        return $this->hasMany(ReportTypeMedium::class);
+        return $this->mediumTypes();
+    }
+
+    public function incubatorTypes()
+    {
+        return $this->hasMany(IncubatorType::class);
     }
 
     public function incubatorConfigs()
     {
-        return $this->hasMany(ReportTypeIncubator::class);
+        return $this->incubatorTypes();
     }
 
     public function sections()

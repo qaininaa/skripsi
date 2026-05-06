@@ -12,12 +12,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->unsignedTinyInteger('step');
-            $table->string('role', 50); // sevelumnya role_label
-            $table->timestamp('signed_at')->nullable();
-            $table->string('status', 20)->default('pending');
             $table->foreignUuid('returned_to_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedTinyInteger('step');
+            $table->string('role', 50); 
+            $table->string('status', 20)->default('pending');
             $table->text('notes')->nullable();
+            $table->timestamp('signed_at')->nullable();
             $table->timestamps();
         });
     }

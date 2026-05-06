@@ -1,23 +1,23 @@
 {{-- ── Section 4: Proses Inkubasi Medium Monitoring ──────── --}}
-{{-- Data dari tabel incubators + incubator_entries, dikonfigurasi via report_type_incubators --}}
+{{-- Data dari tabel incubators + incubator_entries, dikonfigurasi via incubator_types --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
         <h3 class="font-semibold text-sm text-gray-700">4. Proses Inkubasi Medium Monitoring</h3>
     </div>
     @php
-        $hasMediumSwab = $report->reportType->media
+        $hasMediumSwab = $report->reportType->mediumTypes
             ->contains(fn ($m) => str_contains(strtolower($m->name), 'swab'));
         $mediumTypeLabels = array_merge(
             ['monitoring' => 'Medium Monitoring'],
             $hasMediumSwab ? ['swab' => 'Swab'] : []
         );
     @endphp
-    @foreach ($incubatorConfigs as $config)
+    @foreach ($incubatorTypes as $config)
     @php
         $ink         = $incubators[$config->id] ?? null;
         $inkEntries  = ($ink?->entries ?? collect())->keyBy('medium_type');
         $inkLabel    = $config->temperature_label;
-        $inkMin      = $config->min_days;
+        $inkMin      = $config->min_day;
         $allAnalysts = \App\Models\User::where('role', 'analis')->orderBy('name')->get();
         $hdOwners    = $hd['_field_owners'] ?? [];
 

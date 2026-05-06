@@ -209,10 +209,10 @@
             <h3 class="font-semibold text-sm text-gray-700">4. Proses Inkubasi Medium Monitoring</h3>
         </div>
         @foreach ([
-            'inkubator_20_25' => ['label' => 'Inkubator Suhu 20–25°C', 'min_days' => 3],
-            'inkubator_30_35' => ['label' => 'Inkubator Suhu 30–35°C', 'min_days' => 2],
+            'inkubator_20_25' => ['label' => 'Inkubator Suhu 20–25°C', 'min_day' => 3],
+            'inkubator_30_35' => ['label' => 'Inkubator Suhu 30–35°C', 'min_day' => 2],
         ] as $inkKey => $inkInfo)
-        @php $ink = $hd[$inkKey] ?? []; $inkLabel = $inkInfo['label']; $inkMin = $inkInfo['min_days']; @endphp
+        @php $ink = $hd[$inkKey] ?? []; $inkLabel = $inkInfo['label']; $inkMin = $inkInfo['min_day']; @endphp
         <div class="p-5 space-y-4 @if(!$loop->last) border-b border-gray-100 @endif">
             <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{{ $inkLabel }}</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -351,8 +351,8 @@
         $isPerLocation  = $section->time_slot_type === 'per_location';
         $isDualAB       = $section->time_slot_type === 'dual_ab';
         $isSwabTime     = $section->time_slot_type === 'swab';
-        $isSettlePlate  = $section->measurement_type === 'settle_plate';
-        $hasShiftToggle = (bool) $section->has_shift_toggle;
+        $isSettlePlate  = $section->measurement_key === 'settle_plate';
+        $hasShiftToggle = true;
         $colLabelRaw    = is_string($section->column_label) ? trim($section->column_label) : null;
         $colLabel       = $colLabelRaw !== '' ? $colLabelRaw : null;
 
@@ -738,7 +738,7 @@
         </div>
 
         <div class="px-5 py-3 border-t border-gray-100 text-[11px] text-gray-400">
-            @if ($section->measurement_type === 'swab')
+            @if ($section->measurement_key === 'swab')
             <p class="mb-1"><span class="text-gray-500">*)</span> diisi jika dibutuhkan</p>
             @endif
             <strong class="text-gray-500">Keterangan:</strong>

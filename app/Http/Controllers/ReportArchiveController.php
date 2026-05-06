@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReportArchiveController extends Controller
 {
@@ -125,16 +126,21 @@ class ReportArchiveController extends Controller
         $managerApproval = $report->approvals->where('step', 3)->where('status', 'approved')->first();
         abort_unless($managerApproval, 404);
 
+        $report->forceFill([
+            'printed_at' => now(),
+            'printed_by' => Auth::id(),
+        ])->save();
+
         $report->load([
             'reportType.sections.locations.room',
-            'reportType.media',
-            'reportType.incubatorConfigs',
+            'reportType.mediumTypes',
+            'reportType.incubatorTypes',
             'reportType.personnelMethods.activities',
             'reportType.personnelMethods.samplingPoints',
             'reportType.personnelMethods.limits',
             'environmentalEntries.envSectionInstance',
             'sectionColumnNames',
-            'instrumentIdentities',
+            'instrumentEntries',
             'mediumIdentities',
             'incubators.entries.incubatedBy',
             'incubators.entries.removedBy',
@@ -153,7 +159,9 @@ class ReportArchiveController extends Controller
             $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
         }
 
-        $sectionTypes = $report->reportType->sections->pluck('measurement_type')->unique();
+        $sectionTypes = $report->reportType->sections
+            ->map(fn ($section) => $section->measurement_key)
+            ->unique();
         $needsAirSampler = $sectionTypes->contains('air_sampler');
         $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
@@ -172,7 +180,7 @@ class ReportArchiveController extends Controller
     private function archivedReportsQuery(): Builder
     {
         return Report::query()
-            ->with(['reportType'])
+            ->with(['reportType', 'printedByUser'])
             ->whereHas('approvals', function ($q) {
                 $q->where('step', 3)->where('status', 'approved');
             });

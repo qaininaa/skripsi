@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('incubators', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
-            $table->foreignUuid('report_type_incubator_id')->constrained('report_type_incubators')->cascadeOnDelete();
+            $table->foreignUuid('report_type_incubator_id')->constrained('incubator_types')->cascadeOnDelete();
             $table->string('no_id')->nullable();
             $table->date('calibration_date')->nullable();
             $table->date('due_date_calibration')->nullable();

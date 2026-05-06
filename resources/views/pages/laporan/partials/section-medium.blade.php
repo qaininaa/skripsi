@@ -1,7 +1,7 @@
 {{-- ── Section 3: Identitas Medium ─────────────────────── --}}
 {{-- Data disimpan ke tabel medium_identities via $mediums (keyed by name) --}}
 @php
-    $mediumTypeList = $report->reportType->media->sortBy(fn($m) => str_contains(strtolower($m->name), 'swab') ? 1 : 0);
+    $mediumTypeList = $report->reportType->mediumTypes->sortBy(fn($m) => str_contains(strtolower($m->name), 'swab') ? 1 : 0);
 @endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">

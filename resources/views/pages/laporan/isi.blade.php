@@ -61,7 +61,7 @@
 @include('pages.laporan.partials.section-alat', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
-@if ($needsMedium && ($report->reportType->media->isNotEmpty() ?? false))
+@if ($needsMedium && ($report->reportType->mediumTypes->isNotEmpty() ?? false))
 @include('pages.laporan.partials.section-medium', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 

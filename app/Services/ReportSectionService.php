@@ -116,7 +116,9 @@ class ReportSectionService
      */
     public function computeSectionNeeds(Report $report): array
     {
-        $types = $report->reportType->sections->pluck('measurement_type')->unique();
+        $types = $report->reportType->sections
+            ->map(fn (ReportSection $section) => $section->measurement_key)
+            ->unique();
 
         return [
             'needsAirSampler' => $types->contains('air_sampler'),

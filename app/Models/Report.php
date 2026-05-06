@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 // Model-model hasil normalisasi JSON header_data
-// (MediumIdentity, Incubator, InstrumentIdentity, Analyst, ReportSignature
+// (MediumIdentity, Incubator, InstrumentEntry, Analyst, SectionSignature
 //  semuanya ada di namespace yang sama — tidak perlu import tambahan)
 
 class Report extends Model
@@ -16,10 +16,12 @@ class Report extends Model
     protected $fillable = [
         'report_type_id', 'product_name', 'batch_number',
         'status', 'created_by', 'locked_by', 'header_data',
+        'printed_at', 'printed_by',
     ];
 
     protected $casts = [
         'header_data' => 'array',
+        'printed_at' => 'datetime',
     ];
 
     public function reportType()
@@ -30,6 +32,11 @@ class Report extends Model
     public function lockedByUser()
     {
         return $this->belongsTo(User::class, 'locked_by');
+    }
+
+    public function printedByUser()
+    {
+        return $this->belongsTo(User::class, 'printed_by');
     }
 
     public function environmentalEntries()
@@ -86,9 +93,14 @@ class Report extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
+    public function instrumentEntries()
+    {
+        return $this->hasMany(InstrumentEntry::class);
+    }
+
     public function instrumentIdentities()
     {
-        return $this->hasMany(InstrumentIdentity::class);
+        return $this->instrumentEntries();
     }
 
     /**
@@ -106,9 +118,14 @@ class Report extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
+    public function sectionSignatures()
+    {
+        return $this->hasMany(SectionSignature::class);
+    }
+
     public function signatures()
     {
-        return $this->hasMany(ReportSignature::class);
+        return $this->sectionSignatures();
     }
 
     /**
