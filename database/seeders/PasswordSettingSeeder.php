@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\PasswordSetting;
+use App\Domains\Auth\Models\PasswordSetting;
 use Illuminate\Database\Seeder;
 
 class PasswordSettingSeeder extends Seeder

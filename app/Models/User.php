@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Domains\Auth\Models\PasswordHistory;
+use App\Domains\Auth\Models\PasswordSetting;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;

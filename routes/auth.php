@@ -1,26 +1,25 @@
 <?php
 
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Domains\Auth\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    Route::get('login', [AuthController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('login', [AuthController::class, 'store']);
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('change-password', [ChangePasswordController::class, 'show'])
+    Route::get('change-password', [AuthController::class, 'showChangePassword'])
         ->name('password.change');
 
-    Route::post('change-password', [ChangePasswordController::class, 'update'])
+    Route::post('change-password', [AuthController::class, 'updateChangePassword'])
         ->name('password.change.update');
 
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+    Route::post('logout', [AuthController::class, 'destroy'])
         ->name('logout');
 
-    Route::get('logout', [AuthenticatedSessionController::class, 'destroy'])
+    Route::get('logout', [AuthController::class, 'destroy'])
         ->name('logout.get');
 });

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Domains\Auth\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckPasswordExpired
+class ForcePasswordChangeMiddleware
 {
     protected array $except = [
         'password.change',
