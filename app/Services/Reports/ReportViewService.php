@@ -5,7 +5,7 @@ namespace App\Services\Reports;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\ReportSectionService;
-use App\Services\Reports\Sections\SectionInstanceService;
+use App\Services\SectionInstanceService;
 
 /**
  * ReportViewService

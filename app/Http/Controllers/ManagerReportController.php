@@ -272,7 +272,7 @@ class ManagerReportController extends Controller
         // Handle personnel page actions (add/remove)
         $personnelAction = $request->input('_personnel_action');
         if ($personnelAction === 'add_page' || str_starts_with((string) $personnelAction, 'remove_page_')) {
-            $svc = app(\App\Services\Reports\Sections\PersonnelInstanceService::class);
+            $svc = app(\App\Services\PersonnelInstanceService::class);
             if ($personnelAction === 'add_page') {
                 $result = $svc->addPage($report);
             } else {

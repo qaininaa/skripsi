@@ -6,8 +6,9 @@ use App\Domains\Location\Http\Controllers\LocationController;
 use App\Domains\ReportType\Http\Controllers\ReportTypeController;
 use App\Domains\ReportType\Http\Controllers\ReportLocationController;
 use App\Domains\ReportType\Http\Controllers\ReportSectionController;
-use App\Http\Controllers\Reports\DuplicateSectionController;
-use App\Http\Controllers\Reports\ReportAssignmentController;
+use App\Domains\ReportAssignment\Http\Controllers\ReportAssignmentController;
+use App\Domains\ReportPreview\Http\Controllers\ReportPreviewController;
+use App\Domains\ReportPreview\Http\Controllers\ReportPreviewStructureController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ManagerReportController;
@@ -73,10 +74,10 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
         Route::resource('report-assignment', ReportAssignmentController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('report-assignment');
-        Route::get('report-assignment/{report}/preview', [ReportController::class, 'lihat'])->name('admin.laporan.preview');
-        Route::post('report-assignment/{report}/personnel-page', [ReportAssignmentController::class, 'personnelPage'])->name('admin.laporan.personnel-page');
-        Route::post('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
-        Route::delete('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportAssignmentController::class, 'removeSection'])->name('report-assignment.sections.remove');
+        Route::get('report-assignment/{report}/preview', [ReportPreviewController::class, 'show'])->name('admin.laporan.preview');
+        Route::post('report-assignment/{report}/personnel-page', [ReportPreviewStructureController::class, 'personnelPage'])->name('admin.laporan.personnel-page');
+        Route::post('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
+        Route::delete('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'removeSection'])->name('report-assignment.sections.remove');
         // Data Master
         Route::resource('master/room', RoomController::class)->names('master.room');
         Route::resource('master/location', LocationController::class)->names('master.location');
@@ -99,24 +100,9 @@ Route::middleware(['auth', 'password.check', 'role:analis'])
 
         Route::get('laporan', [ReportController::class, 'index'])->name('laporan.index');
         Route::get('laporan/{report}/isi', [ReportController::class, 'isi'])->name('laporan.isi');
-        Route::get('laporan/{report}/lihat', [ReportController::class, 'lihat'])->name('laporan.lihat');
+        Route::get('laporan/{report}/lihat', [ReportPreviewController::class, 'show'])->name('laporan.lihat');
         Route::post('laporan/{report}/save', [ReportController::class, 'save'])->name('laporan.save');
         Route::post('laporan/verify-password', [ReportController::class, 'verifyPassword'])->name('laporan.verify-password');
-    });
-
-Route::middleware(['auth', 'password.check', 'role:analis,supervisor,manajer'])
-    ->prefix('dashboard')
-    ->group(function () {
-        // sectionId = id dari tabel sections
-        Route::post(
-            'laporan/{report}/sections/{sectionId}/duplicate',
-            [DuplicateSectionController::class, 'duplicate']
-        )->name('laporan.instances.duplicate');
- 
-        Route::delete(
-            'laporan/{report}/sections/{sectionId}',
-            [DuplicateSectionController::class, 'remove']
-        )->name('laporan.instances.remove');
     });
 
 // Dashboard & Laporan Masuk Supervisor
@@ -126,7 +112,7 @@ Route::middleware(['auth', 'password.check', 'role:supervisor'])
         Route::get('supervisor', [SupervisorReportController::class, 'dashboard'])->name('dashboard.supervisor');
         Route::get('supervisor/laporan-masuk', [SupervisorReportController::class, 'laporanMasuk'])->name('supervisor.laporan-masuk');
         Route::get('supervisor/laporan-sedang-dikerjakan', [SupervisorReportController::class, 'laporanSedangDikerjakan'])->name('supervisor.laporan-sedang-dikerjakan');
-        Route::get('supervisor/laporan/{report}/preview', [ReportController::class, 'lihat'])->name('supervisor.laporan.preview');
+        Route::get('supervisor/laporan/{report}/preview', [ReportPreviewController::class, 'show'])->name('supervisor.laporan.preview');
         Route::get('supervisor/laporan/{report}', [SupervisorReportController::class, 'show'])->name('supervisor.laporan.show');
         Route::get('supervisor/laporan/{report}/cetak', [SupervisorReportController::class, 'cetak'])->name('supervisor.laporan.cetak');
         Route::post('supervisor/laporan/{report}/save', [SupervisorReportController::class, 'save'])->name('supervisor.laporan.save');
@@ -141,7 +127,7 @@ Route::middleware(['auth', 'password.check', 'role:manajer'])
         Route::get('manajer', [ManagerReportController::class, 'dashboard'])->name('dashboard.manajer');
         Route::get('manajer/laporan-masuk', [ManagerReportController::class, 'laporanMasuk'])->name('manajer.laporan-masuk');
         Route::get('manajer/laporan-sedang-dikerjakan', [ManagerReportController::class, 'laporanSedangDikerjakan'])->name('manajer.laporan-sedang-dikerjakan');
-        Route::get('manajer/laporan/{report}/preview', [ReportController::class, 'lihat'])->name('manajer.laporan.preview');
+        Route::get('manajer/laporan/{report}/preview', [ReportPreviewController::class, 'show'])->name('manajer.laporan.preview');
         Route::get('manajer/laporan/{report}', [ManagerReportController::class, 'show'])->name('manajer.laporan.show');
         Route::get('manajer/laporan/{report}/cetak', [ManagerReportController::class, 'cetak'])->name('manajer.laporan.cetak');
         Route::post('manajer/laporan/{report}/save', [ManagerReportController::class, 'save'])->name('manajer.laporan.save');

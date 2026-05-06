@@ -69,6 +69,10 @@
 @include('pages.laporan.partials.section-inkubator', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
+@php
+    $canDuplicateSections = auth()->user()?->role === 'admin';
+@endphp
+
 {{-- ── 4+. Tabel Pengukuran per Seksi ─────────────────── --}}
 @foreach ($sectionInstances as $sectionInstance)
 @php

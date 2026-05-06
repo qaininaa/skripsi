@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\ReportApproval;
 use App\Models\User;
+use App\Services\PersonnelInstanceService;
 use App\Services\Reports\ReportEntryService;
 use App\Services\Reports\ReportViewService;
 use App\Services\Reports\ReportWorkflowService;
-use App\Services\Reports\Sections\PersonnelInstanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -146,27 +146,6 @@ class ReportController extends Controller
 
         return view('pages.laporan.isi', array_merge(
             compact('report', 'returnedApproval', 'isRevision'),
-            $viewData
-        ));
-    }
-
-    /**
-     * lihat() — Tampilkan laporan dalam mode READ-ONLY (tanpa klaim/penguncian).
-     *
-     * Dipakai oleh: admin (preview), supervisor (preview), analis yang bukan pemilik kunci.
-     * Menggunakan view yang sama dengan isi(), tapi $isEditable selalu false.
-     */
-    public function lihat(Report $report)
-    {
-        $this->viewService->loadRelations($report);
-
-        $viewData = $this->viewService->buildViewData($report, false);
-
-        // Flag khusus untuk admin agar view bisa menampilkan badge "Admin Preview".
-        $isAdminPreview = auth()->user()->role === 'admin';
-
-        return view('pages.laporan.isi', array_merge(
-            compact('report', 'isAdminPreview'),
             $viewData
         ));
     }

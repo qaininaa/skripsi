@@ -19,7 +19,7 @@ class ReportLocationController extends Controller
 
         return redirect()
             ->route('report-types.show', $reportType)
-            ->with($result['ok'] ? 'success' : 'error', $result['message']);
+            ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
     public function destroy(ReportType $reportType, ReportSection $section, Location $location)
