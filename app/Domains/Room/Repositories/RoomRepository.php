@@ -7,6 +7,11 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class RoomRepository
 {
+    /**
+     * Get paginated room list with optional search and class filter.
+     *
+     * @return LengthAwarePaginator<int, Room>
+     */
     public function paginateForManagement(?string $search, ?string $class, int $perPage = 15): LengthAwarePaginator
     {
         return Room::query()
@@ -23,6 +28,11 @@ class RoomRepository
             ->withQueryString();
     }
 
+    /**
+     * Find duplicate room by room name and room number.
+     *
+     * @param  array<string, mixed>  $validated
+     */
     public function findDuplicate(array $validated): ?Room
     {
         return Room::query()
@@ -31,11 +41,21 @@ class RoomRepository
             ->first();
     }
 
+    /**
+     * Create a room record.
+     *
+     * @param  array<string, mixed>  $validated
+     */
     public function create(array $validated): Room
     {
         return Room::create($validated);
     }
 
+    /**
+     * Update a room record.
+     *
+     * @param  array<string, mixed>  $validated
+     */
     public function update(Room $room, array $validated): Room
     {
         $room->update($validated);
@@ -43,11 +63,17 @@ class RoomRepository
         return $room;
     }
 
+    /**
+     * Check whether the room has related locations.
+     */
     public function hasLocations(Room $room): bool
     {
         return $room->locations()->exists();
     }
 
+    /**
+     * Delete a room record.
+     */
     public function delete(Room $room): void
     {
         $room->delete();

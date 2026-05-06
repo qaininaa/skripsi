@@ -7,8 +7,8 @@ use App\Models\Room as BaseRoom;
 
 class Room extends BaseRoom
 {
-	public function locations()
-	{
-		return $this->hasMany(Location::class, 'room_id');
-	}
+    public function locations()
+    {
+        return $this->hasMany(Location::class, 'room_id');
+    }
 }
