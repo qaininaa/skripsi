@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reports\Sections;
+namespace App\Services;
 
 use App\Models\EnvSectionInstance;
 use App\Models\Report;
@@ -41,6 +41,10 @@ class SectionInstanceService
             return ['ok' => false, 'message' => 'Section tidak ditemukan.'];
         }
 
+        // if ($this->getLocationIdsForSection($sectionId)->isEmpty()) {
+        //     return ['ok' => false, 'message' => 'Seksi belum memiliki lokasi. Tambahkan lokasi terlebih dahulu di master report type.'];
+        // }
+
         $currentCount = $this->resolveCurrentInstanceCount($report, $sectionId);
         if ($currentCount <= 0) {
             $this->syncEnvInstancesForSection($report, $sectionId, 1);
@@ -65,6 +69,10 @@ class SectionInstanceService
     {
         if (! $this->sectionBelongsToReport($report, $sectionId)) {
             return ['ok' => false, 'message' => 'Section tidak ditemukan.'];
+        }
+
+        if ($this->getLocationIdsForSection($sectionId)->isEmpty()) {
+            return ['ok' => false, 'message' => 'Seksi belum memiliki lokasi.'];
         }
 
         $currentCount = $this->resolveCurrentInstanceCount($report, $sectionId);

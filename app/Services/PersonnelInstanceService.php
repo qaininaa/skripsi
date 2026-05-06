@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Reports\Sections;
+namespace App\Services;
 
 use App\Models\PersonnelInstance;
 use App\Models\PersonnelRow;
