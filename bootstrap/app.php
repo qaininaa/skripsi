@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => \App\Domains\Auth\Http\Middleware\RoleMiddleware::class,
-            'password.check' => \App\Domains\Auth\Http\Middleware\ForcePasswordChangeMiddleware::class,
+            'password.check' => \App\Domains\Auth\Http\Middleware\ForcePasswordMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
