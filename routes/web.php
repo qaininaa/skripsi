@@ -1,11 +1,11 @@
 <?php
 
+use App\Domains\User\Http\Controllers\UserController;
 use App\Http\Controllers\Masters\LocationController;
 use App\Http\Controllers\Masters\RoomController;
 use App\Http\Controllers\Masters\ReportManagements\ReportTypeController;
 use App\Http\Controllers\Masters\ReportManagements\ReportLocationController;
 use App\Http\Controllers\Masters\ReportManagements\ReportSectionController;
-use App\Http\Controllers\Masters\UserManagementController;
 use App\Http\Controllers\Reports\DuplicateSectionController;
 use App\Http\Controllers\Reports\ReportAssignmentController;
 use App\Http\Controllers\ReportController;
@@ -54,7 +54,10 @@ Route::get('/dashboard/admin-qc', function () {
 Route::middleware(['auth', 'password.check', 'role:super'])
     ->prefix('dashboard')
     ->group(function () {
-        Route::resource('users', UserManagementController::class)->names('users');
+        Route::resource('users', UserController::class)
+            ->only(['index', 'create', 'store', 'destroy'])
+            ->names('users');
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('settings', [PasswordSettingController::class, 'index'])->name('settings.index');
         Route::put('settings', [PasswordSettingController::class, 'update'])->name('settings.update');

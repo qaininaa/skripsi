@@ -123,9 +123,12 @@
                             <td class="px-6 py-3.5 text-sm text-gray-400">{{ $user->created_at?->format('d M Y') ?? '—' }}</td>
                             <td class="px-6 py-3.5">
                                 <div class="flex justify-end items-center gap-2">
-                                    <a href="{{ route('users.edit', $user) }}" class="btn-action-edit">
-                                        Edit
-                                    </a>
+                                    <form action="{{ route('users.reset-password', $user) }}" method="POST" onsubmit="return confirm('Reset password pengguna ini ke default (ethica)?');">
+                                        @csrf
+                                        <button type="submit" class="btn-action-edit">
+                                            Reset Password
+                                        </button>
+                                    </form>
                                     <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?');">
                                         @csrf
                                         @method('DELETE')
