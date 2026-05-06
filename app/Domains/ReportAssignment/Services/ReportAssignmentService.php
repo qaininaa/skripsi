@@ -6,7 +6,7 @@ use App\Domains\ReportAssignment\DTOs\ReportAssignmentDTO;
 use App\Domains\ReportAssignment\Models\ReportAssignment;
 use App\Domains\ReportAssignment\Repositories\ReportAssignmentRepository;
 use App\Domains\ReportType\Models\ReportType;
-use App\Services\Reports\Sections\SectionInstanceService;
+use App\Services\SectionInstanceService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
