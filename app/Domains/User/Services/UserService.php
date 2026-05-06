@@ -30,7 +30,7 @@ class UserService
     public function create(UserDTO $dto, array $meta): User
     {
         $payload = $dto->toCreatePayload();
-        $payload['password'] = (string) config('default_user_password');
+        $payload['password'] = $this->defaultPassword();
         $payload['last_password_changed_at'] = null;
 
         $user = $this->repository->create($payload);
@@ -48,7 +48,7 @@ class UserService
     public function resetPassword(User $user, array $meta): User
     {
         $payload = [
-            'password' => (string) config('default_user_password'),
+            'password' => $this->defaultPassword(),
             'last_password_changed_at' => null,
         ];
 
@@ -95,5 +95,16 @@ class UserService
             'ip_address' => $meta['ip_address'] ?? null,
             'user_agent' => $meta['user_agent'] ?? null,
         ]);
+    }
+
+    private function defaultPassword(): string
+    {
+        $password = (string) config('auth.default_user_password');
+
+        if (trim($password) === '') {
+            throw new \RuntimeException('DEFAULT_USER_PASSWORD is not configured.');
+        }
+
+        return $password;
     }
 }

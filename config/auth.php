@@ -122,6 +122,6 @@ return [
     |
     */
 
-    'default_user_password' => env('AUTH_DEFAULT_USER_PASSWORD'),
+    'default_user_password' => env('DEFAULT_USER_PASSWORD'),
 
 ];
