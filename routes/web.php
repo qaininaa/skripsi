@@ -1,8 +1,8 @@
 <?php
 
 use App\Domains\User\Http\Controllers\UserController;
+use App\Domains\Room\Http\Controllers\RoomController;
 use App\Http\Controllers\Masters\LocationController;
-use App\Http\Controllers\Masters\RoomController;
 use App\Http\Controllers\Masters\ReportManagements\ReportTypeController;
 use App\Http\Controllers\Masters\ReportManagements\ReportLocationController;
 use App\Http\Controllers\Masters\ReportManagements\ReportSectionController;

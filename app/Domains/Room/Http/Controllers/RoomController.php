@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Masters;
+namespace App\Domains\Room\Http\Controllers;
 
+use App\Domains\Room\Http\Requests\RoomRequest;
+use App\Domains\Room\Models\Room;
+use App\Domains\Room\Services\RoomService;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Masters\RoomRequest;
-use App\Models\Room;
-use App\Services\Masters\RoomService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,20 +16,10 @@ class RoomController extends Controller
 
     public function index(Request $request): View
     {
-        $search = $request->input('search');
-        $class  = $request->input('class');
-
-        $rooms = Room::when($search, fn ($q) => $q->where(function ($q) use ($search) {
-                $q->where('room_name', 'like', "%{$search}%")
-                    ->orWhere('room_number', 'like', "%{$search}%")
-                    ->orWhere('class', 'like', "%{$search}%");
-            }))
-            ->when($class, fn ($q) => $q->where('class', $class))
-            ->withCount('locations')
-            ->orderBy('class')
-            ->orderBy('room_name')
-            ->paginate(15)
-            ->withQueryString();
+        $rooms = $this->service->paginateForManagement(
+            $request->input('search'),
+            $request->input('class')
+        );
 
         return view('pages.master.room.index', compact('rooms'));
     }
@@ -58,7 +48,9 @@ class RoomController extends Controller
 
     public function edit(Room $room): View
     {
-        return view('pages.master.room.edit', compact('room'));
+        return view('pages.master.room.edit', [
+            'ruangan' => $room,
+        ]);
     }
 
     public function update(RoomRequest $request, Room $room): RedirectResponse
@@ -72,7 +64,7 @@ class RoomController extends Controller
 
     public function destroy(Room $room): RedirectResponse
     {
-        if ($room->locations()->exists()) {
+        if ($this->service->hasLocations($room)) {
             return back()->with('error', 'Ruangan tidak dapat dihapus karena masih memiliki data lokasi.');
         }
 
