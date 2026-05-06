@@ -1,31 +1,39 @@
 <?php
 
-namespace App\Services\Masters\ReportManagements;
+namespace App\Domains\ReportType\Services;
 
+use App\Domains\ReportType\Models\ReportType;
+use App\Domains\ReportType\Repositories\ReportTypeRepository;
 use App\Models\AuditLog;
-use App\Models\IncubatorType;
-use App\Models\MediumType;
-use App\Models\ReportType;
 use App\Services\Personnels\PersonnelService;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class ReportTypeService
 {
     public function __construct(
+        private ReportTypeRepository $repository,
         private PersonnelService $personnelService,
     ) {}
+
+    public function paginateForManagement(): LengthAwarePaginator
+    {
+        return $this->repository->paginateForManagement(15);
+    }
+
     public function create(array $validated, array $meta): ReportType
     {
-        $reportType = ReportType::create([
-            'sop_code'     => $validated['sop_code'],
-            'sop_version'  => $validated['sop_version'],
-            'name'         => $validated['name'],
+        $reportType = $this->repository->create([
+            'sop_code' => $validated['sop_code'],
+            'sop_version' => $validated['sop_version'],
+            'name' => $validated['name'],
             'annex_number' => $validated['annex_number'],
             'has_personnel' => $validated['has_personnel'] ?? false,
         ]);
 
         $this->syncMedia($reportType, $validated['medium_labels'] ?? []);
         $this->syncIncubators($reportType, $validated['incubator_labels'] ?? [], $validated['incubator_min_days'] ?? []);
+
         $this->auditLog('create_report_type', "Membuat jenis laporan: {$reportType->name} ({$reportType->annex_number})", $meta);
 
         return $reportType;
@@ -33,24 +41,21 @@ class ReportTypeService
 
     public function update(ReportType $reportType, array $validated, array $meta): ReportType
     {
-        $wasPersonnel = $reportType->has_personnel;
-        $isPersonnel  = $validated['has_personnel'] ?? false;
+        $wasPersonnel = (bool) $reportType->has_personnel;
+        $isPersonnel = (bool) ($validated['has_personnel'] ?? false);
 
-        $reportType->update([
-            'sop_code'     => $validated['sop_code'],
-            'sop_version'  => $validated['sop_version'],
-            'name'         => $validated['name'],
+        $reportType = $this->repository->update($reportType, [
+            'sop_code' => $validated['sop_code'],
+            'sop_version' => $validated['sop_version'],
+            'name' => $validated['name'],
             'annex_number' => $validated['annex_number'],
             'has_personnel' => $isPersonnel,
         ]);
 
-        // hapus lama, sync baru
-        $reportType->mediumTypes()->delete();
-        $reportType->incubatorTypes()->delete();
+        $this->repository->clearMediumAndIncubatorTypes($reportType);
         $this->syncMedia($reportType, $validated['medium_labels'] ?? []);
         $this->syncIncubators($reportType, $validated['incubator_labels'] ?? [], $validated['incubator_min_days'] ?? []);
 
-        // Toggle on → generate, toggle off → hapus
         if (! $wasPersonnel && $isPersonnel) {
             $this->personnelService->generate($reportType);
         } elseif ($wasPersonnel && ! $isPersonnel) {
@@ -64,39 +69,44 @@ class ReportTypeService
 
     public function delete(ReportType $reportType, array $meta): void
     {
-        $name  = $reportType->name;
+        $name = $reportType->name;
         $annex = $reportType->annex_number;
 
-        $reportType->delete();
+        $this->repository->delete($reportType);
 
         $this->auditLog('delete_report_type', "Menghapus jenis laporan: {$name} ({$annex})", $meta);
     }
 
-    // ── Helpers ─────────────────────────────────────────────
+    public function hasReports(ReportType $reportType): bool
+    {
+        return $this->repository->hasReports($reportType);
+    }
+
+    public function locationsForShow(): Collection
+    {
+        return $this->repository->locationsForShow();
+    }
 
     private function syncMedia(ReportType $reportType, array $labels): void
     {
         foreach ($labels as $label) {
-            $label = trim($label);
+            $label = trim((string) $label);
             if ($label !== '') {
-                MediumType::create([
-                    'report_type_id' => $reportType->id,
-                    'name'           => $label,
-                ]);
+                $this->repository->addMediumType($reportType, $label);
             }
         }
     }
 
     private function syncIncubators(ReportType $reportType, array $labels, array $minDays): void
     {
-        foreach ($labels as $i => $label) {
-            $label = trim($label);
+        foreach ($labels as $index => $label) {
+            $label = trim((string) $label);
             if ($label !== '') {
-                IncubatorType::create([
-                    'report_type_id'    => $reportType->id,
-                    'temperature_label' => $label,
-                    'min_day'           => (int) ($minDays[$i] ?? 3),
-                ]);
+                $this->repository->addIncubatorType(
+                    $reportType,
+                    $label,
+                    (int) ($minDays[$index] ?? 3)
+                );
             }
         }
     }
@@ -104,11 +114,11 @@ class ReportTypeService
     private function auditLog(string $action, string $description, array $meta): void
     {
         AuditLog::create([
-            'user_id'     => $meta['user_id'] ?? null,
-            'action'      => $action,
+            'user_id' => $meta['user_id'] ?? null,
+            'action' => $action,
             'description' => $description,
-            'ip_address'  => $meta['ip_address'] ?? null,
-            'user_agent'  => $meta['user_agent'] ?? null,
+            'ip_address' => $meta['ip_address'] ?? null,
+            'user_agent' => $meta['user_agent'] ?? null,
         ]);
     }
 }

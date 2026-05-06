@@ -3,9 +3,9 @@
 use App\Domains\User\Http\Controllers\UserController;
 use App\Domains\Room\Http\Controllers\RoomController;
 use App\Domains\Location\Http\Controllers\LocationController;
-use App\Http\Controllers\Masters\ReportManagements\ReportTypeController;
-use App\Http\Controllers\Masters\ReportManagements\ReportLocationController;
-use App\Http\Controllers\Masters\ReportManagements\ReportSectionController;
+use App\Domains\ReportType\Http\Controllers\ReportTypeController;
+use App\Domains\ReportType\Http\Controllers\ReportLocationController;
+use App\Domains\ReportType\Http\Controllers\ReportSectionController;
 use App\Http\Controllers\Reports\DuplicateSectionController;
 use App\Http\Controllers\Reports\ReportAssignmentController;
 use App\Http\Controllers\ReportController;

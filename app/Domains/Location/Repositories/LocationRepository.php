@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 class LocationRepository
 {
-    public function paginateForManagement(?string $search, ?string $roomId, int $perPage = 15): LengthAwarePaginator
+    public function paginateForManagement(?string $search, ?string $roomId, int $perPage = 10): LengthAwarePaginator
     {
         return Location::query()
             ->with(['room', 'section'])
