@@ -11,10 +11,18 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Service for authentication flow, rate limiting, and logout handling.
+ */
 class AuthService
 {
     public function __construct(private AuthRepository $repository) {}
 
+    /**
+     * Authenticate user with login DTO and request context.
+     *
+     * @throws ValidationException
+     */
     public function authenticate(LoginDTO $dto, Request $request): void
     {
         $this->ensureIsNotRateLimited($dto, $request);
@@ -30,11 +38,17 @@ class AuthService
         RateLimiter::clear($this->throttleKey($dto, $request));
     }
 
+    /**
+     * Check whether user should be redirected to password change page.
+     */
     public function shouldRedirectToPasswordChange(User $user): bool
     {
         return $user->mustChangePassword();
     }
 
+    /**
+     * Resolve dashboard route based on user role.
+     */
     public function resolveDashboardRouteName(User $user): ?string
     {
         return match ($user->role) {
@@ -45,6 +59,9 @@ class AuthService
         };
     }
 
+    /**
+     * Logout current user and invalidate session.
+     */
     public function logout(Request $request): void
     {
         $this->repository->logout();
@@ -53,6 +70,11 @@ class AuthService
         $request->session()->regenerateToken();
     }
 
+    /**
+     * Ensure login attempts do not exceed throttle limit.
+     *
+     * @throws ValidationException
+     */
     private function ensureIsNotRateLimited(LoginDTO $dto, Request $request): void
     {
         $throttleKey = $this->throttleKey($dto, $request);
@@ -73,8 +95,11 @@ class AuthService
         ]);
     }
 
+    /**
+     * Build throttle key from username and request IP.
+     */
     private function throttleKey(LoginDTO $dto, Request $request): string
     {
-        return Str::transliterate(Str::lower($dto->username) . '|' . $request->ip());
+        return Str::transliterate(Str::lower($dto->username).'|'.$request->ip());
     }
 }

@@ -8,15 +8,26 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Service for password update policy and password history checks.
+ */
 class PasswordService
 {
     public function __construct(private PasswordRepository $repository) {}
 
+    /**
+     * Determine whether user can bypass password expiration check.
+     */
     public function shouldBypassForSuper(User $user): bool
     {
         return $user->role === 'super';
     }
 
+    /**
+     * Change user password while enforcing history and reuse rules.
+     *
+     * @throws ValidationException
+     */
     public function changePassword(User $user, PasswordChangeDTO $dto): void
     {
         $historyCount = $this->repository->getHistoryCount();
