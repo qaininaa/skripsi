@@ -2,6 +2,7 @@
 
 namespace App\Domains\Auth\Http\Controllers;
 
+use App\Domains\Auth\DTOs\PasswordChangeDTO;
 use App\Domains\Auth\Http\Requests\LoginRequest;
 use App\Domains\Auth\Services\AuthService;
 use App\Domains\Auth\Services\PasswordService;
@@ -25,7 +26,8 @@ class AuthController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $dto = $request->toDTO();
+        $this->authService->authenticate($dto, $request);
         $request->session()->regenerate();
 
         $user = $request->user();
@@ -62,9 +64,11 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', new PasswordComplexity],
         ]);
 
+        $dto = PasswordChangeDTO::fromArray($request->validated());
+
         $this->passwordService->changePassword(
             $request->user(),
-            (string) $request->input('password')
+            $dto
         );
 
         return redirect()->route('dashboard')
