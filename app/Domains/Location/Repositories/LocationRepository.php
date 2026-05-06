@@ -9,6 +9,11 @@ use Illuminate\Support\Collection;
 
 class LocationRepository
 {
+    /**
+     * Get paginated locations with optional search and room filter.
+     *
+     * @return LengthAwarePaginator<int, Location>
+     */
     public function paginateForManagement(?string $search, ?string $roomId, int $perPage = 10): LengthAwarePaginator
     {
         return Location::query()
@@ -26,11 +31,21 @@ class LocationRepository
             ->withQueryString();
     }
 
+    /**
+     * Fetch room options for index filter.
+     *
+     * @return Collection<int, Room>
+     */
     public function roomOptionsForIndex(): Collection
     {
         return Room::query()->orderBy('room_name')->get();
     }
 
+    /**
+     * Fetch room options for location create/edit form.
+     *
+     * @return Collection<int, Room>
+     */
     public function roomOptionsForForm(): Collection
     {
         return Room::query()
@@ -39,11 +54,21 @@ class LocationRepository
             ->get();
     }
 
+    /**
+     * Create a location record.
+     *
+     * @param  array<string, mixed>  $validated
+     */
     public function create(array $validated): Location
     {
         return Location::create($validated);
     }
 
+    /**
+     * Update an existing location record.
+     *
+     * @param  array<string, mixed>  $validated
+     */
     public function update(Location $location, array $validated): Location
     {
         $location->update($validated);
@@ -51,6 +76,9 @@ class LocationRepository
         return $location;
     }
 
+    /**
+     * Delete a location record.
+     */
     public function delete(Location $location): void
     {
         $location->delete();
