@@ -13,7 +13,6 @@ class PasswordHistory extends Model
 
     protected $fillable = [
         'user_id',
-        'username',
         'password',
         'created_at',
     ];

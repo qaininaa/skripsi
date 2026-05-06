@@ -58,7 +58,6 @@ class ChangePasswordController extends Controller
         // Save old password to history
         PasswordHistory::create([
             'user_id' => $user->id,
-            'username' => $user->username,
             'password' => $user->password,
             'created_at' => now(),
         ]);
