@@ -16,6 +16,9 @@ class ReportSection extends BaseReportSection
 
     public function locations(): HasMany
     {
-        return $this->hasMany(Location::class, 'section_id')->orderBy('id');
+        return $this->hasMany(Location::class, 'section_id')
+            ->orderBy('section_assigned_at')
+            ->orderBy('created_at')
+            ->orderBy('id');
     }
 }

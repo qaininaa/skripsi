@@ -23,7 +23,10 @@ class SectionLocationRepository
      */
     public function assignToSection(Location $location, ReportSection $section): void
     {
-        $location->update(['section_id' => $section->id]);
+        $location->update([
+            'section_id' => $section->id,
+            'section_assigned_at' => now(),
+        ]);
     }
 
     /**
@@ -31,6 +34,9 @@ class SectionLocationRepository
      */
     public function clearSection(Location $location): void
     {
-        $location->update(['section_id' => null]);
+        $location->update([
+            'section_id' => null,
+            'section_assigned_at' => null,
+        ]);
     }
 }

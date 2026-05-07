@@ -126,7 +126,10 @@ class ReportSectionLocationSeeder extends Seeder
             $affected = DB::table('locations')
                 ->where('id', $loc->id)
                 ->whereNull('section_id')
-                ->update(['section_id' => $sectionId]);
+                ->update([
+                    'section_id' => $sectionId,
+                    'section_assigned_at' => now(),
+                ]);
 
             $assigned += $affected;
         }

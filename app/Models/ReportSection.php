@@ -59,6 +59,8 @@ class ReportSection extends Model
     public function locations(): HasMany
     {
         return $this->hasMany(ReportLocation::class, 'section_id')
+            ->orderBy('section_assigned_at')
+            ->orderBy('created_at')
             ->orderBy('id');
     }
 }

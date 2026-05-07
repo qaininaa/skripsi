@@ -20,13 +20,14 @@ class ReportLocation extends Model
     protected $table = 'locations';
 
     protected $fillable = [
-        'section_id', 'room_id', 'frequency', 'location_number', 'measurement_type',
+        'section_id', 'section_assigned_at', 'room_id', 'frequency', 'location_number', 'measurement_type',
         'alert_limit_total', 'alert_limit_fungi',
         'alert_action_total', 'alert_action_fungi',
     ];
 
     protected $casts = [
         'frequency' => 'string',
+        'section_assigned_at' => 'datetime',
     ];
 
     public function section()

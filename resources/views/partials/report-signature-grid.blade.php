@@ -4,18 +4,34 @@
     $notice = $notice ?? null;
     $onlySupervisor = $onlySupervisor ?? false;  // when true, skip monitoring/reading columns
 
-    $hd = $report->header_data ?? [];
+    // Ensure required relations are available in this shared partial.
+    $report->loadMissing(['analysts.user', 'approvals.user', 'sectionSignatures']);
 
-    // All monitoring analysts — load relation if not already loaded
-    if (!$report->relationLoaded('analysts')) {
-        $report->load('analysts.user');
-    }
     $monitoringUsersSorted = $report->analysts->where('type', 'monitoring')->map->user->filter()->values();
     $readingUsersSorted    = $report->analysts->where('type', 'reading')->map->user->filter()->values();
 
-    // Per-analyst timestamps (associative: userId => datetime string)
-    $monTimestamps  = $hd['ttd_monitoring_timestamps'] ?? [];
-    $readTimestamps = $hd['ttd_reading_timestamps']    ?? [];
+    // Per-analyst timestamps from section signatures (latest per user + role).
+    $monTimestamps = [];
+    $readTimestamps = [];
+    foreach ($report->sectionSignatures as $sig) {
+        if (! $sig->user_id || ! $sig->signed_at) {
+            continue;
+        }
+
+        $uid = (string) $sig->user_id;
+
+        if ($sig->role === 'monitoring') {
+            if (! isset($monTimestamps[$uid]) || $sig->signed_at->gt($monTimestamps[$uid])) {
+                $monTimestamps[$uid] = $sig->signed_at;
+            }
+        }
+
+        if ($sig->role === 'reading') {
+            if (! isset($readTimestamps[$uid]) || $sig->signed_at->gt($readTimestamps[$uid])) {
+                $readTimestamps[$uid] = $sig->signed_at;
+            }
+        }
+    }
 
     $supervisorApproval = $report->approvals->firstWhere('step', 2);
     $managerApproval    = $report->approvals->firstWhere('step', 3);
@@ -26,9 +42,7 @@
             'sub'     => '(Analis Lab. Mikrobiologi)',
             'entries' => $monitoringUsersSorted->map(fn($u) => [
                 'user'      => $u,
-                'signed_at' => isset($monTimestamps[(string) $u->id])
-                    ? \Illuminate\Support\Carbon::parse($monTimestamps[(string) $u->id])
-                    : null,
+                'signed_at' => $monTimestamps[(string) $u->id] ?? null,
             ]),
         ],
         [
@@ -36,9 +50,7 @@
             'sub'     => '(Analis Lab. Mikrobiologi)',
             'entries' => $readingUsersSorted->map(fn($u) => [
                 'user'      => $u,
-                'signed_at' => isset($readTimestamps[(string) $u->id])
-                    ? \Illuminate\Support\Carbon::parse($readTimestamps[(string) $u->id])
-                    : null,
+                'signed_at' => $readTimestamps[(string) $u->id] ?? null,
             ]),
         ],
         [

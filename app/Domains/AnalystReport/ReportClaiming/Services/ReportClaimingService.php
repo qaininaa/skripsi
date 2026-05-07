@@ -5,8 +5,8 @@ namespace App\Domains\AnalystReport\ReportClaiming\Services;
 use App\Domains\AnalystReport\Models\AnalystReport;
 use App\Domains\AnalystReport\ReportClaiming\DTOs\ReportClaimingFilterDTO;
 use App\Domains\AnalystReport\ReportClaiming\Repositories\ReportClaimingRepository;
+use App\Domains\AnalystReport\Shared\Services\AnalystReportEntryService;
 use App\Models\ReportApproval;
-use App\Services\Reports\ReportEntryService;
 use App\Services\Reports\ReportViewService;
 use Illuminate\Support\Collection;
 
@@ -30,7 +30,7 @@ class ReportClaimingService
     public function __construct(
         private ReportClaimingRepository $repository,
         private ReportViewService $viewService,
-        private ReportEntryService $entryService,
+        private AnalystReportEntryService $entryService,
     ) {}
 
     /**

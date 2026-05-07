@@ -243,14 +243,12 @@ class SupervisorReportController extends Controller
             'returned_to_user_id' => $returnedToUserId,
         ]);
 
-        // Reset signature timestamps — clear all per-section and legacy TTD keys
+        // Clear per-section TTDs so signatures must be re-stamped on revision
         $hd = $report->header_data ?? [];
         unset(
             $hd['section_ttd_monitoring'],
             $hd['section_ttd_reading'],
-            $hd['section_ttd_supervisor'],
-            $hd['ttd_monitoring_signed_at'],
-            $hd['ttd_dibaca_signed_at']
+            $hd['section_ttd_supervisor']
         );
         $report->update(['status' => 'returned', 'locked_by' => null, 'header_data' => $hd]);
 

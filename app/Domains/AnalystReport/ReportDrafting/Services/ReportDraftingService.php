@@ -4,8 +4,8 @@ namespace App\Domains\AnalystReport\ReportDrafting\Services;
 
 use App\Domains\AnalystReport\Models\AnalystReport;
 use App\Domains\AnalystReport\ReportDrafting\DTOs\ReportDraftingSaveDTO;
+use App\Domains\AnalystReport\Shared\Services\AnalystReportEntryService;
 use App\Services\PersonnelInstanceService;
-use App\Services\Reports\ReportEntryService;
 use App\Services\Reports\ReportWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +17,7 @@ class ReportDraftingService
 {
     public function __construct(
         private PersonnelInstanceService $personnelInstanceService,
-        private ReportEntryService $entryService,
+        private AnalystReportEntryService $entryService,
         private ReportWorkflowService $workflowService,
     ) {}
 

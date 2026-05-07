@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Auth;
  *   - Pencatatan partisipasi analis
  *   - Stamping tanda tangan per seksi
  *   - Transisi status: finish_monitoring, submit, submit_revision, handover
- *   - Penandaan tanda tangan monitoring/reading saat submit
  */
 class ReportWorkflowService
 {
@@ -83,9 +82,7 @@ class ReportWorkflowService
      */
     public function submit(Report $report, string $supervisorId): void
     {
-        $freshHd = $this->markAnalystSignaturesAsSigned($report->fresh()->header_data ?? [], $report);
         $report->update([
-            'header_data' => $freshHd,
             'status'      => 'submitted',
             'locked_by'   => null,
         ]);
@@ -114,9 +111,7 @@ class ReportWorkflowService
             ->where('step', 2)
             ->firstOrFail();
 
-        $freshHd = $this->markAnalystSignaturesAsSigned($report->fresh()->header_data ?? [], $report);
         $report->update([
-            'header_data' => $freshHd,
             'status'      => 'submitted',
             'locked_by'   => null,
         ]);
@@ -136,29 +131,6 @@ class ReportWorkflowService
     public function handover(Report $report): void
     {
         Report::where('id', $report->id)->update(['locked_by' => null]);
-    }
-
-    /**
-     * Tandai tanda tangan monitoring dan reading sebagai selesai di header_data.
-     * Dipanggil saat laporan disubmit untuk mencatat siapa yang menandatangani dan kapan.
-     *
-     * @param  array  $headerData  header_data saat ini
-     * @param  Report $report      Laporan yang disubmit
-     * @return array               header_data yang sudah diperbarui
-     */
-    public function markAnalystSignaturesAsSigned(array $headerData, Report $report): array
-    {
-        $monitoringUser = Analyst::where('report_id', $report->id)->where('type', 'monitoring')->first();
-        $readingUser    = Analyst::where('report_id', $report->id)->where('type', 'reading')->first();
-
-        $headerData['ttd_monitoring_id'] = $monitoringUser?->user_id;
-        $headerData['ttd_dibaca_id']     = $readingUser?->user_id;
-
-        $signedAt = now()->toDateTimeString();
-        $headerData['ttd_monitoring_signed_at'] = $signedAt;
-        $headerData['ttd_dibaca_signed_at']     = $signedAt;
-
-        return $headerData;
     }
 
     /**

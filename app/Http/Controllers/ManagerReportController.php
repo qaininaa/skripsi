@@ -231,9 +231,7 @@ class ManagerReportController extends Controller
                 $hd['section_ttd_monitoring'],
                 $hd['section_ttd_reading'],
                 $hd['section_ttd_supervisor'],
-                $hd['section_ttd_manager'],
-                $hd['ttd_monitoring_signed_at'],
-                $hd['ttd_dibaca_signed_at']
+                $hd['section_ttd_manager']
             );
 
             $analystApproval = ReportApproval::where('report_id', $report->id)
