@@ -147,6 +147,7 @@ class ReportTypeSectionSeeder extends Seeder
             'annex_number' => 17,
             'sop_code' => 'SOP-QC035-A17',
             'sop_version' => '11',
+            'has_personnel' => true,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -214,6 +215,7 @@ class ReportTypeSectionSeeder extends Seeder
             'annex_number' => 18,
             'sop_code' => 'SOP-QC035-A18',
             'sop_version' => '11',
+            'has_personnel' => true,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
