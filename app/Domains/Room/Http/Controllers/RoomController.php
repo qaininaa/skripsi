@@ -36,7 +36,7 @@ class RoomController extends Controller
         if ($duplicate) {
             return redirect()
                 ->route('master.room.edit', $duplicate)
-                ->with('info', 'Ruangan dengan nama dan nomor yang sama sudah ada. Anda dapat mengubahnya di sini.');
+                ->with('info', 'Nama ruangan sudah ada. Anda dapat mengubah data ruangan tersebut di sini.');
         }
 
         $this->service->create($request->validated());
@@ -55,6 +55,14 @@ class RoomController extends Controller
 
     public function update(RoomRequest $request, Room $room): RedirectResponse
     {
+        $duplicate = $this->service->findDuplicate($request->validated(), $room->id);
+
+        if ($duplicate) {
+            return back()
+                ->withErrors(['room_name' => 'Nama ruangan sudah ada. Gunakan nama ruangan lain.'])
+                ->withInput();
+        }
+
         $this->service->update($room, $request->validated());
 
         return redirect()

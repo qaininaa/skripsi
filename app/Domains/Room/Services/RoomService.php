@@ -21,13 +21,13 @@ class RoomService
     }
 
     /**
-     * Find duplicate room by identifying attributes.
+     * Find duplicate room by room name (case-insensitive).
      *
      * @param  array<string, mixed>  $validated
      */
-    public function findDuplicate(array $validated): ?Room
+    public function findDuplicate(array $validated, ?string $ignoreRoomId = null): ?Room
     {
-        return $this->repository->findDuplicate($validated);
+        return $this->repository->findDuplicate($validated, $ignoreRoomId);
     }
 
     /**

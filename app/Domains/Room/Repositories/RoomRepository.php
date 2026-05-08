@@ -29,15 +29,17 @@ class RoomRepository
     }
 
     /**
-     * Find duplicate room by room name and room number.
+     * Find duplicate room by room name (case-insensitive).
      *
      * @param  array<string, mixed>  $validated
      */
-    public function findDuplicate(array $validated): ?Room
+    public function findDuplicate(array $validated, ?string $ignoreRoomId = null): ?Room
     {
+        $normalizedName = mb_strtolower(trim((string) $validated['room_name']));
+
         return Room::query()
-            ->where('room_name', $validated['room_name'])
-            ->where('room_number', $validated['room_number'])
+            ->when($ignoreRoomId, fn ($q) => $q->whereKeyNot($ignoreRoomId))
+            ->whereRaw('LOWER(room_name) = ?', [$normalizedName])
             ->first();
     }
 

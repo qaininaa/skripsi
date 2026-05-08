@@ -41,7 +41,10 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Ruangan <span class="text-red-500">*</span></label>
                     <input type="text" name="room_name" value="{{ old('room_name', $ruangan->room_name) }}"
-                           class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                           class="block w-full rounded-lg {{ $errors->has('room_name') ? 'border-red-300' : 'border-gray-300' }} text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                    @error('room_name')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
