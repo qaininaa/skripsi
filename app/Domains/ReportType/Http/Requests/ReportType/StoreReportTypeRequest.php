@@ -1,5 +1,5 @@
 <?php
 
-namespace App\Domains\ReportType\Http\Requests;
+namespace App\Domains\ReportType\Http\Requests\ReportType;
 
 class StoreReportTypeRequest extends ReportTypeRequest {}
