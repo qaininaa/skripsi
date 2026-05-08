@@ -4,140 +4,127 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ReportSectionLocationSeeder extends Seeder
 {
     public function run(): void
     {
-        // Seeder ini mengisi locations.section_id langsung.
-        // Jalankan SETELAH: RoomSeeder, LocationSeeder, ReportTypeSectionSeeder
-        //
-        // Cara kerja: untuk setiap lokasi, cari section dari report_type yang cocok
-        // berdasarkan measurement_type, lalu assign ke lokasi.
-
-        // Ambil semua section beserta report_type code-nya
-        $sections = DB::table('sections')
-            ->join('report_types', 'sections.report_type_id', '=', 'report_types.id')
-            ->select('sections.id', 'sections.measurement_type', 'report_types.annex_number as rt_code')
-            ->get();
-
-        // Kelompokkan: sectionByTypeAndAnnex[18]['settle_plate'] = section_id
-        $sectionMap = [];
-        foreach ($sections as $s) {
-            $sectionMap[$s->rt_code][$this->normalizeMeasurementType($s->measurement_type)] = $s->id;
-        }
-
-        // Ambil semua lokasi
-        $locations = DB::table('locations')
-            ->join('rooms', 'locations.room_id', '=', 'rooms.id')
-            ->select('locations.id', 'locations.measurement_type', 'rooms.room_name')
-            ->get();
-
-        // Map berdasarkan annex_number integer
-        $roomToAnnex = [
-            // Annex 17 — Filling Line 1
-            'LAF Mesin Filling 1' => 17,
-            'Filling Room 1' => 17,
-            'Material Airlock In 2' => 17,
-            'Material Airlock Out 2' => 17,
-            'Equipment Store 3' => 17,
-            'Personnel Airlock In 2' => 17,
-            'Personnel Airlock Out 2' => 17,
-            'Change Room In 2' => 17,
-            'Change Room Out 2' => 17,
-
-            // Annex 18 — Filling Line 2
-            'LAF Mesin Filling 2' => 18,
-            'Filling Room 2' => 18,
-            'Material Airlock In 1' => 18,
-            'Material Airlock Out 1' => 18,
-            'Equipment Store 2' => 18,
-            'Personnel Airlock In 1' => 18,
-            'Personnel Airlock Out 1' => 18,
-            'Change Room In 1' => 18,
-            'Change Room Out 1' => 18,
-
-            // Annex 24 — Sampling Room
-            'LAF Sampling Room' => 24,
-            'Sampling Room' => 24,
-            'Material Airlock In 3' => 24,
-            'Material Airlock Out 3' => 24,
-            'Change Room 5' => 24,
-            'Personnel Airlock 5' => 24,
-
-            // Annex 3
-            'LAF Washing Machine (Laundry)' => 3,
-            'LAF Getinge (Cleaned Parts Storage)' => 3,
-            'Material Airlock 4' => 3,
-            'Personnel Airlock 4' => 3,
-            'Grade C Corridor' => 3,
-            'Clean Preparation Room' => 3,
-            'Equipment Store 1' => 3,
-            'Formulation 1' => 3,
-            'Formulation 2' => 3,
-            'Equipment Clean and Dry' => 3,
-            'Material Airlock 5' => 3,
-            'Locker' => 3,
-            'Change Room 3' => 3,
-
-            // Annex 4
-            'Change Room 1' => 4,
-            'Personnel Airlock 3' => 4,
-            'Weighed Material Store' => 4,
-            'Weighing Room' => 4,
-            'LAF Weighing Room' => 4,
-            'Material Airlock 3' => 4,
-            'Change Room 2' => 4,
-            'Pre Weighing Staging' => 4,
-            'Material Airlock 2' => 4,
-            'Grade D Corridor 1' => 4,
-            'Laundry' => 4,
-            'Part Washing (D)' => 4,
-            'Ampoule/Vial Stores 2' => 4,
-            'Washing & Depyrogenation Line 2' => 4,
-            'Equipment Dirty 2' => 4,
-            'Equipment Store 5' => 4,
-            'Janitor 3' => 4,
-            'Equipment Dirty' => 4,
-            'COP Washer' => 4,
-            'Ampoule Stores 1' => 4,
-            'Washing & Depyrogenation Line 1' => 4,
-            'Change Room 4' => 4,
-            'Filled Ampoules Unload 1' => 4,
-            'Filled Ampoules Unload 2' => 4,
-            'Material Airlock 6' => 4,
-            'Grade D Corridor 2' => 4,
+        // Manual mapping: isi satu-per-satu agar urutan section per annex bisa dikontrol.
+        // section_order diambil dari kolom sections.order milik report_type (annex) terkait.
+        $manualAssignments = [
+            // Contoh format:
+            // [
+            //     'annex_number' => 17,
+            //     'section_order' => 1,
+            //     'room_name' => 'LAF Mesin Filling 1',
+            //     'location_number' => 'SP1', // optional
+            //     'measurement_type' => 'settle_plate', // optional
+            // ],
         ];
 
+        if ($manualAssignments === []) {
+            $this->command?->warn('ReportSectionLocationSeeder: belum ada mapping manual. Tidak ada assignment yang dijalankan.');
+
+            return;
+        }
+
+        $reportTypeIdCache = [];
+        $sectionIdCache = [];
         $assigned = 0;
-        foreach ($locations as $loc) {
-            $annexCode = $roomToAnnex[$loc->room_name] ?? null;
-            if (! $annexCode) {
+
+        foreach ($manualAssignments as $index => $assignment) {
+            $annexNumber = (int) ($assignment['annex_number'] ?? 0);
+            $sectionOrder = (int) ($assignment['section_order'] ?? 0);
+            $roomName = (string) ($assignment['room_name'] ?? '');
+            $locationNumber = isset($assignment['location_number']) ? (string) $assignment['location_number'] : null;
+            $measurementType = isset($assignment['measurement_type']) ? $this->normalizeMeasurementType((string) $assignment['measurement_type']) : null;
+
+            if ($annexNumber === 0 || $sectionOrder === 0 || $roomName === '') {
+                $this->command?->warn('Baris mapping #'.($index + 1).' invalid (annex_number, section_order, room_name wajib diisi).');
                 continue;
             }
 
-            $normalizedType = $this->normalizeMeasurementType($loc->measurement_type);
-            $sectionId = $sectionMap[$annexCode][$normalizedType] ?? null;
+            $reportTypeId = $this->resolveReportTypeIdByAnnex($annexNumber, $reportTypeIdCache);
+            if (! $reportTypeId) {
+                $this->command?->warn('Baris mapping #'.($index + 1).': report_type annex '.$annexNumber.' tidak ditemukan.');
+                continue;
+            }
+
+            $sectionId = $this->resolveSectionIdByOrder($reportTypeId, $sectionOrder, $sectionIdCache);
             if (! $sectionId) {
+                $this->command?->warn('Baris mapping #'.($index + 1).': section order '.$sectionOrder.' tidak ditemukan pada annex '.$annexNumber.'.');
                 continue;
             }
 
-            $affected = DB::table('locations')
-                ->where('id', $loc->id)
-                ->whereNull('section_id')
-                ->update([
-                    'section_id' => $sectionId,
-                    'section_assigned_at' => now(),
-                ]);
+            $roomIds = DB::table('rooms')
+                ->where('room_name', $roomName)
+                ->pluck('id');
+
+            if ($roomIds->isEmpty()) {
+                $this->command?->warn('Baris mapping #'.($index + 1).': room "'.$roomName.'" tidak ditemukan.');
+                continue;
+            }
+
+            $query = DB::table('locations')
+                ->whereIn('room_id', $roomIds)
+                ->whereNull('section_id');
+
+            if ($locationNumber !== null && $locationNumber !== '') {
+                $query->where('location_number', $locationNumber);
+            }
+
+            if ($measurementType !== null && $measurementType !== '') {
+                $query->where('measurement_type', $measurementType);
+            }
+
+            $affected = $query->update([
+                'section_id' => $sectionId,
+                'section_assigned_at' => now(),
+            ]);
 
             $assigned += $affected;
         }
 
         if ($assigned > 0) {
-            $this->command->info('Assigned '.$assigned.' location(s) to sections.');
+            $this->command?->info('Assigned '.$assigned.' location(s) via manual mapping.');
         } else {
-            $this->command->warn('No locations assigned. Pastikan LocationSeeder dan ReportTypeSectionSeeder sudah dijalankan.');
+            $this->command?->warn('Tidak ada location yang ter-assign. Cek isi manual mapping pada seeder ini.');
         }
+    }
+
+    private function resolveReportTypeIdByAnnex(int $annexNumber, array &$cache): ?string
+    {
+        if (array_key_exists($annexNumber, $cache)) {
+            return $cache[$annexNumber];
+        }
+
+        $cache[$annexNumber] = DB::table('report_types')
+            ->where('annex_number', $annexNumber)
+            ->value('id');
+
+        return $cache[$annexNumber];
+    }
+
+    private function resolveSectionIdByOrder(string $reportTypeId, int $sectionOrder, array &$cache): ?string
+    {
+        $cacheKey = $reportTypeId.'|'.$sectionOrder;
+        if (array_key_exists($cacheKey, $cache)) {
+            return $cache[$cacheKey];
+        }
+
+        $cache[$cacheKey] = DB::table('sections')
+            ->where('report_type_id', $reportTypeId)
+            ->where('order', $sectionOrder)
+            ->value('id');
+
+        return $cache[$cacheKey];
+    }
+
+    private function normalizeMeasurementType(string $value): string
+    {
+        $value = trim(strtolower($value));
+        $value = str_replace(['/', '-', ' '], '_', $value);
+
+        return preg_replace('/_+/', '_', $value) ?? $value;
     }
 }
