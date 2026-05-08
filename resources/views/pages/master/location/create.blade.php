@@ -47,30 +47,31 @@
 
                 {{-- Nomor Lokasi --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Lokasi</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Lokasi <span class="text-red-500">*</span></label>
                     <input type="text" name="location_number" value="{{ old('location_number') }}"
                            placeholder="Contoh: L-01"
-                           class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
+                           class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                 </div>
 
                 {{-- Tipe Pengukuran --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Pengukuran</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Pengukuran <span class="text-red-500">*</span></label>
                     <select name="measurement_type"
-                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
-                        <option value="">— Tidak Ditentukan —</option>
+                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                        <option value="" disabled {{ old('measurement_type') ? '' : 'selected' }}>— Pilih Tipe Pengukuran —</option>
                         <option value="settle_plate" {{ old('measurement_type') === 'settle_plate' ? 'selected' : '' }}>Settle Plate</option>
                         <option value="swab" {{ old('measurement_type') === 'swab' ? 'selected' : '' }}>Swab</option>
                         <option value="air_sampler" {{ old('measurement_type') === 'air_sampler' ? 'selected' : '' }}>Air Sampler</option>
+                        <option value="contact_plate" {{ old('measurement_type') === 'contact_plate' ? 'selected' : '' }}>Contact Plate</option>
                     </select>
                 </div>
 
                 {{-- Frekuensi --}}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Frekuensi Pemantauan</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Frekuensi Pemantauan <span class="text-red-500">*</span></label>
                     <select name="frequency"
-                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
-                        <option value="">— Tidak Ditentukan —</option>
+                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                        <option value="" disabled {{ old('frequency') ? '' : 'selected' }}>— Pilih Frekuensi Pemantauan —</option>
                         @foreach (\App\Models\ReportLocation::FREQUENCY_LABELS as $freqValue => $freqLabel)
                             <option value="{{ $freqValue }}" {{ old('frequency') == $freqValue ? 'selected' : '' }}>
                                 {{ $freqLabel }}
