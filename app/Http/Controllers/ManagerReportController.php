@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
 use App\Models\PersonnelInstance;
 use App\Models\PersonnelRow;
 use App\Models\Report;
 use App\Models\ReportApproval;
-use App\Services\Reports\ReportEntryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -280,12 +280,12 @@ class ManagerReportController extends Controller
             return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
         }
 
-        $entryService = app(ReportEntryService::class);
+        $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
 
         // Identitas instrumen (Air Sampler) → instrument_entries
         $asData = $request->input('header_data.air_sampler');
         if (is_array($asData)) {
-            $entryService->saveInstrumentFromArray($asData, $report);
+            $instrumentIdentityEntryService->saveFromArray($asData, $report);
         }
 
         // Identitas medium agar → medium_identities

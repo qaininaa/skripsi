@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
 use App\Domains\ReportEntry\Shared\Services\EnvironmentalEntryService;
 use App\Domains\ReportEntry\Shared\Services\PersonnelEntryService;
 use App\Models\Analyst;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Auth;
 class ReportEntryService
 {
     public function __construct(
+        private InstrumentIdentityEntryService $instrumentIdentityEntryService,
         private EnvironmentalEntryService $environmentalEntryService,
         private PersonnelEntryService $personnelEntryService,
     ) {}
@@ -153,7 +155,7 @@ class ReportEntryService
         $myShift = 1;
 
         //  1. IDENTITAS INSTRUMEN (Air Sampler) 
-        $this->saveInstrument($request, $report);
+        $this->instrumentIdentityEntryService->saveFromRequest($request, $report);
 
         //  2. IDENTITAS MEDIUM AGAR 
         $this->saveMediums($request, $report);
@@ -224,22 +226,6 @@ class ReportEntryService
     }
 
     // Private helper methods
-
-    private function saveInstrument(Request $request, Report $report): void
-    {
-        if (! $request->has('air_sampler')) {
-            return;
-        }
-        $asData = $request->input('air_sampler', []);
-        $report->instrumentEntries()->updateOrCreate(
-            ['tool_name' => $asData['tool_name'] ?? 'Air Sampler'],
-            [
-                'no_id'            => $asData['no_id']            ?? null ?: null,
-                'calibration_date' => $asData['calibration_date'] ?? null ?: null,
-                'due_date'         => $asData['due_date']         ?? null ?: null,
-            ]
-        );
-    }
 
     private function saveMediums(Request $request, Report $report): void
     {
@@ -495,22 +481,6 @@ class ReportEntryService
     public function buildInstanceLookup(Report $report): array
     {
         return $this->environmentalEntryService->buildInstanceLookup($report);
-    }
-
-    /**
-     * Simpan identitas instrumen (air sampler) langsung ke tabel instrument_entries.
-     * Digunakan oleh supervisor/manajer yang menerima data via header_data[air_sampler].
-     */
-    public function saveInstrumentFromArray(array $asData, Report $report): void
-    {
-        $report->instrumentEntries()->updateOrCreate(
-            ['tool_name' => $asData['tool_name'] ?? 'Air Sampler'],
-            [
-                'no_id'            => $asData['no_id']            ?? null ?: null,
-                'calibration_date' => $asData['calibration_date'] ?? null ?: null,
-                'due_date'         => $asData['due_date']         ?? null ?: null,
-            ]
-        );
     }
 
     /**

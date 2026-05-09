@@ -116,14 +116,21 @@ class ReportSectionService
      */
     public function computeSectionNeeds(Report $report): array
     {
-        $types = $report->reportType->sections
-            ->map(fn (ReportSection $section) => $section->measurement_key)
-            ->unique();
+        $types = collect(
+            $report->reportType->sections
+                ->pluck('measurement_key')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all()
+        );
+
+        $inkubatorAndMediumTypes = ['settle_plate', 'contact_plate', 'swab'];
 
         return [
             'needsAirSampler' => $types->contains('air_sampler'),
-            'needsInkubator'  => $types->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty(),
-            'needsMedium'     => $types->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty(),
+            'needsInkubator'  => $types->intersect($inkubatorAndMediumTypes)->isNotEmpty(),
+            'needsMedium'     => $types->intersect($inkubatorAndMediumTypes)->isNotEmpty(),
         ];
     }
 

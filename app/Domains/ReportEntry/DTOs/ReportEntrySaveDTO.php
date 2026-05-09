@@ -15,6 +15,7 @@ class ReportEntrySaveDTO
      * @param array $swabTimes
      * @param array $exposureTimes
      * @param array $columnNames
+     * @param array $airSampler
      * @param array $personnel
      * @param array $pageNotes
      */
@@ -24,6 +25,7 @@ class ReportEntrySaveDTO
         public array $swabTimes,
         public array $exposureTimes,
         public array $columnNames,
+        public array $airSampler,
         public array $personnel,
         public array $pageNotes,
     ) {}
@@ -36,6 +38,7 @@ class ReportEntrySaveDTO
             swabTimes: (array) $request->input('swab_times', []),
             exposureTimes: (array) $request->input('exposure_times', []),
             columnNames: (array) $request->input('column_names', []),
+            airSampler: (array) $request->input('air_sampler', []),
             personnel: (array) $request->input('personnel', []),
             pageNotes: (array) $request->input('page_notes', []),
         );
@@ -52,6 +55,7 @@ class ReportEntrySaveDTO
             'swab_times' => $this->swabTimes,
             'exposure_times' => $this->exposureTimes,
             'column_names' => $this->columnNames,
+            'air_sampler' => $this->airSampler,
             'personnel' => $this->personnel,
             'page_notes' => $this->pageNotes,
         ];
