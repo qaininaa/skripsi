@@ -322,7 +322,7 @@
     </div>
     @endif
 
-    {{-- ── Tabel Pengukuran per Seksi ────────────────────── --}}
+    {{-- ── Tabel Pengukuran per section ────────────────────── --}}
     @foreach ($report->reportType->sections as $section)
     @php
         // CFU helpers (values are varchar: '<1', 'TNTC', or integer string)
@@ -746,7 +746,7 @@
             MS: Memenuhi Spesifikasi &nbsp;·&nbsp; TMS: Tidak Memenuhi Spesifikasi
         </div>
 
-        {{-- Catatan & Kesimpulan per seksi --}}
+        {{-- Catatan & Kesimpulan per section --}}
         <div class="px-5 py-4 border-t border-gray-100 space-y-3">
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>

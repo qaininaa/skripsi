@@ -399,7 +399,7 @@
     </div>
     @endif
 
-    {{-- ── Tabel Pengukuran per Seksi ────────────────────── --}}
+    {{-- ── Tabel Pengukuran per Section ────────────────────── --}}
     @foreach ($report->reportType->sections as $section)
     @php
         $cfuNum = function(?string $v): ?int {

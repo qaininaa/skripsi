@@ -62,7 +62,7 @@ class ReportViewService
      */
     public function buildViewData(Report $report, bool $isEditable): array
     {
-        // Pastikan setiap seksi punya minimal 1 instance original.
+        // Pastikan setiap section punya minimal 1 instance original.
         $this->instanceService->ensureInstancesInitialized($report);
 
         $entryMap        = $this->sectionService->buildEntryMap($report);

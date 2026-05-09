@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Menyimpan tanda tangan (TTD) per seksi laporan.
- * Setiap baris = satu user menandatangani satu seksi dengan role tertentu.
+ * Menyimpan tanda tangan (TTD) per section laporan.
+ * Setiap baris = satu user menandatangani satu section dengan role tertentu.
  *
  * Role yang tersedia:
  *  - monitoring : analis fase monitoring
@@ -19,7 +19,7 @@ class SectionSignature extends Model
 {
     use HasUuids;
 
-    protected $table = 'sectionSignatures';
+    protected $table = 'section_signatures';
 
     protected $fillable = [
         'report_id',
@@ -45,7 +45,7 @@ class SectionSignature extends Model
     }
 
     /**
-     * User yang menandatangani seksi ini.
+     * User yang menandatangani section ini.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

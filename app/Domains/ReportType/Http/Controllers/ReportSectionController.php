@@ -23,7 +23,7 @@ class ReportSectionController extends Controller
 
         return redirect()
             ->route('report-types.show', $reportType)
-            ->with('success', 'Seksi berhasil ditambahkan.');
+            ->with('success', 'Section berhasil ditambahkan.');
     }
 
     public function update(UpdateReportSectionRequest $request, ReportType $reportType, ReportSection $section)
@@ -36,7 +36,7 @@ class ReportSectionController extends Controller
 
         return redirect()
             ->route('report-types.show', $reportType)
-            ->with('success', 'Seksi berhasil diperbarui.');
+            ->with('success', 'Section berhasil diperbarui.');
     }
 
     public function destroy(ReportType $reportType, ReportSection $section)
@@ -45,6 +45,6 @@ class ReportSectionController extends Controller
 
         return redirect()
             ->route('report-types.show', $reportType)
-            ->with('success', 'Seksi berhasil dihapus.');
+            ->with('success', 'Section berhasil dihapus.');
     }
 }

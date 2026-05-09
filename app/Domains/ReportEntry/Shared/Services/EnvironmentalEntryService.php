@@ -22,7 +22,7 @@ class EnvironmentalEntryService
     public function __construct(private ReportEntryRepository $repository) {}
 
     /**
-     * Bangun peta lokasi per seksi dan lookup table per pivot_id.
+     * Bangun peta lokasi per section dan lookup table per pivot_id.
      *
      * @return array [$sectionLocations, $locationSectionType, $locationSectionId, $locationSectionTimeSlot]
      */
@@ -73,7 +73,7 @@ class EnvironmentalEntryService
     }
 
     /**
-     * Simpan settle times (seksi dual_ab: jam per kelas ruangan A/B) dan fan-out ke entries.
+     * Simpan settle times (section dual_ab: jam per kelas ruangan A/B) dan fan-out ke entries.
      *
      * @return array [$savedSectionIds, $hd, $owners]
      */
@@ -149,7 +149,7 @@ class EnvironmentalEntryService
     }
 
     /**
-     * Simpan swab times (seksi swab: jam per slot s1/s1_2/s1_3) dan fan-out ke entries.
+     * Simpan swab times (section swab: jam per slot s1/s1_2/s1_3) dan fan-out ke entries.
      *
      * @return array [$savedSectionIds, $hd, $owners]
      */
@@ -232,7 +232,7 @@ class EnvironmentalEntryService
     }
 
     /**
-     * Simpan exposure times (jam yang sama untuk semua lokasi seksi) dan fan-out ke entries.
+     * Simpan exposure times (jam yang sama untuk semua lokasi section) dan fan-out ke entries.
      *
      * @return array [$savedSectionIds, $hd, $owners]
      */

@@ -73,7 +73,7 @@
     $canDuplicateSections = auth()->user()?->role === 'admin';
 @endphp
 
-{{-- ── 4+. Tabel Pengukuran per Seksi ─────────────────── --}}
+{{-- ── 4+. Tabel Pengukuran per Section ─────────────────── --}}
 @foreach ($sectionInstances as $sectionInstance)
 @php
     $section        = $sectionInstance['section'];

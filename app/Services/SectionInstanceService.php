@@ -42,7 +42,7 @@ class SectionInstanceService
         }
 
         // if ($this->getLocationIdsForSection($sectionId)->isEmpty()) {
-        //     return ['ok' => false, 'message' => 'Seksi belum memiliki lokasi. Tambahkan lokasi terlebih dahulu di master report type.'];
+        //     return ['ok' => false, 'message' => 'section belum memiliki lokasi. Tambahkan lokasi terlebih dahulu di master report type.'];
         // }
 
         $currentCount = $this->resolveCurrentInstanceCount($report, $sectionId);
@@ -52,12 +52,12 @@ class SectionInstanceService
         }
 
         if ($currentCount >= 5) {
-            return ['ok' => false, 'message' => 'Maksimum 5 instance per seksi.'];
+            return ['ok' => false, 'message' => 'Maksimum 5 instance per section.'];
         }
 
         $this->syncEnvInstancesForSection($report, $sectionId, $currentCount + 1);
 
-        return ['ok' => true, 'message' => 'Seksi berhasil diduplikat.'];
+        return ['ok' => true, 'message' => 'Section berhasil diduplikat.'];
     }
 
     /**
@@ -72,7 +72,7 @@ class SectionInstanceService
         }
 
         if ($this->getLocationIdsForSection($sectionId)->isEmpty()) {
-            return ['ok' => false, 'message' => 'Seksi belum memiliki lokasi.'];
+            return ['ok' => false, 'message' => 'Section belum memiliki lokasi.'];
         }
 
         $currentCount = $this->resolveCurrentInstanceCount($report, $sectionId);
@@ -82,7 +82,7 @@ class SectionInstanceService
 
         $this->syncEnvInstancesForSection($report, $sectionId, $currentCount - 1);
 
-        return ['ok' => true, 'message' => 'Duplikasi seksi berhasil dihapus.'];
+        return ['ok' => true, 'message' => 'Duplikasi section berhasil dihapus.'];
     }
 
     /**

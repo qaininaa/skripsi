@@ -73,7 +73,7 @@ class ReportEntryService
     }
 
     /**
-     * Migrasi format ownership lama (per-seksi) ke format baru (per-field).
+     * Migrasi format ownership lama (per-section) ke format baru (per-field).
      *
      * Format LAMA: header_data['_field_owners']['section_key'] = user_id
      * Format BARU: header_data['_field_owners']['section_key.field_key'] = user_id
@@ -466,7 +466,7 @@ class ReportEntryService
     }
 
     /**
-     * Bangun peta lokasi per seksi dan lookup table per pivot_id.
+     * Bangun peta lokasi per section dan lookup table per pivot_id.
      *
      * @return array [$sectionLocations, $locationSectionType, $locationSectionId, $locationSectionTimeSlot]
      */

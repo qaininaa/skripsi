@@ -39,7 +39,7 @@ class ReportTypeController extends Controller
 
         return redirect()
             ->route('report-types.show', $reportType)
-            ->with('success', 'Jenis laporan berhasil dibuat. Silakan tambahkan seksi dan lokasi.');
+            ->with('success', 'Jenis laporan berhasil dibuat. Silakan tambahkan section dan lokasi.');
     }
 
     public function show(ReportType $reportType)

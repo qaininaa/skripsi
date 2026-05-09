@@ -79,10 +79,10 @@
     {{-- Sections --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6" x-data="{ showAddSection: false }">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold text-gray-800">Seksi ({{ $reportType->sections->count() }})</h3>
+            <h3 class="text-base font-semibold text-gray-800">Section ({{ $reportType->sections->count() }})</h3>
             <button type="button" @click="showAddSection = !showAddSection" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
-                Tambah Seksi
+                Tambah Section
             </button>
         </div>
 
@@ -133,7 +133,7 @@
                 </div>
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="showAddSection = false" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-100">Batal</button>
-                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-green-800">Simpan Seksi</button>
+                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-green-700 text-white text-xs font-medium hover:bg-green-800">Simpan Section</button>
                 </div>
             </form>
         </div>
@@ -160,7 +160,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <x-buttons.edit-button @click="editSection = !editSection" size="sm" />
-                        <x-buttons.delete-button :action="route('report-types.sections.destroy', [$reportType, $section])" name="seksi" size="sm" />
+                        <x-buttons.delete-button :action="route('report-types.sections.destroy', [$reportType, $section])" name="section" size="sm" />
                     </div>
                 </div>
 
@@ -294,13 +294,13 @@
                         </table>
                     </div>
                     @else
-                    <p class="text-xs text-gray-400 italic py-2">Belum ada lokasi di seksi ini.</p>
+                    <p class="text-xs text-gray-400 italic py-2">Belum ada lokasi di section ini.</p>
                     @endif
                 </div>
             </div>
         </div>
         @empty
-        <p class="text-sm text-gray-400 italic">Belum ada seksi. Klik "Tambah Seksi" untuk memulai.</p>
+        <p class="text-sm text-gray-400 italic">Belum ada section. Klik "Tambah Section" untuk memulai.</p>
         @endforelse
     </div>
 </div>

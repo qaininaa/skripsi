@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
  *
  * Menangani semua logika alur kerja (workflow) laporan:
  *   - Pencatatan partisipasi analis
- *   - Stamping tanda tangan per seksi
+ *   - Stamping tanda tangan per section
  *   - Transisi status: finish_monitoring, submit, submit_revision, handover
  */
 class ReportWorkflowService
@@ -35,7 +35,7 @@ class ReportWorkflowService
     }
 
     /**
-     * Stamp tanda tangan per seksi untuk seksi-seksi yang baru diisi datanya.
+     * Stamp tanda tangan per section untuk section-section yang baru diisi datanya.
      * Hanya dijalankan jika aksi bukan 'save' (draft).
      *
      * @param  Report  $report          Laporan yang sedang diproses

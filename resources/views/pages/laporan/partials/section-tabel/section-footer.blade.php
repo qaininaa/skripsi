@@ -11,7 +11,7 @@
         <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
         @if ($isEditable)
         <textarea name="header_data[section_notes][{{ $section->id }}][notes]" rows="2"
-                  placeholder="Catatan untuk seksi ini..."
+                  placeholder="Catatan untuk section ini..."
                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 resize-none
                          focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">{{ $sectionNote['notes'] ?? '' }}</textarea>
         @else

@@ -114,7 +114,7 @@ class Report extends Model
     }
 
     /**
-     * Daftar TTD (tanda tangan) per seksi dalam laporan ini.
+     * Daftar TTD (tanda tangan) per section dalam laporan ini.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

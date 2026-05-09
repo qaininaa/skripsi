@@ -28,6 +28,6 @@ class ReportLocationController extends Controller
 
         return redirect()
             ->route('report-types.show', $reportType)
-            ->with('success', 'Lokasi berhasil dihapus dari seksi.');
+            ->with('success', 'Lokasi berhasil dihapus dari section.');
     }
 }

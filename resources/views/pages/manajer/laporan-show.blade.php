@@ -234,7 +234,7 @@
     </div>
     @endif
 
-    {{-- ── Tabel Pengukuran per Seksi ────────────────────── --}}
+    {{-- ── Tabel Pengukuran per Section ────────────────────── --}}
     @foreach ($report->reportType->sections as $section)
     @php
         // CFU helpers (values are varchar: '<1', 'TNTC', or integer string)
