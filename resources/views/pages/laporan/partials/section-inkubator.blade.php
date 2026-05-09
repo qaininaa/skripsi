@@ -185,8 +185,6 @@
                                class="block w-full rounded-lg border {{ $dateInBorderClass }} px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($dateInLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                         @if ($errors->has($dateInErrorKey))
                         <p class="mt-1 text-xs text-red-600">{{ $errors->first($dateInErrorKey) }}</p>
-                        @elseif ($dateInLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
                         @endif
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
@@ -203,9 +201,7 @@
                                class="block w-full rounded-lg border {{ $timeInBorderClass }} px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($timeInLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                               @if ($errors->has($timeInErrorKey))
                               <p class="mt-1 text-xs text-red-600">{{ $errors->first($timeInErrorKey) }}</p>
-                              @elseif ($timeInLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
-                        @endif
+                              @endif
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->time_in ?? 'N/A' }}</div>
                         @endif
@@ -239,7 +235,6 @@
                         @if ($errors->has($dateOutErrorKey))
                         <p class="mt-1 text-xs text-red-600">{{ $errors->first($dateOutErrorKey) }}</p>
                         @elseif ($dateOutLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
                         @endif
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
@@ -257,7 +252,6 @@
                               @if ($errors->has($timeOutErrorKey))
                               <p class="mt-1 text-xs text-red-600">{{ $errors->first($timeOutErrorKey) }}</p>
                               @elseif ($timeOutLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
                         @endif
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->time_out ?? 'N/A' }}</div>
