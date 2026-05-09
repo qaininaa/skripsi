@@ -42,6 +42,16 @@ class LocationService
         return $this->repository->roomOptionsForForm();
     }
 
+     /**
+     * Find duplicate location by room ID and location number.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    public function findDuplicate(array $validated, ?string $ignoreLocationId = null): ?Location
+    {
+        return $this->repository->findDuplicate($validated, $ignoreLocationId);
+    }
+
     /**
      * Create a location record.
      *

@@ -35,6 +35,14 @@ class LocationController extends Controller
 
     public function store(LocationRequest $request): RedirectResponse
     {
+        $duplicate = $this->service->findDuplicate($request->validated());
+
+        if ($duplicate) {
+            return redirect()
+                ->route('master.location.edit', $duplicate)
+                ->with('info', 'Lokasi sudah ada. Anda dapat mengubah data lokasi tersebut di sini.');
+        }
+
         $this->service->create($request->validated());
 
         return redirect()

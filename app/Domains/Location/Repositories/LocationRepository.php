@@ -65,6 +65,19 @@ class LocationRepository
     }
 
     /**
+     * Find duplicate location by room ID and location number.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    public function findDuplicate(array $validated, ?string $ignoreLocationId = null): ?Location
+    {
+    return Location::query()
+        ->when($ignoreLocationId, fn ($q) => $q->whereKeyNot($ignoreLocationId))
+        ->where('room_id', $validated['room_id'])
+        ->where('location_number', $validated['location_number'])
+        ->first();
+    }
+    /**
      * Update an existing location record.
      *
      * @param  array<string, mixed>  $validated
