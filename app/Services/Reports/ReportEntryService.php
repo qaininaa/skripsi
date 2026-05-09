@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
+use App\Domains\ReportEntry\MediumEntry\Services\MediumEntryService;
 use App\Domains\ReportEntry\Shared\Services\EnvironmentalEntryService;
 use App\Domains\ReportEntry\Shared\Services\PersonnelEntryService;
 use App\Models\Analyst;
@@ -26,6 +27,7 @@ class ReportEntryService
 {
     public function __construct(
         private InstrumentIdentityEntryService $instrumentIdentityEntryService,
+        private MediumEntryService $mediumEntryService,
         private EnvironmentalEntryService $environmentalEntryService,
         private PersonnelEntryService $personnelEntryService,
     ) {}
@@ -229,24 +231,7 @@ class ReportEntryService
 
     private function saveMediums(Request $request, Report $report): void
     {
-        if (! $request->has('medium')) {
-            return;
-        }
-        $report->load('reportType.mediumTypes');
-        foreach ($request->input('medium', []) as $medKey => $data) {
-            $medium = $report->reportType->mediumTypes->firstWhere('name', $medKey);
-            if ($medium) {
-                $report->mediumIdentities()->updateOrCreate(
-                    ['name' => $medKey],
-                    [
-                        'medium_id'       => $medium->id,
-                        'batch_number'    => $data['batch_number']    ?? null ?: null,
-                        'gpt_number'      => $data['gpt_number']      ?? null ?: null,
-                        'expiration_date' => $data['expiration_date'] ?? null ?: null,
-                    ]
-                );
-            }
-        }
+        $this->mediumEntryService->saveFromRequest($request, $report);
     }
 
     /**

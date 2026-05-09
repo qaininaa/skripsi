@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
+use App\Domains\ReportEntry\MediumEntry\Services\MediumEntryService;
 use App\Models\PersonnelInstance;
 use App\Models\PersonnelRow;
 use App\Models\Report;
@@ -281,6 +282,7 @@ class ManagerReportController extends Controller
         }
 
         $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
+        $mediumEntryService = app(MediumEntryService::class);
 
         // Identitas instrumen (Air Sampler) → instrument_entries
         $asData = $request->input('header_data.air_sampler');
@@ -289,23 +291,7 @@ class ManagerReportController extends Controller
         }
 
         // Identitas medium agar → medium_identities
-        if ($request->has('medium')) {
-            $report->loadMissing('reportType.mediumTypes');
-            foreach ($request->input('medium', []) as $medName => $data) {
-                $medium = $report->reportType->mediumTypes->firstWhere('name', $medName);
-                if ($medium) {
-                    $report->mediumIdentities()->updateOrCreate(
-                        ['name' => $medName],
-                        [
-                            'medium_id'       => $medium->id,
-                            'batch_number'    => $data['batch_number']    ?? null ?: null,
-                            'gpt_number'      => $data['gpt_number']      ?? null ?: null,
-                            'expiration_date' => $data['expiration_date'] ?? null ?: null,
-                        ]
-                    );
-                }
-            }
-        }
+        $mediumEntryService->saveFromRequest($request, $report);
 
         // Data inkubator info → incubators (form: incubator[<report_type_incubator_id>][field])
         // Data in/out medium disimpan di incubator_entries.

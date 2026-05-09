@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Models;
+namespace App\Domains\ReportEntry\MediumEntry\Models;
 
+use App\Models\Report;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Mewakili satu medium (agar) yang digunakan dalam satu laporan.
- * Setiap laporan bisa punya banyak medium dengan nama/batch yang berbeda.
+ * Domain model for medium identity persistence in report entry flow.
  */
-class MediumIdentity extends Model
+class MediumEntry extends Model
 {
     use HasUuids;
+
+    protected $table = 'medium_identities';
 
     protected $fillable = [
         'report_id',
@@ -26,11 +28,6 @@ class MediumIdentity extends Model
         'expiration_date' => 'date',
     ];
 
-    /**
-     * Laporan yang menggunakan medium ini.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
     public function report()
     {
         return $this->belongsTo(Report::class);

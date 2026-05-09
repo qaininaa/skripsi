@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Domains\ReportEntry\MediumEntry\Models\MediumEntry;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 // Model-model hasil normalisasi JSON header_data
-// (MediumIdentity, Incubator, InstrumentEntry, Analyst, SectionSignature
-//  semuanya ada di namespace yang sama — tidak perlu import tambahan)
+// (Incubator, InstrumentEntry, Analyst, SectionSignature)
 
 class Report extends Model
 {
@@ -75,7 +75,7 @@ class Report extends Model
      */
     public function mediumIdentities()
     {
-        return $this->hasMany(MediumIdentity::class);
+        return $this->hasMany(MediumEntry::class);
     }
 
     /**
