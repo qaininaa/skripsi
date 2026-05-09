@@ -59,6 +59,14 @@ class LocationController extends Controller
 
     public function update(LocationRequest $request, Location $location): RedirectResponse
     {
+        $duplicate = $this->service->findDuplicate($request->validated(), $location->id);
+
+        if ($duplicate) {
+            return back()
+                ->withErrors(['duplicate' => 'Nomor lokasi sudah ada. Gunakan nomor lokasi lain.'])
+                ->withInput();
+        }
+
         $this->service->update($location, $request->validated());
 
         return redirect()
