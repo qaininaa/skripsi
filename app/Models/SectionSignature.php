@@ -19,7 +19,7 @@ class SectionSignature extends Model
 {
     use HasUuids;
 
-    protected $table = 'section_signatures';
+    protected $table = 'sectionSignatures';
 
     protected $fillable = [
         'report_id',
