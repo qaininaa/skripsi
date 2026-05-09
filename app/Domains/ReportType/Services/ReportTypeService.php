@@ -31,6 +31,16 @@ class ReportTypeService
     }
 
     /**
+     * Find duplicate report type by SOP code, SOP version, and annex number.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    public function findDuplicate(array $validated, ?string $ignoreReportTypeId = null): ?ReportType
+    {
+        return $this->repository->findDuplicate($validated, $ignoreReportTypeId);
+    }
+
+    /**
      * Create report type including related medium and incubator rows.
      *
      * @param array{

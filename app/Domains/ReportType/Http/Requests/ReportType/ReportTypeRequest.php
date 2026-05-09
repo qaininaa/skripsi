@@ -3,7 +3,6 @@
 namespace App\Domains\ReportType\Http\Requests\ReportType;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 abstract class ReportTypeRequest extends FormRequest
 {
@@ -14,43 +13,41 @@ abstract class ReportTypeRequest extends FormRequest
 
     public function rules(): array
     {
-        return array_merge($this->baseRules(), $this->extraRules());
+        return [
+            'sop_code' => ['required', 'string', 'max:100'],
+            'sop_version' => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:255'],
+            'annex_number' => ['required', 'integer', 'min:1'],
+            'medium_labels' => ['required', 'array'],
+            'medium_labels.*' => ['required', 'string', 'max:255'],
+            'incubator_labels' => ['required', 'array'],
+            'incubator_labels.*' => ['required', 'string', 'max:255'],
+            'incubator_min_days' => ['required', 'array'],
+            'incubator_min_days.*' => ['required', 'integer', 'min:1'],
+            'has_personnel' => ['nullable', 'boolean'],
+        ];
     }
 
     public function messages(): array
     {
         return [
-            'sop_code.unique' => 'Jenis laporan sudah ada.',
-        ];
-    }
+            'annex_number.required' => 'Nomor annex wajib diisi.',
+            'annex_number.integer' => 'Nomor annex harus berupa angka bulat.',
+            'annex_number.min' => 'Nomor annex minimal 1.',
 
-    protected function baseRules(): array
-    {
-        return [
-            'sop_code' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('report_types', 'sop_code')
-                    ->where('annex_number', $this->input('annex_number'))
-                    ->where('sop_version', $this->input('sop_version'))
-                    ->ignore($this->route('report_type')),
-            ],
-            'sop_version' => ['required', 'string', 'max:50'],
-            'name' => ['required', 'string', 'max:255'],
-            'annex_number' => ['required', 'integer', 'min:1'],
-            'medium_labels' => ['nullable', 'array'],
-            'medium_labels.*' => ['nullable', 'string', 'max:255'],
-            'incubator_labels' => ['nullable', 'array'],
-            'incubator_labels.*' => ['nullable', 'string', 'max:255'],
-            'incubator_min_days' => ['nullable', 'array'],
-            'incubator_min_days.*' => ['nullable', 'integer', 'min:1'],
-            'has_personnel' => ['nullable', 'boolean'],
-        ];
-    }
+            'medium_labels.required' => 'Minimal satu medium wajib diisi.',
+            'medium_labels.array' => 'Format medium tidak valid.',
+            'medium_labels.*.max' => 'Label medium maksimal 255 karakter.',
 
-    protected function extraRules(): array
-    {
-        return [];
+            'incubator_labels.required' => 'Minimal satu inkubator wajib diisi.',
+            'incubator_labels.array' => 'Format inkubator tidak valid.',
+            'incubator_labels.*.max' => 'Label inkubator maksimal 255 karakter.',
+
+            'incubator_min_days.required' => 'Durasi minimum inkubator wajib diisi.',
+            'incubator_min_days.array' => 'Format durasi minimum inkubator tidak valid.',
+
+            'incubator_min_days.*.integer' => 'Hari minimal inkubator harus berupa angka.',
+            'incubator_min_days.*.min' => 'Hari minimal inkubator minimal 1.',
+        ];
     }
 }

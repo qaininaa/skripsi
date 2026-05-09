@@ -18,6 +18,12 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Edit Jenis Laporan — {{ $reportType->annex_number }}</h2>
 
+        @if (session('info'))
+            <div class="mb-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 text-sm">
+                {{ session('info') }}
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
                 <p class="font-semibold mb-1">Terjadi kesalahan:</p>
@@ -45,7 +51,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Annex <span class="text-red-500">*</span></label>
-                    <input type="number" name="annex_number" value="{{ old('annex_number', $reportType->annex_number) }}" min="1" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <input type="number" name="annex_number" value="{{ old('annex_number', $reportType->annex_number) }}" min="1" step="1" onwheel="this.blur()" onkeydown="if (event.key === 'ArrowUp' || event.key === 'ArrowDown') event.preventDefault();" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
             </div>
 
@@ -59,7 +65,7 @@
             <div class="border-t border-gray-100 pt-5">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Medium Groups</h3>
+                        <h3 class="text-sm font-semibold text-gray-800">Medium <span class="text-red-500">*</span></h3>
                         <p class="text-xs text-gray-500">Daftar medium yang digunakan (Medium TSP, Swab Kit, dll).</p>
                     </div>
                     <button type="button" @click="addMedium()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
@@ -93,8 +99,8 @@
             <div class="border-t border-gray-100 pt-5">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Inkubator</h3>
-                        <p class="text-xs text-gray-500">Pilih suhu inkubasi — durasi min. terisi otomatis.</p>
+                        <h3 class="text-sm font-semibold text-gray-800">Inkubator <span class="text-red-500">*</span></h3>
+                        <p class="text-xs text-gray-500">Daftar suhu inkubasi dan durasi minimum hari.</p>
                     </div>
                     <button type="button" @click="addIncubator()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>

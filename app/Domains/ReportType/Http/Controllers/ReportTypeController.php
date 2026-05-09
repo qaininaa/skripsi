@@ -27,6 +27,14 @@ class ReportTypeController extends Controller
 
     public function store(StoreReportTypeRequest $request)
     {
+        $duplicate = $this->service->findDuplicate($request->validated());
+
+        if ($duplicate) {
+            return redirect()
+                ->route('report-types.edit', $duplicate)
+                ->with('info', 'Jenis laporan dengan Kode SOP, Versi SOP, dan Nomor Annex tersebut sudah ada. Anda dapat mengubah data yang sudah ada di sini.');
+        }
+
         $reportType = $this->service->create($request->validated(), $this->meta($request));
 
         return redirect()

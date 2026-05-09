@@ -38,6 +38,21 @@ class ReportTypeRepository
     }
 
     /**
+     * Find duplicate report type by SOP code, SOP version, and annex number.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    public function findDuplicate(array $validated, ?string $ignoreReportTypeId = null): ?ReportType
+    {
+        return ReportType::query()
+            ->when($ignoreReportTypeId, fn ($q) => $q->whereKeyNot($ignoreReportTypeId))
+            ->where('sop_code', $validated['sop_code'])
+            ->where('sop_version', $validated['sop_version'])
+            ->where('annex_number', $validated['annex_number'])
+            ->first();
+    }
+
+    /**
      * Update an existing report type record.
      *
      * @param  array<string, mixed>  $payload
