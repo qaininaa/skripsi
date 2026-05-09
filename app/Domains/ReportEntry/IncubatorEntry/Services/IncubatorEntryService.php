@@ -52,6 +52,10 @@ class IncubatorEntryService
             return;
         }
 
+        $user = Auth::user();
+        $isAnalyst = ($user?->role ?? null) === 'analis';
+        $currentUserId = (string) ($user?->id ?? '');
+
         $report->loadMissing('reportType.incubatorTypes');
 
         foreach ($payload as $reportTypeIncubatorId => $data) {
@@ -82,18 +86,96 @@ class IncubatorEntryService
 
                 $entry = $this->repository->findOrCreateIncubatorMediumEntry($incubator, (string) $mediumType);
 
+                $dateIn = $this->normalizeValue($entryData['date_in'] ?? null);
+                $timeIn = $this->normalizeValue($entryData['time_in'] ?? null);
+                $dateOut = $this->normalizeValue($entryData['date_out'] ?? null);
+                $timeOut = $this->normalizeValue($entryData['time_out'] ?? null);
+
+                $inHasAny = $dateIn !== null || $timeIn !== null;
+                $outHasAny = $dateOut !== null || $timeOut !== null;
+
+                $incubatedBy = $isAnalyst
+                    ? ($inHasAny ? $currentUserId : null)
+                    : (array_key_exists('incubated_by', $entryData)
+                        ? $this->normalizeValue($entryData['incubated_by'] ?? null)
+                        : $this->normalizeValue($entry->incubated_by));
+
+                $removedBy = $isAnalyst
+                    ? ($outHasAny ? $currentUserId : null)
+                    : (array_key_exists('removed_by', $entryData)
+                        ? $this->normalizeValue($entryData['removed_by'] ?? null)
+                        : $this->normalizeValue($entry->removed_by));
+
                 $incomingEntry = [
-                    'incubated_by' => $this->normalizeValue($entryData['incubated_by'] ?? null),
-                    'date_in' => $this->normalizeValue($entryData['date_in'] ?? null),
-                    'time_in' => $this->normalizeValue($entryData['time_in'] ?? null),
-                    'removed_by' => $this->normalizeValue($entryData['removed_by'] ?? null),
-                    'date_out' => $this->normalizeValue($entryData['date_out'] ?? null),
-                    'time_out' => $this->normalizeValue($entryData['time_out'] ?? null),
+                    'incubated_by' => $incubatedBy,
+                    'date_in' => $dateIn,
+                    'time_in' => $timeIn,
+                    'removed_by' => $removedBy,
+                    'date_out' => $dateOut,
+                    'time_out' => $timeOut,
                 ];
 
                 $this->persistIncubatorEntryWithLocks($entry, $incomingEntry);
             }
         }
+    }
+
+    /**
+     * Validate required date-time pairing for finish monitoring action.
+     *
+     * @return array{0: array<string, string>, 1: ?string}
+     */
+    public function validateMonitoringCompletion(Request $request, Report $report): array
+    {
+        $errors = [];
+        $firstMissingKey = null;
+
+        if (! $request->has('incubator')) {
+            return [$errors, $firstMissingKey];
+        }
+
+        $report->loadMissing('reportType.incubatorTypes');
+        $payload = (array) $request->input('incubator', []);
+
+        foreach ($payload as $configId => $data) {
+            if (! is_array($data)) {
+                continue;
+            }
+
+            $incubatorType = $report->reportType->incubatorTypes->firstWhere('id', $configId);
+            if (! $incubatorType) {
+                continue;
+            }
+
+            foreach ($this->extractEntryPayloads($data) as $mediumType => $entryData) {
+                if (! in_array((string) $mediumType, ['monitoring', 'swab'], true) || ! is_array($entryData)) {
+                    continue;
+                }
+
+                $dateIn = $this->normalizeValue($entryData['date_in'] ?? null);
+                $timeIn = $this->normalizeValue($entryData['time_in'] ?? null);
+                $dateOut = $this->normalizeValue($entryData['date_out'] ?? null);
+                $timeOut = $this->normalizeValue($entryData['time_out'] ?? null);
+
+                if (($dateIn !== null) xor ($timeIn !== null)) {
+                    $missingField = $dateIn === null ? 'date_in' : 'time_in';
+                    $key = "incubator.{$configId}.{$mediumType}.{$missingField}";
+                    $errors[$key] = 'Tanggal masuk dan jam masuk harus diisi berpasangan.';
+                    $errors['incubator_incomplete'] = 'Lengkapi tanggal dan jam inkubasi yang masih kosong sebelum menyelesaikan monitoring.';
+                    $firstMissingKey ??= $key;
+                }
+
+                if (($dateOut !== null) xor ($timeOut !== null)) {
+                    $missingField = $dateOut === null ? 'date_out' : 'time_out';
+                    $key = "incubator.{$configId}.{$mediumType}.{$missingField}";
+                    $errors[$key] = 'Tanggal keluar dan jam keluar harus diisi berpasangan.';
+                    $errors['incubator_incomplete'] = 'Lengkapi tanggal dan jam inkubasi yang masih kosong sebelum menyelesaikan monitoring.';
+                    $firstMissingKey ??= $key;
+                }
+            }
+        }
+
+        return [$errors, $firstMissingKey];
     }
 
     /**
@@ -202,11 +284,31 @@ class IncubatorEntryService
         $userId = (string) $user->id;
         $allowedUpdates = [];
 
+        $pairOwners = $this->fieldLockRepository->getOwnerMap(
+            self::LOCK_TABLE_INCUBATOR_ENTRIES,
+            (string) $entry->id,
+            ['date_in', 'time_in', 'date_out', 'time_out']
+        );
+        $inPairOwner = $pairOwners['date_in'] ?? $pairOwners['time_in'] ?? null;
+        $outPairOwner = $pairOwners['date_out'] ?? $pairOwners['time_out'] ?? null;
+
         foreach (self::LOCKABLE_INCUBATOR_ENTRY_FIELDS as $fieldName) {
             $newValue = $this->normalizeValue($incoming[$fieldName] ?? null);
             $currentValue = $this->normalizeValue($entry->{$fieldName});
 
             if ($newValue === $currentValue) {
+                continue;
+            }
+
+            if (in_array($fieldName, ['incubated_by', 'date_in', 'time_in'], true)
+                && $inPairOwner !== null
+                && (string) $inPairOwner !== $userId) {
+                continue;
+            }
+
+            if (in_array($fieldName, ['removed_by', 'date_out', 'time_out'], true)
+                && $outPairOwner !== null
+                && (string) $outPairOwner !== $userId) {
                 continue;
             }
 

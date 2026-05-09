@@ -273,6 +273,51 @@ async function confirmSave() {
 
 // Close modal on Enter key in password field
 document.addEventListener('DOMContentLoaded', () => {
+    const syncIncubatorOwnerInRow = (row) => {
+        if (!row) return;
+
+        const dateIn = row.querySelector('input[data-incubator-input="date_in"]');
+        const timeIn = row.querySelector('input[data-incubator-input="time_in"]');
+        const dateOut = row.querySelector('input[data-incubator-input="date_out"]');
+        const timeOut = row.querySelector('input[data-incubator-input="time_out"]');
+
+        const inOwner = row.querySelector('[data-incubator-owner="in"]');
+        const outOwner = row.querySelector('[data-incubator-owner="out"]');
+
+        const hasInValue = Boolean((dateIn?.value ?? '').trim()) || Boolean((timeIn?.value ?? '').trim());
+        const hasOutValue = Boolean((dateOut?.value ?? '').trim()) || Boolean((timeOut?.value ?? '').trim());
+
+        if (inOwner) {
+            inOwner.classList.toggle('hidden', !hasInValue);
+
+            if (hasInValue) {
+                const nameEl = inOwner.querySelector('[data-incubator-owner-name]');
+                if (nameEl) {
+                    const existingName = (nameEl.dataset.existingName ?? '').trim();
+                    const currentName = (nameEl.dataset.currentName ?? '').trim();
+                    nameEl.textContent = existingName || currentName || 'N/A';
+                }
+            }
+        }
+
+        if (outOwner) {
+            outOwner.classList.toggle('hidden', !hasOutValue);
+
+            if (hasOutValue) {
+                const nameEl = outOwner.querySelector('[data-incubator-owner-name]');
+                if (nameEl) {
+                    const existingName = (nameEl.dataset.existingName ?? '').trim();
+                    const currentName = (nameEl.dataset.currentName ?? '').trim();
+                    nameEl.textContent = existingName || currentName || 'N/A';
+                }
+            }
+        }
+    };
+
+    const syncAllIncubatorOwners = () => {
+        document.querySelectorAll('[data-incubator-entry-row]').forEach(syncIncubatorOwnerInRow);
+    };
+
     document.getElementById('save-modal-password')?.addEventListener('keydown', e => {
         if (e.key === 'Enter') confirmSave();
     });
@@ -285,6 +330,33 @@ document.addEventListener('DOMContentLoaded', () => {
         inp.classList.toggle('border-red-400', !valid);
         inp.classList.toggle('ring-1',          !valid);
         inp.classList.toggle('ring-red-400',    !valid);
+    });
+
+    const focusInputName = @json(session('focus_input'));
+    if (focusInputName) {
+        const target = document.querySelector(`[name="${focusInputName}"]`);
+        if (target) {
+            target.focus({ preventScroll: true });
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    syncAllIncubatorOwners();
+
+    document.addEventListener('input', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (!target.matches('input[data-incubator-input]')) return;
+
+        syncIncubatorOwnerInRow(target.closest('[data-incubator-entry-row]'));
+    });
+
+    document.addEventListener('change', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (!target.matches('input[data-incubator-input]')) return;
+
+        syncIncubatorOwnerInRow(target.closest('[data-incubator-entry-row]'));
     });
 });
 

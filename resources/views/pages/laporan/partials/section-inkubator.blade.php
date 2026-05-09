@@ -20,7 +20,6 @@
         $inkEntries  = ($ink?->entries ?? collect())->keyBy('medium_type');
         $inkLabel    = $config->temperature_label;
         $inkMin      = $config->min_day;
-        $allAnalysts = \App\Models\User::where('role', 'analis')->orderBy('name')->get();
         $configLocks = $incubatorFieldLocks[(string) $config->id] ?? [];
         $infoLocks   = $configLocks['info'] ?? [];
 
@@ -96,27 +95,62 @@
             $entry       = $inkEntries->get($medType);
             $entryLocks = $configLocks['entries'][$medType] ?? [];
 
+            $inPairOwner = $entryLocks['date_in'] ?? $entryLocks['time_in'] ?? null;
+            $outPairOwner = $entryLocks['date_out'] ?? $entryLocks['time_out'] ?? null;
+
+            $inPairLockedByOther = $isEditable
+                && $inPairOwner !== null
+                && (string) $inPairOwner !== $currentUserId;
+
+            $outPairLockedByOther = $isEditable
+                && $outPairOwner !== null
+                && (string) $outPairOwner !== $currentUserId;
+
             $incubatedByLockedByOther = $isEditable
                 && isset($entryLocks['incubated_by'])
                 && (string) $entryLocks['incubated_by'] !== $currentUserId;
-            $dateInLockedByOther = $isEditable
+            $dateInLockedByOther = $inPairLockedByOther || ($isEditable
                 && isset($entryLocks['date_in'])
-                && (string) $entryLocks['date_in'] !== $currentUserId;
-            $timeInLockedByOther = $isEditable
+                && (string) $entryLocks['date_in'] !== $currentUserId);
+            $timeInLockedByOther = $inPairLockedByOther || ($isEditable
                 && isset($entryLocks['time_in'])
-                && (string) $entryLocks['time_in'] !== $currentUserId;
+                && (string) $entryLocks['time_in'] !== $currentUserId);
 
             $removedByLockedByOther = $isEditable
                 && isset($entryLocks['removed_by'])
                 && (string) $entryLocks['removed_by'] !== $currentUserId;
-            $dateOutLockedByOther = $isEditable
+            $dateOutLockedByOther = $outPairLockedByOther || ($isEditable
                 && isset($entryLocks['date_out'])
-                && (string) $entryLocks['date_out'] !== $currentUserId;
-            $timeOutLockedByOther = $isEditable
+                && (string) $entryLocks['date_out'] !== $currentUserId);
+            $timeOutLockedByOther = $outPairLockedByOther || ($isEditable
                 && isset($entryLocks['time_out'])
-                && (string) $entryLocks['time_out'] !== $currentUserId;
+                && (string) $entryLocks['time_out'] !== $currentUserId);
+
+            $showIncubatedBy = ! empty($entry?->incubated_by);
+            $showRemovedBy = ! empty($entry?->removed_by);
+            $existingIncubatedByName = $entry?->incubatedBy?->name ?? '';
+            $existingRemovedByName = $entry?->removedBy?->name ?? '';
+            $currentAnalystName = auth()->user()?->name ?? '';
+
+            $dateInErrorKey = "incubator.{$config->id}.{$medType}.date_in";
+            $timeInErrorKey = "incubator.{$config->id}.{$medType}.time_in";
+            $dateOutErrorKey = "incubator.{$config->id}.{$medType}.date_out";
+            $timeOutErrorKey = "incubator.{$config->id}.{$medType}.time_out";
+
+            $dateInBorderClass = $errors->has($dateInErrorKey)
+                ? 'border-red-400 ring-1 ring-red-400'
+                : 'border-gray-200';
+            $timeInBorderClass = $errors->has($timeInErrorKey)
+                ? 'border-red-400 ring-1 ring-red-400'
+                : 'border-gray-200';
+            $dateOutBorderClass = $errors->has($dateOutErrorKey)
+                ? 'border-red-400 ring-1 ring-red-400'
+                : 'border-gray-200';
+            $timeOutBorderClass = $errors->has($timeOutErrorKey)
+                ? 'border-red-400 ring-1 ring-red-400'
+                : 'border-gray-200';
         @endphp
-        <div class="pt-3 border-t border-gray-50 space-y-3">
+        <div class="pt-3 border-t border-gray-50 space-y-3" data-incubator-entry-row>
             <p class="text-xs font-semibold text-sky-600">
                 Tanggal Inkubasi {{ $medLabel }} (min {{ $inkMin }} hari)
                 @if ($incubatedByLockedByOther || $dateInLockedByOther || $timeInLockedByOther || $removedByLockedByOther || $dateOutLockedByOther || $timeOutLockedByOther)
@@ -126,31 +160,32 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {{-- Masuk / Diinkubasi --}}
                 <div class="space-y-3">
-                    <div>
+                    @if ($isEditable)
+                    <div data-incubator-owner="in" @class(['hidden' => ! $showIncubatedBy])>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
-                        @if ($isEditable)
-                        <select name="incubator[{{ $config->id }}][{{ $medType }}][incubated_by]"
-                                @if($incubatedByLockedByOther) disabled @endif
-                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($incubatedByLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
-                            <option value="">— Pilih Analis —</option>
-                            @foreach ($allAnalysts as $analyst)
-                            <option value="{{ $analyst->id }}" @selected($entry?->incubated_by === $analyst->id)>{{ $analyst->name }}</option>
-                            @endforeach
-                        </select>
-                        @if ($incubatedByLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
-                        @endif
-                        @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->incubatedBy?->name ?? 'N/A' }}</div>
-                        @endif
+                        <div
+                            data-incubator-owner-name
+                            data-existing-name="{{ $existingIncubatedByName }}"
+                            data-current-name="{{ $currentAnalystName }}"
+                            class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700"
+                        >{{ $existingIncubatedByName ?: ($currentAnalystName ?: 'N/A') }}</div>
                     </div>
+                    @elseif ($showIncubatedBy)
+                    <div data-incubator-owner="in">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->incubatedBy?->name ?? 'N/A' }}</div>
+                    </div>
+                    @endif
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
                         @if ($isEditable)
                         <input type="date" name="incubator[{{ $config->id }}][{{ $medType }}][date_in]" value="{{ $entry?->date_in?->format('Y-m-d') ?? '' }}"
+                               data-incubator-input="date_in"
                                @if($dateInLockedByOther) readonly @endif
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($dateInLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
-                        @if ($dateInLockedByOther)
+                               class="block w-full rounded-lg border {{ $dateInBorderClass }} px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($dateInLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
+                        @if ($errors->has($dateInErrorKey))
+                        <p class="mt-1 text-xs text-red-600">{{ $errors->first($dateInErrorKey) }}</p>
+                        @elseif ($dateInLockedByOther)
                         <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
                         @endif
                         @else
@@ -163,9 +198,12 @@
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
                         @if ($isEditable)
                         <input type="time" name="incubator[{{ $config->id }}][{{ $medType }}][time_in]" value="{{ $entry?->time_in ?? '' }}"
+                               data-incubator-input="time_in"
                                @if($timeInLockedByOther) readonly @endif
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($timeInLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
-                        @if ($timeInLockedByOther)
+                               class="block w-full rounded-lg border {{ $timeInBorderClass }} px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($timeInLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
+                              @if ($errors->has($timeInErrorKey))
+                              <p class="mt-1 text-xs text-red-600">{{ $errors->first($timeInErrorKey) }}</p>
+                              @elseif ($timeInLockedByOther)
                         <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
                         @endif
                         @else
@@ -175,31 +213,32 @@
                 </div>
                 {{-- Keluar / Dikeluarkan --}}
                 <div class="space-y-3">
-                    <div>
+                    @if ($isEditable)
+                    <div data-incubator-owner="out" @class(['hidden' => ! $showRemovedBy])>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
-                        @if ($isEditable)
-                        <select name="incubator[{{ $config->id }}][{{ $medType }}][removed_by]"
-                                @if($removedByLockedByOther) disabled @endif
-                                class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($removedByLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
-                            <option value="">— Pilih Analis —</option>
-                            @foreach ($allAnalysts as $analyst)
-                            <option value="{{ $analyst->id }}" @selected($entry?->removed_by === $analyst->id)>{{ $analyst->name }}</option>
-                            @endforeach
-                        </select>
-                        @if ($removedByLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
-                        @endif
-                        @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->removedBy?->name ?? 'N/A' }}</div>
-                        @endif
+                        <div
+                            data-incubator-owner-name
+                            data-existing-name="{{ $existingRemovedByName }}"
+                            data-current-name="{{ $currentAnalystName }}"
+                            class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700"
+                        >{{ $existingRemovedByName ?: ($currentAnalystName ?: 'N/A') }}</div>
                     </div>
+                    @elseif ($showRemovedBy)
+                    <div data-incubator-owner="out">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->removedBy?->name ?? 'N/A' }}</div>
+                    </div>
+                    @endif
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
                         @if ($isEditable)
                         <input type="date" name="incubator[{{ $config->id }}][{{ $medType }}][date_out]" value="{{ $entry?->date_out?->format('Y-m-d') ?? '' }}"
+                               data-incubator-input="date_out"
                                @if($dateOutLockedByOther) readonly @endif
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($dateOutLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
-                        @if ($dateOutLockedByOther)
+                               class="block w-full rounded-lg border {{ $dateOutBorderClass }} px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($dateOutLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
+                        @if ($errors->has($dateOutErrorKey))
+                        <p class="mt-1 text-xs text-red-600">{{ $errors->first($dateOutErrorKey) }}</p>
+                        @elseif ($dateOutLockedByOther)
                         <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
                         @endif
                         @else
@@ -212,9 +251,12 @@
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
                         @if ($isEditable)
                         <input type="time" name="incubator[{{ $config->id }}][{{ $medType }}][time_out]" value="{{ $entry?->time_out ?? '' }}"
+                               data-incubator-input="time_out"
                                @if($timeOutLockedByOther) readonly @endif
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($timeOutLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
-                        @if ($timeOutLockedByOther)
+                               class="block w-full rounded-lg border {{ $timeOutBorderClass }} px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($timeOutLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
+                              @if ($errors->has($timeOutErrorKey))
+                              <p class="mt-1 text-xs text-red-600">{{ $errors->first($timeOutErrorKey) }}</p>
+                              @elseif ($timeOutLockedByOther)
                         <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
                         @endif
                         @else

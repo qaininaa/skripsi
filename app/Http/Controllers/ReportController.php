@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domains\ReportEntry\IncubatorEntry\Services\IncubatorEntryService;
 use App\Models\Report;
 use App\Models\ReportApproval;
 use App\Models\User;
@@ -19,6 +20,7 @@ class ReportController extends Controller
         private ReportViewService $viewService,
         private ReportWorkflowService $workflowService,
         private ReportEntryService $entryService,
+        private IncubatorEntryService $incubatorEntryService,
         private PersonnelInstanceService $personnelInstanceService,
     ) {}
 
@@ -186,10 +188,29 @@ class ReportController extends Controller
             ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC. Nilai nol, desimal, dan negatif tidak diperbolehkan.']);
     }
 
+    $action = $request->input('action', 'save');
+
     // ── Simpan semua data form ────────────────────────
     [$savedSectionIds, $hasPersonnelData] = $this->entryService->process($request, $report);
 
-    $action = $request->input('action', 'save');
+    // ── Validasi inkubator khusus saat finish monitoring ─────────────
+    if ($action === 'finish_monitoring') {
+        [$incubatorErrors, $firstMissingKey] = $this->incubatorEntryService->validateMonitoringCompletion($request, $report);
+
+        if (! empty($incubatorErrors)) {
+            $focusInput = $firstMissingKey ? $this->errorKeyToInputName($firstMissingKey) : null;
+
+            $response = back()
+                ->withInput()
+                ->withErrors($incubatorErrors);
+
+            if ($focusInput !== null) {
+                $response = $response->with('focus_input', $focusInput);
+            }
+
+            return $response;
+        }
+    }
 
     // ── Catat partisipasi analis ──────────────────────
     $this->workflowService->recordParticipation($report, Auth::id());
@@ -239,6 +260,16 @@ class ReportController extends Controller
 
     return back()->with('success', 'Data berhasil disimpan sebagai draft.');
 }
+
+    private function errorKeyToInputName(string $errorKey): string
+    {
+        $segments = explode('.', $errorKey);
+        if (($segments[0] ?? null) !== 'incubator' || count($segments) < 4) {
+            return $errorKey;
+        }
+
+        return 'incubator[' . $segments[1] . '][' . $segments[2] . '][' . $segments[3] . ']';
+    }
 
     /**
      * verifyPassword() — Verifikasi password analis via AJAX sebelum aksi penting.
