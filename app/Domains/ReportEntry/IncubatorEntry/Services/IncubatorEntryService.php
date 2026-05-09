@@ -172,6 +172,15 @@ class IncubatorEntryService
                 continue;
             }
 
+            if ($newValue === null) {
+                $this->fieldLockRepository->releaseIfOwned(
+                    self::LOCK_TABLE_INCUBATORS,
+                    (string) $incubator->id,
+                    $fieldName,
+                    $userId
+                );
+            }
+
             $allowedUpdates[$fieldName] = $newValue;
         }
 
@@ -210,6 +219,15 @@ class IncubatorEntryService
 
             if (! $canWrite) {
                 continue;
+            }
+
+            if ($newValue === null) {
+                $this->fieldLockRepository->releaseIfOwned(
+                    self::LOCK_TABLE_INCUBATOR_ENTRIES,
+                    (string) $entry->id,
+                    $fieldName,
+                    $userId
+                );
             }
 
             $allowedUpdates[$fieldName] = $newValue;

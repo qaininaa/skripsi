@@ -99,6 +99,15 @@ class MediumEntryService
                     continue;
                 }
 
+                if ($newValue === null) {
+                    $this->fieldLockRepository->releaseIfOwned(
+                        self::LOCK_TABLE_NAME,
+                        (string) $entry->id,
+                        $fieldName,
+                        $userId
+                    );
+                }
+
                 $allowedUpdates[$fieldName] = $newValue;
             }
 

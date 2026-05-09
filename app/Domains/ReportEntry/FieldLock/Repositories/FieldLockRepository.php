@@ -50,6 +50,22 @@ class FieldLockRepository
         }
     }
 
+    public function releaseIfOwned(string $tableName, string $rowId, string $fieldName, string $userId): bool
+    {
+        $existing = $this->findOne($tableName, $rowId, $fieldName);
+        if (! $existing) {
+            return true;
+        }
+
+        if ((string) $existing->filled_by !== $userId) {
+            return false;
+        }
+
+        $existing->delete();
+
+        return true;
+    }
+
     private function findOne(string $tableName, string $rowId, string $fieldName): ?FieldLock
     {
         return FieldLock::query()
