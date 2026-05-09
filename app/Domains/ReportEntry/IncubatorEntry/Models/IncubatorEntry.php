@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Models;
+namespace App\Domains\ReportEntry\IncubatorEntry\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Mewakili satu entry inkubasi per jenis medium dalam satu incubator record.
- * Satu incubator bisa punya entry 'monitoring' (selalu ada) dan 'swab'
- * (hanya jika tipe laporan punya medium swab).
+ * Domain model for incubator medium in/out persistence.
  */
 class IncubatorEntry extends Model
 {
     use HasUuids;
+
+    protected $table = 'incubator_entries';
 
     protected $fillable = [
         'incubator_id',
@@ -27,7 +28,7 @@ class IncubatorEntry extends Model
     ];
 
     protected $casts = [
-        'date_in'  => 'date',
+        'date_in' => 'date',
         'date_out' => 'date',
     ];
 

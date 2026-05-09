@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Domains\ReportEntry\IncubatorEntry\Services\IncubatorEntryService;
 use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
 use App\Domains\ReportEntry\MediumEntry\Services\MediumEntryService;
 use App\Domains\ReportEntry\Shared\Services\EnvironmentalEntryService;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Auth;
  * Menangani semua logika penyimpanan data isian laporan:
  *   1. Identitas instrument (Air Sampler)
  *   2. Identitas medium agar
- *   3. Data inkubasi (inkubator) dengan sistem ownership 3-grup
+ *   3. Data inkubasi (inkubator) dengan field lock per-field
  *   4. header_data: metadata laporan dengan ownership per-field
  *   5. Analis yang terlibat + shift assignment
  *   6. Waktu paparan per lokasi (settle/swab/exposure) â€” fan-out ke entries
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Auth;
 class ReportEntryService
 {
     public function __construct(
+        private IncubatorEntryService $incubatorEntryService,
         private InstrumentIdentityEntryService $instrumentIdentityEntryService,
         private MediumEntryService $mediumEntryService,
         private EnvironmentalEntryService $environmentalEntryService,
@@ -235,137 +237,16 @@ class ReportEntryService
     }
 
     /**
-     * Simpan data inkubasi dengan sistem ownership 3-grup (info/in/out).
-     * Menyimpan langsung ke DB dan mengembalikan header_data yang sudah diperbarui.
+     * Simpan data inkubasi ke tabel incubators + incubator_entries.
+     * Ownership menggunakan field lock pada tabel field_locks.
      *
-     * @return array  header_data setelah diperbarui ownership inkubator
+     * @return array  header_data terkini (tetap dipertahankan untuk alur existing)
      */
     private function saveIncubators(Request $request, Report $report): array
     {
-        $freshHd   = $report->header_data ?? [];
-        $inkOwners = $freshHd['_field_owners'] ?? [];
+        $this->incubatorEntryService->saveFromRequest($request, $report);
 
-        if (! $request->has('incubator')) {
-            return $freshHd;
-        }
-
-        $report->loadMissing('reportType.incubatorTypes');
-
-        foreach ($request->input('incubator', []) as $tempKey => $data) {
-            $rti = $report->reportType->incubatorTypes->firstWhere('id', $tempKey);
-            if (! $rti || ! is_array($data)) {
-                continue;
-            }
-
-            $infoFields = array_filter([
-                'no_id'                => $data['no_id']                ?? null ?: null,
-                'calibration_date'     => $data['calibration_date']     ?? null ?: null,
-                'due_date_calibration' => $data['due_date_calibration'] ?? ($data['due_date'] ?? null) ?: null,
-            ]);
-
-            $ownerKeyInfo = "incubator_{$tempKey}_info";
-
-            $infoLocked = isset($inkOwners[$ownerKeyInfo]) && (string) $inkOwners[$ownerKeyInfo] !== (string) Auth::id();
-            if (! $infoLocked) {
-                if (! empty($infoFields)) {
-                    $inkOwners[$ownerKeyInfo] = (string) Auth::id();
-                }
-            } else {
-                $infoFields = [];
-            }
-
-            $incubator = null;
-            if (! empty($infoFields)) {
-                $incubator = $report->incubators()->firstOrCreate(
-                    ['report_type_incubator_id' => $tempKey],
-                    ['report_type_incubator_id' => $tempKey]
-                );
-                $incubator->fill($infoFields)->save();
-            }
-
-            // Format baru: incubator[<rti_id>][monitoring|swab][field]
-            $entryPayloads = [];
-            foreach ($data as $key => $value) {
-                if (is_array($value)) {
-                    $entryPayloads[$key] = $value;
-                }
-            }
-
-            // Backward compatibility format lama (flat fields) → mapping ke medium_type 'monitoring'.
-            if (empty($entryPayloads) && (
-                isset($data['incubated_by']) || isset($data['date_in']) || isset($data['time_in']) ||
-                isset($data['removed_by']) || isset($data['date_out']) || isset($data['time_out'])
-            )) {
-                $entryPayloads['monitoring'] = [
-                    'incubated_by' => $data['incubated_by'] ?? null,
-                    'date_in'      => $data['date_in'] ?? null,
-                    'time_in'      => $data['time_in'] ?? null,
-                    'removed_by'   => $data['removed_by'] ?? null,
-                    'date_out'     => $data['date_out'] ?? null,
-                    'time_out'     => $data['time_out'] ?? null,
-                ];
-            }
-
-            foreach ($entryPayloads as $mediumType => $entryData) {
-                if (! is_array($entryData)) {
-                    continue;
-                }
-                if (! in_array((string) $mediumType, ['monitoring', 'swab'], true)) {
-                    continue;
-                }
-
-                $inFields = array_filter([
-                    'incubated_by' => $entryData['incubated_by'] ?? null ?: null,
-                    'date_in'      => $entryData['date_in']      ?? null ?: null,
-                    'time_in'      => $entryData['time_in']      ?? null ?: null,
-                ]);
-                $outFields = array_filter([
-                    'removed_by' => $entryData['removed_by'] ?? null ?: null,
-                    'date_out'   => $entryData['date_out']   ?? null ?: null,
-                    'time_out'   => $entryData['time_out']   ?? null ?: null,
-                ]);
-
-                $ownerKeyIn  = "incubator_{$tempKey}_{$mediumType}_in";
-                $ownerKeyOut = "incubator_{$tempKey}_{$mediumType}_out";
-
-                $inLocked = isset($inkOwners[$ownerKeyIn]) && (string) $inkOwners[$ownerKeyIn] !== (string) Auth::id();
-                if (! $inLocked) {
-                    if (! empty($inFields)) {
-                        $inkOwners[$ownerKeyIn] = (string) Auth::id();
-                    }
-                } else {
-                    $inFields = [];
-                }
-
-                $outLocked = isset($inkOwners[$ownerKeyOut]) && (string) $inkOwners[$ownerKeyOut] !== (string) Auth::id();
-                if (! $outLocked) {
-                    if (! empty($outFields)) {
-                        $inkOwners[$ownerKeyOut] = (string) Auth::id();
-                    }
-                } else {
-                    $outFields = [];
-                }
-
-                $mergedEntry = array_merge($inFields, $outFields);
-                if (! empty($mergedEntry)) {
-                    if ($incubator === null) {
-                        $incubator = $report->incubators()->firstOrCreate(
-                            ['report_type_incubator_id' => $tempKey],
-                            ['report_type_incubator_id' => $tempKey]
-                        );
-                    }
-                    $incubator->entries()->updateOrCreate(
-                        ['medium_type' => (string) $mediumType],
-                        $mergedEntry
-                    );
-                }
-            }
-        }
-
-        $freshHd['_field_owners'] = $inkOwners;
-        $report->update(['header_data' => $freshHd]);
-
-        return $freshHd;
+        return $report->header_data ?? [];
     }
 
     /**

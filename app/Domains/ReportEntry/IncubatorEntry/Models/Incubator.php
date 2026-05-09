@@ -1,20 +1,22 @@
 <?php
 
-namespace App\Models;
+namespace App\Domains\ReportEntry\IncubatorEntry\Models;
 
+use App\Models\IncubatorType;
+use App\Models\Report;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Mewakili satu incubator (perangkat) yang dipakai dalam satu laporan.
- * Setiap laporan bisa punya lebih dari satu incubator (suhu berbeda).
- * Data tracking masuk/keluar per jenis medium ada di incubator_entries.
+ * Domain model for incubator persistence in report entry flow.
  */
 class Incubator extends Model
 {
     use HasUuids;
+
+    protected $table = 'incubators';
 
     protected $fillable = [
         'report_id',
@@ -25,7 +27,7 @@ class Incubator extends Model
     ];
 
     protected $casts = [
-        'calibration_date'     => 'date',
+        'calibration_date' => 'date',
         'due_date_calibration' => 'date',
     ];
 

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Domains\ReportEntry\IncubatorEntry\Models\Incubator;
 use App\Domains\ReportEntry\MediumEntry\Models\MediumEntry;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 // Model-model hasil normalisasi JSON header_data
-// (Incubator, InstrumentEntry, Analyst, SectionSignature)
+// (InstrumentEntry, Analyst, SectionSignature)
 
 class Report extends Model
 {

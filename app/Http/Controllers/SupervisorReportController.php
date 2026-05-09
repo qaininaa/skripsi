@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domains\ReportEntry\IncubatorEntry\Services\IncubatorEntryService;
 use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
 use App\Domains\ReportEntry\MediumEntry\Services\MediumEntryService;
 use App\Models\PersonnelInstance;
@@ -280,7 +281,9 @@ class SupervisorReportController extends Controller
         }
 
         $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
+        $incubatorEntryService = app(IncubatorEntryService::class);
         $mediumEntryService = app(MediumEntryService::class);
+        $entryService = app(\App\Services\Reports\ReportEntryService::class);
 
         // Identitas instrumen (Air Sampler) → instrument_entries
         $asData = $request->input('header_data.air_sampler');
@@ -291,56 +294,8 @@ class SupervisorReportController extends Controller
         // Identitas medium agar → medium_identities
         $mediumEntryService->saveFromRequest($request, $report);
 
-        // Data inkubator info → incubators (form: incubator[<report_type_incubator_id>][field])
-        // Data in/out medium disimpan di incubator_entries.
-        $report->loadMissing('reportType.incubatorTypes');
-        foreach ($request->input('incubator', []) as $rtiId => $inkData) {
-            $rti = $report->reportType->incubatorTypes->firstWhere('id', $rtiId);
-            if ($rti && is_array($inkData)) {
-                $incubator = $report->incubators()->updateOrCreate(
-                    ['report_type_incubator_id' => $rti->id],
-                    [
-                        'no_id'                => $inkData['no_id'] ?? null ?: null,
-                        'calibration_date'     => $inkData['calibration_date'] ?? null ?: null,
-                        'due_date_calibration' => $inkData['due_date_calibration'] ?? ($inkData['due_date'] ?? null) ?: null,
-                    ]
-                );
-
-                $entryPayloads = [];
-                foreach ($inkData as $mediumType => $entryData) {
-                    if (is_array($entryData) && in_array((string) $mediumType, ['monitoring', 'swab'], true)) {
-                        $entryPayloads[$mediumType] = $entryData;
-                    }
-                }
-                if (empty($entryPayloads) && (
-                    isset($inkData['incubated_by']) || isset($inkData['date_in']) || isset($inkData['time_in']) ||
-                    isset($inkData['removed_by']) || isset($inkData['date_out']) || isset($inkData['time_out'])
-                )) {
-                    $entryPayloads['monitoring'] = [
-                        'incubated_by' => $inkData['incubated_by'] ?? null,
-                        'date_in'      => $inkData['date_in'] ?? null,
-                        'time_in'      => $inkData['time_in'] ?? null,
-                        'removed_by'   => $inkData['removed_by'] ?? null,
-                        'date_out'     => $inkData['date_out'] ?? null,
-                        'time_out'     => $inkData['time_out'] ?? null,
-                    ];
-                }
-
-                foreach ($entryPayloads as $mediumType => $entryData) {
-                    $incubator->entries()->updateOrCreate(
-                        ['medium_type' => $mediumType],
-                        [
-                            'incubated_by' => $entryData['incubated_by'] ?? null ?: null,
-                            'date_in'      => $entryData['date_in'] ?? null ?: null,
-                            'time_in'      => $entryData['time_in'] ?? null ?: null,
-                            'removed_by'   => $entryData['removed_by'] ?? null ?: null,
-                            'date_out'     => $entryData['date_out'] ?? null ?: null,
-                            'time_out'     => $entryData['time_out'] ?? null ?: null,
-                        ]
-                    );
-                }
-            }
-        }
+        // Data inkubator info → incubators + incubator_entries
+        $incubatorEntryService->saveFromRequest($request, $report);
 
         // Waktu paparan → report_environmental_entries (start_time/end_time)
         $entryService->saveReviewTimesToEntries(

@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Domains\ReportEntry\IncubatorEntry\Services\IncubatorEntryService;
 use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
 use App\Domains\ReportEntry\MediumEntry\Services\MediumEntryService;
 use App\Models\Report;
@@ -41,6 +42,7 @@ class ReportViewService
     ];
 
     public function __construct(
+        private IncubatorEntryService $incubatorEntryService,
         private InstrumentIdentityEntryService $instrumentIdentityEntryService,
         private MediumEntryService $mediumEntryService,
         private ReportSectionService $sectionService,
@@ -79,6 +81,7 @@ class ReportViewService
         $instrument       = $report->instrumentEntries->first();
         $instrumentFieldLocks = $this->instrumentIdentityEntryService->getFieldLocksForRowId($instrument?->id);
         $incubators       = $report->incubators->keyBy('report_type_incubator_id');
+        $incubatorFieldLocks = $this->incubatorEntryService->getFieldLocksByIncubatorConfigId($report->incubators);
         $incubatorTypes = $report->reportType->incubatorTypes;
         $mediums          = $report->mediumIdentities->keyBy('name');
         $mediumFieldLocks = $this->mediumEntryService->getFieldLocksByMediumName($report->mediumIdentities);
@@ -116,6 +119,7 @@ class ReportViewService
             'instrument'        => $instrument,
             'instrumentFieldLocks' => $instrumentFieldLocks,
             'incubators'        => $incubators,
+            'incubatorFieldLocks' => $incubatorFieldLocks,
             'incubatorTypes'  => $incubatorTypes,
             'mediums'           => $mediums,
             'mediumFieldLocks'  => $mediumFieldLocks,
