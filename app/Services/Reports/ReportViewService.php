@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\ReportSectionService;
@@ -39,6 +40,7 @@ class ReportViewService
     ];
 
     public function __construct(
+        private InstrumentIdentityEntryService $instrumentIdentityEntryService,
         private ReportSectionService $sectionService,
         private SectionInstanceService $instanceService,
     ) {}
@@ -73,6 +75,7 @@ class ReportViewService
         );
 
         $instrument       = $report->instrumentEntries->first();
+        $instrumentFieldLocks = $this->instrumentIdentityEntryService->getFieldLocksForRowId($instrument?->id);
         $incubators       = $report->incubators->keyBy('report_type_incubator_id');
         $incubatorTypes = $report->reportType->incubatorTypes;
         $mediums          = $report->mediumIdentities->keyBy('name');
@@ -108,6 +111,7 @@ class ReportViewService
             'isMonitoringPhase' => $report->status === 'monitoring',
             'myShift'           => 1,
             'instrument'        => $instrument,
+            'instrumentFieldLocks' => $instrumentFieldLocks,
             'incubators'        => $incubators,
             'incubatorTypes'  => $incubatorTypes,
             'mediums'           => $mediums,

@@ -2,7 +2,6 @@
 
 namespace App\Domains\ReportEntry\InstrumentIdentityEntry\Repositories;
 
-use App\Domains\ReportEntry\InstrumentIdentityEntry\DTOs\InstrumentIdentityEntryData;
 use App\Domains\ReportEntry\InstrumentIdentityEntry\Models\InstrumentIdentityEntry;
 use App\Models\Report;
 
@@ -11,18 +10,34 @@ use App\Models\Report;
  */
 class InstrumentIdentityEntryRepository
 {
-    public function upsertForReport(Report $report, InstrumentIdentityEntryData $data): InstrumentIdentityEntry
+    public function findOrCreateForReportTool(Report $report, string $toolName): InstrumentIdentityEntry
     {
-        return InstrumentIdentityEntry::query()->updateOrCreate(
+        return InstrumentIdentityEntry::query()->firstOrCreate(
             [
                 'report_id' => $report->id,
-                'tool_name' => $data->toolName,
+                'tool_name' => $toolName,
             ],
             [
-                'no_id' => $data->noId,
-                'calibration_date' => $data->calibrationDate,
-                'due_date' => $data->dueDate,
+                'tool_name' => $toolName,
             ]
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function updateFields(InstrumentIdentityEntry $entry, array $payload): InstrumentIdentityEntry
+    {
+        if ($payload === []) {
+            return $entry;
+        }
+
+        $entry->fill($payload);
+
+        if ($entry->isDirty()) {
+            $entry->save();
+        }
+
+        return $entry->refresh();
     }
 }
