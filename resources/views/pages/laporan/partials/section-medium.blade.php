@@ -2,6 +2,8 @@
 {{-- Data disimpan ke tabel medium_identities via $mediums (keyed by name) --}}
 @php
     $mediumTypeList = $report->reportType->mediumTypes->sortBy(fn($m) => str_contains(strtolower($m->name), 'swab') ? 1 : 0);
+    $mediumFieldLocks = $mediumFieldLocks ?? [];
+    $currentUserId = (string) (auth()->id() ?? '');
 @endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
@@ -11,8 +13,21 @@
         @foreach ($mediumTypeList as $medType)
         @php
             $medName = $medType->name;
-            $med     = $mediums[$medName] ?? null; // MediumIdentity model or null
+            $med     = $mediums[$medName] ?? null; // MediumEntry model or null
             $isSwab  = str_contains(strtolower($medName), 'swab');
+            $fieldLocks = $mediumFieldLocks[$medName] ?? [];
+
+            $batchLockedByOther = $isEditable
+                && isset($fieldLocks['batch_number'])
+                && (string) $fieldLocks['batch_number'] !== $currentUserId;
+
+            $gptLockedByOther = $isEditable
+                && isset($fieldLocks['gpt_number'])
+                && (string) $fieldLocks['gpt_number'] !== $currentUserId;
+
+            $expirationLockedByOther = $isEditable
+                && isset($fieldLocks['expiration_date'])
+                && (string) $fieldLocks['expiration_date'] !== $currentUserId;
         @endphp
         <div>
             <h4 class="text-xs font-semibold text-sky-600 uppercase tracking-wide mb-3">{{ $medName }}</h4>
@@ -20,22 +35,31 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
                     <input type="text" name="medium[{{ $medName }}][batch_number]" value="{{ $med?->batch_number ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
+                           @if(!$isEditable || $batchLockedByOther) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $batchLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
+                    @if ($batchLockedByOther)
+                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                    @endif
                 </div>
                 @if (!$isSwab)
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
                     <input type="text" name="medium[{{ $medName }}][gpt_number]" value="{{ $med?->gpt_number ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
+                           @if(!$isEditable || $gptLockedByOther) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $gptLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
+                    @if ($gptLockedByOther)
+                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                    @endif
                 </div>
                 @endif
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $isSwab ? 'Swab Kit' : 'Medium' }}</label>
                     <input type="date" name="medium[{{ $medName }}][expiration_date]" value="{{ $med?->expiration_date?->format('Y-m-d') ?? '' }}"
-                           @if(!$isEditable) readonly @endif
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable) bg-gray-100 text-gray-400 cursor-not-allowed @endif">
+                           @if(!$isEditable || $expirationLockedByOther) readonly @endif
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $expirationLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
+                    @if ($expirationLockedByOther)
+                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                    @endif
                 </div>
             </div>
         </div>

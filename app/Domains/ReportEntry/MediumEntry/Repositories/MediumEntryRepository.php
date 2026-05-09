@@ -10,17 +10,35 @@ use App\Models\Report;
  */
 class MediumEntryRepository
 {
-    /**
-     * @param  array<string, mixed>  $payload
-     */
-    public function updateOrCreateByName(Report $report, string $name, array $payload): MediumEntry
+    public function findOrCreateForReportMedium(Report $report, string $name, string $mediumId): MediumEntry
     {
-        return MediumEntry::query()->updateOrCreate(
+        return MediumEntry::query()->firstOrCreate(
             [
                 'report_id' => $report->id,
                 'name' => $name,
             ],
-            $payload
+            [
+                'medium_id' => $mediumId,
+                'name' => $name,
+            ]
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function updateFields(MediumEntry $entry, array $payload): MediumEntry
+    {
+        if ($payload === []) {
+            return $entry;
+        }
+
+        $entry->fill($payload);
+
+        if ($entry->isDirty()) {
+            $entry->save();
+        }
+
+        return $entry->refresh();
     }
 }

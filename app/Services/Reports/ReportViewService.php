@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
+use App\Domains\ReportEntry\MediumEntry\Services\MediumEntryService;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\ReportSectionService;
@@ -41,6 +42,7 @@ class ReportViewService
 
     public function __construct(
         private InstrumentIdentityEntryService $instrumentIdentityEntryService,
+        private MediumEntryService $mediumEntryService,
         private ReportSectionService $sectionService,
         private SectionInstanceService $instanceService,
     ) {}
@@ -79,6 +81,7 @@ class ReportViewService
         $incubators       = $report->incubators->keyBy('report_type_incubator_id');
         $incubatorTypes = $report->reportType->incubatorTypes;
         $mediums          = $report->mediumIdentities->keyBy('name');
+        $mediumFieldLocks = $this->mediumEntryService->getFieldLocksByMediumName($report->mediumIdentities);
 
         $personnelMethods    = $report->reportType->personnelMethods;
         $personnelInstances  = $report->personnelInstances;
@@ -115,6 +118,7 @@ class ReportViewService
             'incubators'        => $incubators,
             'incubatorTypes'  => $incubatorTypes,
             'mediums'           => $mediums,
+            'mediumFieldLocks'  => $mediumFieldLocks,
             'monitoringAnalysts' => $monitoringAnalysts,
             'readingAnalysts'   => $readingAnalysts,
             'analis'            => $analis,
