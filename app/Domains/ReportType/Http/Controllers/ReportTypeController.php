@@ -2,8 +2,7 @@
 
 namespace App\Domains\ReportType\Http\Controllers;
 
-use App\Domains\ReportType\Http\Requests\ReportType\StoreReportTypeRequest;
-use App\Domains\ReportType\Http\Requests\ReportType\UpdateReportTypeRequest;
+use App\Domains\ReportType\Http\Requests\ReportType\ReportTypeRequest;
 use App\Domains\ReportType\Models\ReportType;
 use App\Domains\ReportType\Services\ReportTypeService;
 use App\Http\Controllers\Controller;
@@ -25,7 +24,7 @@ class ReportTypeController extends Controller
         return view('pages.report-types.create');
     }
 
-    public function store(StoreReportTypeRequest $request)
+    public function store(ReportTypeRequest $request)
     {
         $duplicate = $this->service->findDuplicate($request->validated());
 
@@ -62,7 +61,7 @@ class ReportTypeController extends Controller
         return view('pages.report-types.edit', compact('reportType'));
     }
 
-    public function update(UpdateReportTypeRequest $request, ReportType $reportType)
+    public function update(ReportTypeRequest $request, ReportType $reportType)
     {
         $this->service->update($reportType, $request->validated(), $this->meta($request));
 
