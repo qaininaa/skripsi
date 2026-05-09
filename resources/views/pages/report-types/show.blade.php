@@ -92,11 +92,11 @@
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur <span class="text-red-500">*</span></label>
                         <input type="text" name="measurement_unit" placeholder="cth: CFU/4hours/plate" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipe Pengukuran</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipe Pengukuran <span class="text-red-500">*</span></label>
                         <select name="measurement_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             <option value="">Pilih</option>
                             <option value="Settle Plate">Settle Plate</option>
@@ -106,16 +106,17 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom <span class="text-red-500">*</span></label>
                         <input type="number" name="max_column" value="1" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
-                        <input type="text" name="column_label" value="Exposure" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom <span class="text-red-500">*</span></label>
+                        <input type="text" name="column_label" value="Exposure" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom</label>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom <span class="text-red-500">*</span></label>
                         <select name="time_slot_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                            <option value="" disabled selected>Pilih</option>
                             <option value="none">Tidak ada</option>
                             <option value="single">1 slot (Mulai–Selesai)</option>
                             <option value="per_location">Per Lokasi (1 slot/lokasi)</option>
@@ -170,11 +171,11 @@
                         @method('PUT')
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Satuan Ukur <span class="text-red-500">*</span></label>
                                 <input type="text" name="measurement_unit" value="{{ $section->measurement_unit }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Tipe Pengukuran</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Tipe Pengukuran <span class="text-red-500">*</span></label>
                                 <select name="measurement_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                                     <option value="Settle Plate" {{ $section->measurement_key === 'settle_plate' ? 'selected' : '' }}>Settle Plate</option>
                                     <option value="Air Sampler" {{ $section->measurement_key === 'air_sampler' ? 'selected' : '' }}>Air Sampler</option>
@@ -183,16 +184,17 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Kolom <span class="text-red-500">*</span></label>
                                 <input type="number" name="max_column" value="{{ $section->max_column }}" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
-                                <input type="text" name="column_label" value="{{ $section->column_label }}" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom <span class="text-red-500">*</span></label>
+                                <input type="text" name="column_label" value="{{ $section->column_label }}" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom</label>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom <span class="text-red-500">*</span></label>
                                 <select name="time_slot_type" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                                    <option value="" disabled>Pilih</option>
                                     <option value="none" {{ $section->time_slot_type === 'none' ? 'selected' : '' }}>Tidak ada</option>
                                     <option value="single" {{ $section->time_slot_type === 'single' ? 'selected' : '' }}>1 slot (Mulai–Selesai)</option>
                                     <option value="per_location" {{ $section->time_slot_type === 'per_location' ? 'selected' : '' }}>Per Lokasi (1 slot/lokasi)</option>
