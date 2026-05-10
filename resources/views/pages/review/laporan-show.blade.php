@@ -434,10 +434,9 @@
         $maxCols        = $section->max_column;
         $romanNums      = ['I', 'II', 'III', 'IV', 'V', 'VI'];
         $secNum         = $loop->index + 5;
-        $savedAsgn      = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
         $secAssignments = [];
         for ($c = 1; $c <= $maxCols; $c++) {
-            $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
+            $secAssignments[$c] = 1;
         }
         $secColumnNames = $report->sectionColumnNames
             ->where('section_id', $section->id)

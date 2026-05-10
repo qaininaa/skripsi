@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Domains\ReportEntry\IncubatorEntry\Services\IncubatorEntryService;
+use App\Domains\Report\Services\IncubatorEntryService;
+use App\Domains\Report\Services\EnvironmentalEntryService;
+use App\Domains\Report\Services\ReportEntryService;
 use App\Models\Report;
 use App\Models\ReportApproval;
 use App\Models\User;
 use App\Services\PersonnelInstanceService;
-use App\Services\Reports\ReportEntryService;
 use App\Services\Reports\ReportViewService;
 use App\Services\Reports\ReportWorkflowService;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class ReportController extends Controller
         private ReportViewService $viewService,
         private ReportWorkflowService $workflowService,
         private ReportEntryService $entryService,
+        private EnvironmentalEntryService $environmentalEntryService,
         private IncubatorEntryService $incubatorEntryService,
         private PersonnelInstanceService $personnelInstanceService,
     ) {}
@@ -132,9 +134,6 @@ class ReportController extends Controller
         $this->workflowService->claimReport($report, $userId);
         $report->refresh();
 
-        // Migrasi format ownership lama → baru (backward compatibility).
-        $this->entryService->migrateFieldOwners($report);
-
         $this->viewService->loadRelations($report);
 
         $isEditable = in_array($report->status, ['monitoring', 'reading'])
@@ -181,7 +180,7 @@ class ReportController extends Controller
     }
 
     // ── Validasi CFU ──────────────────────────────────
-    $invalidFields = $this->entryService->validateCfu($request->input('entries', []));
+    $invalidFields = $this->environmentalEntryService->validateCfu($request->input('entries', []));
     if (! empty($invalidFields)) {
         return back()
             ->withInput()

@@ -270,10 +270,9 @@
         $maxCols       = $section->max_column;
         $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
         $secNum        = $loop->index + 5;
-        $savedAsgn     = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
         $secAssignments = [];
         for ($c = 1; $c <= $maxCols; $c++) {
-            $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
+            $secAssignments[$c] = 1;
         }
         $secColumnNames = $report->sectionColumnNames
             ->where('section_id', $section->id)
@@ -283,6 +282,31 @@
             ->all();
         $secNote = $hd['section_notes'][$section->id] ?? [];
         $subColsPerExp = $isPerLocation ? 4 : 3;
+
+        // Build time lookup from report_environmental_entries (normalized source).
+        $secTimesFromEntries = [];
+        foreach ($section->locations as $_loc) {
+            $_pivId  = $_loc->id;
+            $_class  = strtolower($_loc->room->class ?? '');
+            $_locNum = $_loc->location_number ?? '';
+            $_isS1_3 = stripos($_locNum, 'S1-3') !== false;
+            $_isS1_2 = stripos($_locNum, 'S1-2') !== false;
+            $_swK    = $_isS1_3 ? 's1_3' : ($_isS1_2 ? 's1_2' : 's1');
+            for ($_col = 0; $_col <= $maxCols; $_col++) {
+                $_e = $entryMap[$_pivId][$_col][1] ?? $entryMap[$_pivId][$_col][2] ?? null;
+                if (! $_e || (! $_e->start_time && ! $_e->end_time)) { continue; }
+                if ($_class && ! isset($secTimesFromEntries[$_col][$_class])) {
+                    $secTimesFromEntries[$_col][$_class] = ['start_time' => $_e->start_time, 'end_time' => $_e->end_time];
+                }
+                if (! isset($secTimesFromEntries[$_col]['swab'][$_swK])) {
+                    $secTimesFromEntries[$_col]['swab'][$_swK] = ['mulai' => $_e->start_time, 'selesai' => $_e->end_time];
+                }
+                if (! isset($secTimesFromEntries[$_col]['start_time'])) {
+                    $secTimesFromEntries[$_col]['start_time'] = $_e->start_time;
+                    $secTimesFromEntries[$_col]['end_time']   = $_e->end_time;
+                }
+            }
+        }
     @endphp
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
@@ -349,7 +373,7 @@
                                 {{ $isSettlePlate ? 'SP' : 'Shift' }}: {{ $colName ?: '—' }}
                             </div>
                             @if ($isSwabTime)
-                            @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
+                            @php $swabColTimes = $secTimesFromEntries[$col]['swab'] ?? []; @endphp
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                                 @php $st = $swabColTimes[$swabKey] ?? []; @endphp
@@ -360,16 +384,15 @@
                             @if ($isDualAB)
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                                @php $stAB = $hd['settle_times'][$section->id][$col][$ab] ?? []; @endphp
+                                @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
                                 <div>{{ $abLabel }}: {{ ($stAB['start_time'] ?? '') ?: '—' }} – {{ ($stAB['end_time'] ?? '') ?: '—' }}</div>
                                 @endforeach
                             </div>
                             @endif
                             @if ($hasJam)
                             @php
-                                $expJam = $hd['exposure_times'][$section->id][$col] ?? [];
-                                $expJamMulai   = $expJam['start_time'] ?? null;
-                                $expJamSelesai = $expJam['end_time'] ?? null;
+                                $expJamMulai   = $secTimesFromEntries[$col]['start_time'] ?? null;
+                                $expJamSelesai = $secTimesFromEntries[$col]['end_time'] ?? null;
                             @endphp
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 <div>Mulai: {{ $expJamMulai ?: '—' }}</div>

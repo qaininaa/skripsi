@@ -22,7 +22,43 @@ class SectionTableComposer
 
         $maxCols   = $section->max_column;
         $romanNums = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-        $hdOwners  = $hd['_field_owners'] ?? [];
+
+        // Build time lookup from report_environmental_entries (normalized source).
+        $secTimesFromEntries = [];
+        foreach ($section->locations as $loc) {
+            $locId = (string) $loc->id;
+            $locClass = strtolower((string) ($loc->room->class ?? ''));
+            $locNum = (string) ($loc->location_number ?? '');
+            $isS1_3 = stripos($locNum, 'S1-3') !== false;
+            $isS1_2 = stripos($locNum, 'S1-2') !== false;
+            $swabKey = $isS1_3 ? 's1_3' : ($isS1_2 ? 's1_2' : 's1');
+
+            for ($col = 0; $col <= $maxCols; $col++) {
+                $entry = $entryMap[$locId][$instance][$col][1] ?? $entryMap[$locId][$instance][$col][2] ?? null;
+                if (! $entry || (! $entry->start_time && ! $entry->end_time)) {
+                    continue;
+                }
+
+                if ($locClass !== '' && ! isset($secTimesFromEntries[$col][$locClass])) {
+                    $secTimesFromEntries[$col][$locClass] = [
+                        'start_time' => $entry->start_time,
+                        'end_time' => $entry->end_time,
+                    ];
+                }
+
+                if (! isset($secTimesFromEntries[$col]['swab'][$swabKey])) {
+                    $secTimesFromEntries[$col]['swab'][$swabKey] = [
+                        'mulai' => $entry->start_time,
+                        'selesai' => $entry->end_time,
+                    ];
+                }
+
+                if (! isset($secTimesFromEntries[$col]['start_time'])) {
+                    $secTimesFromEntries[$col]['start_time'] = $entry->start_time;
+                    $secTimesFromEntries[$col]['end_time'] = $entry->end_time;
+                }
+            }
+        }
 
         // ── Time-slot type flags ──────────────────────────────────────────────
         $hasMachineSetup = (bool) $section->has_machine_setup;
@@ -40,17 +76,13 @@ class SectionTableComposer
         $isReading    = $report->status === 'reading';
 
         // ── Machine Set-up ownership ──────────────────────────────────────────
-        $ms0Owner  = isset($hdOwners["exposure_times_{$section->id}_{$instance}_0"])
-            ? (string) $hdOwners["exposure_times_{$section->id}_{$instance}_0"]
-            : null;
-        $ms0Locked = $isEditable && $ms0Owner !== null && $ms0Owner !== (string) auth()->id();
-        $msHasTime = ! empty($hd['exposure_times'][$section->id][$instance][0]['start_time'] ?? null);
+        $ms0Locked = false;
+        $msHasTime = ! empty($secTimesFromEntries[0]['start_time'] ?? null);
 
         // ── Column shift assignments ──────────────────────────────────────────
-        $savedAsgn      = $hd['shift_assignments'][$section->id] ?? [];
         $secAssignments = [];
         for ($c = 1; $c <= $maxCols; $c++) {
-            $secAssignments[$c] = isset($savedAsgn[$c]) ? (int) $savedAsgn[$c] : 1;
+            $secAssignments[$c] = 1;
         }
 
         // ── Per-column display names (settle: SP, others: Shift) ─────────────
@@ -100,9 +132,10 @@ class SectionTableComposer
             // Phase
             'isMonitoring', 'isReading',
             // Machine set-up
-            'ms0Owner', 'ms0Locked', 'msHasTime',
+            'ms0Locked', 'msHasTime',
+            'secTimesFromEntries',
             // Columns
-            'secAssignments', 'columnNames', 'maxCols', 'romanNums', 'hdOwners',
+            'secAssignments', 'columnNames', 'maxCols', 'romanNums',
             // Layout helpers
             'totalCols',
             // Frequency grouping

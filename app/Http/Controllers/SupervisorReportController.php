@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Domains\ReportEntry\IncubatorEntry\Services\IncubatorEntryService;
-use App\Domains\ReportEntry\InstrumentIdentityEntry\Services\InstrumentIdentityEntryService;
-use App\Domains\ReportEntry\MediumEntry\Services\MediumEntryService;
+use App\Domains\Report\Services\IncubatorEntryService;
+use App\Domains\Report\Services\InstrumentIdentityEntryService;
+use App\Domains\Report\Services\MediumEntryService;
 use App\Models\PersonnelInstance;
 use App\Models\PersonnelRow;
 use App\Models\Report;
@@ -283,7 +283,7 @@ class SupervisorReportController extends Controller
         $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
         $incubatorEntryService = app(IncubatorEntryService::class);
         $mediumEntryService = app(MediumEntryService::class);
-        $entryService = app(\App\Services\Reports\ReportEntryService::class);
+        $entryService = app(\App\Domains\Report\Services\ReportEntryService::class);
 
         // Identitas instrumen (Air Sampler) → instrument_entries
         $asData = $request->input('header_data.air_sampler');

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Domains\ReportEntry\IncubatorEntry\Models\Incubator;
-use App\Domains\ReportEntry\MediumEntry\Models\MediumEntry;
+use App\Domains\Report\Models\Incubator;
+use App\Domains\Report\Models\MediumEntry;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 

@@ -2,8 +2,9 @@
 
 namespace App\Domains\AnalystReport\Shared\Services;
 
+use App\Domains\Report\Services\EnvironmentalEntryService;
+use App\Domains\Report\Services\ReportEntryService;
 use App\Models\Report;
-use App\Services\Reports\ReportEntryService as BaseReportEntryService;
 use Illuminate\Http\Request;
 
 /**
@@ -14,7 +15,10 @@ use Illuminate\Http\Request;
  */
 class AnalystReportEntryService
 {
-    public function __construct(private BaseReportEntryService $baseService) {}
+    public function __construct(
+        private ReportEntryService $entryService,
+        private EnvironmentalEntryService $environmentalEntryService,
+    ) {}
 
     /**
      * @param array $entries
@@ -22,7 +26,7 @@ class AnalystReportEntryService
      */
     public function validateCfu(array $entries): array
     {
-        return $this->baseService->validateCfu($entries);
+        return $this->environmentalEntryService->validateCfu($entries);
     }
 
     /**
@@ -31,7 +35,7 @@ class AnalystReportEntryService
      */
     public function migrateFieldOwners(Report $report): void
     {
-        $this->baseService->migrateFieldOwners($report);
+        // Field ownership is no longer used.
     }
 
     /**
@@ -41,6 +45,6 @@ class AnalystReportEntryService
      */
     public function process(Request $request, Report $report): array
     {
-        return $this->baseService->process($request, $report);
+        return $this->entryService->process($request, $report);
     }
 }

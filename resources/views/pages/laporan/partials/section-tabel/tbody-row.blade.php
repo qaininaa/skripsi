@@ -127,17 +127,19 @@
 
         // Determine whether this column has any time data (gates reading-phase B/F inputs)
         if ($isDualAB) {
-            $_stA       = $hd['settle_times'][$section->id][$instance][$col]['a'] ?? [];
-            $_stB       = $hd['settle_times'][$section->id][$instance][$col]['b'] ?? [];
-            $colHasTime = !empty($_stA['start_time']) || !empty($_stB['start_time']);
+            $_abClass = strtolower((string) ($loc->room->class ?? ''));
+            $_stAB = $secTimesFromEntries[$col][$_abClass] ?? [];
+            $colHasTime = ! empty($_stAB['start_time']);
         } elseif ($hasTime) {
-            $_exp       = $hd['exposure_times'][$section->id][$instance][$col] ?? [];
-            $colHasTime = !empty($_exp['start_time']);
+            $colHasTime = ! empty($secTimesFromEntries[$col]['start_time'] ?? null);
         } elseif ($isSwabTime) {
-            $_swab      = $hd['swab_times'][$section->id][$instance][$col] ?? [];
-            $colHasTime = collect($_swab)->contains(fn($_s) => !empty($_s['mulai']));
+            $_locNum = (string) ($loc->location_number ?? '');
+            $_swabKey = stripos($_locNum, 'S1-3') !== false
+                ? 's1_3'
+                : (stripos($_locNum, 'S1-2') !== false ? 's1_2' : 's1');
+            $colHasTime = ! empty($secTimesFromEntries[$col]['swab'][$_swabKey]['mulai'] ?? null);
         } elseif ($isPerLocation) {
-            $colHasTime = !empty($existEntry?->start_time);
+            $colHasTime = ! empty($existEntry?->start_time);
         } else {
             $colHasTime = true;
         }

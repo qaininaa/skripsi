@@ -391,10 +391,9 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
     $maxCols       = $section->max_column;
     $romanNums     = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-    $savedAsgn     = ($hd['shift_assignments'] ?? [])[$section->id] ?? [];
     $secAssignments = [];
     for ($c = 1; $c <= $maxCols; $c++) {
-        $secAssignments[$c] = isset($savedAsgn[$c]) ? (int)$savedAsgn[$c] : 1;
+        $secAssignments[$c] = 1;
     }
     $secColumnNames = $report->sectionColumnNames
         ->where('section_id', $section->id)
@@ -406,6 +405,43 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     $subColsPerExp = $isPerLocation ? 4 : 3;
     $totalCols = 5 + ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp + 4 + 1;
     $pageOrientation = ($hasMachineSetup && $maxCols >= 4) ? 'landscape' : 'portrait';
+
+    // Build time lookup from report_environmental_entries (normalized source).
+    $secTimesFromEntries = [];
+    foreach ($section->locations as $_loc) {
+        $_pivId  = $_loc->id;
+        $_class  = strtolower($_loc->room->class ?? '');
+        $_locNum = $_loc->location_number ?? '';
+        $_isS1_3 = stripos($_locNum, 'S1-3') !== false;
+        $_isS1_2 = stripos($_locNum, 'S1-2') !== false;
+        $_swK    = $_isS1_3 ? 's1_3' : ($_isS1_2 ? 's1_2' : 's1');
+
+        for ($_col = 0; $_col <= $maxCols; $_col++) {
+            $_e = $entryMap[$_pivId][$_col][1] ?? $entryMap[$_pivId][$_col][2] ?? null;
+            if (! $_e || (! $_e->start_time && ! $_e->end_time)) {
+                continue;
+            }
+
+            if ($_class && ! isset($secTimesFromEntries[$_col][$_class])) {
+                $secTimesFromEntries[$_col][$_class] = [
+                    'start_time' => $_e->start_time,
+                    'end_time' => $_e->end_time,
+                ];
+            }
+
+            if (! isset($secTimesFromEntries[$_col]['swab'][$_swK])) {
+                $secTimesFromEntries[$_col]['swab'][$_swK] = [
+                    'mulai' => $_e->start_time,
+                    'selesai' => $_e->end_time,
+                ];
+            }
+
+            if (! isset($secTimesFromEntries[$_col]['start_time'])) {
+                $secTimesFromEntries[$_col]['start_time'] = $_e->start_time;
+                $secTimesFromEntries[$_col]['end_time'] = $_e->end_time;
+            }
+        }
+    }
 @endphp
 <div class="doc-page {{ $pageOrientation }}">
     {{-- Page header --}}
@@ -488,7 +524,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                     @endif
 
                     @if ($isSwabTime)
-                    @php $swabColTimes = $hd['swab_times'][$section->id][$col] ?? []; @endphp
+                    @php $swabColTimes = $secTimesFromEntries[$col]['swab'] ?? []; @endphp
                     <div style="font-weight:400;margin-top:2px">
                         JAM<br>Mulai Swab:<br>
                         @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
@@ -505,8 +541,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
                     @if ($isDualAB)
                     @php
-                        $stA = $hd['settle_times'][$section->id][$col]['a'] ?? [];
-                        $stB = $hd['settle_times'][$section->id][$col]['b'] ?? [];
+                        $stA = $secTimesFromEntries[$col]['a'] ?? [];
+                        $stB = $secTimesFromEntries[$col]['b'] ?? [];
                     @endphp
                     <div style="font-weight:400;margin-top:2px;{{ $isSettlePlate ? 'margin-left:-2px;margin-right:-2px;border-top:1px solid #000;padding-top:2px;' : '' }}">
                         JAM<br>Mulai Sebar Petri:<br>
@@ -520,9 +556,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
                     @if ($hasJam)
                     @php
-                        $expJam = $hd['exposure_times'][$section->id][$col] ?? [];
-                        $expJamMulai   = $expJam['start_time'] ?? null;
-                        $expJamSelesai = $expJam['end_time'] ?? null;
+                        $expJamMulai   = $secTimesFromEntries[$col]['start_time'] ?? null;
+                        $expJamSelesai = $secTimesFromEntries[$col]['end_time'] ?? null;
                         $jamMulaiLabel = $section->measurement_key === 'contact_plate'
                             ? 'Mulai Contact Plate'
                             : 'Mulai Sebar Petri';
