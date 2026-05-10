@@ -69,8 +69,26 @@ class ReportViewService
         // Pastikan setiap section punya minimal 1 instance original.
         $this->instanceService->ensureInstancesInitialized($report);
 
-        $entryMap        = $this->sectionService->buildEntryMap($report);
-        $sectionNeeds    = $this->sectionService->computeSectionNeeds($report);
+        return array_merge(
+            $this->buildSectionViewData($report),
+            $this->buildIdentityAndEquipmentViewData($report),
+            $this->buildPersonnelViewData($report),
+            $this->buildAnalystAndApprovalViewData($report),
+            [
+                'isEditable' => $isEditable,
+                'isMonitoringPhase' => $report->status === 'monitoring',
+                'myShift' => 1,
+            ]
+        );
+    }
+
+    /**
+     * Build data untuk blok section environment.
+     */
+    private function buildSectionViewData(Report $report): array
+    {
+        $entryMap = $this->sectionService->buildEntryMap($report);
+        $sectionNeeds = $this->sectionService->computeSectionNeeds($report);
         $sectionInstances = $this->sectionService->buildSectionInstances($report);
 
         // Kelompokkan tanda tangan by compound key 'section_id|instance_number'.
@@ -78,22 +96,49 @@ class ReportViewService
             fn ($sig) => $sig->section_id . '|' . $sig->instance_number
         );
 
-        $instrument       = $report->instrumentEntries->first();
+        return [
+            'entryMap' => $entryMap,
+            'sectionInstances' => $sectionInstances,
+            'sectionSignatures' => $sectionSignatures,
+            'needsAirSampler' => $sectionNeeds['needsAirSampler'],
+            'needsInkubator' => $sectionNeeds['needsInkubator'],
+            'needsMedium' => $sectionNeeds['needsMedium'],
+        ];
+    }
+
+    /**
+     * Build data untuk identity instrument, medium, dan inkubator.
+     */
+    private function buildIdentityAndEquipmentViewData(Report $report): array
+    {
+        $instrument = $report->instrumentEntries->first();
         $instrumentFieldLocks = $this->instrumentIdentityEntryService->getFieldLocksForRowId($instrument?->id);
-        $incubators       = $report->incubators->keyBy('report_type_incubator_id');
+
+        $incubators = $report->incubators->keyBy('report_type_incubator_id');
         $incubatorFieldLocks = $this->incubatorEntryService->getFieldLocksByIncubatorConfigId($report->incubators);
         $incubatorTypes = $report->reportType->incubatorTypes;
-        $mediums          = $report->mediumIdentities->keyBy('name');
+
+        $mediums = $report->mediumIdentities->keyBy('name');
         $mediumFieldLocks = $this->mediumEntryService->getFieldLocksByMediumName($report->mediumIdentities);
 
-        $personnelMethods    = $report->reportType->personnelMethods;
-        $personnelInstances  = $report->personnelInstances;
+        return [
+            'instrument' => $instrument,
+            'instrumentFieldLocks' => $instrumentFieldLocks,
+            'incubators' => $incubators,
+            'incubatorFieldLocks' => $incubatorFieldLocks,
+            'incubatorTypes' => $incubatorTypes,
+            'mediums' => $mediums,
+            'mediumFieldLocks' => $mediumFieldLocks,
+        ];
+    }
 
-        $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
-        $readingAnalysts    = $report->analysts->where('type', 'reading');
-
-        $analis      = User::where('role', 'analis')->orderBy('name')->get();
-        $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
+    /**
+     * Build data untuk section personel.
+     */
+    private function buildPersonnelViewData(Report $report): array
+    {
+        $personnelMethods = $report->reportType->personnelMethods;
+        $personnelInstances = $report->personnelInstances;
 
         $personnelSignatures = $report->personnelSignatures()
             ->with('user')
@@ -102,36 +147,35 @@ class ReportViewService
             ->get()
             ->groupBy('role'); // ['monitoring' => Collection<Signature>, 'reading' => Collection<Signature>]
 
-        // Approval untuk supervisor & manager (sama dengan env section)
-        $supApproval  = $report->approvals->firstWhere('step', 2);
+        return [
+            'personnelMethods' => $personnelMethods,
+            'personnelInstances' => $personnelInstances,
+            'personnelSignatures' => $personnelSignatures,
+        ];
+    }
+
+    /**
+     * Build data analis dan approval.
+     */
+    private function buildAnalystAndApprovalViewData(Report $report): array
+    {
+        $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
+        $readingAnalysts = $report->analysts->where('type', 'reading');
+
+        $analis = User::where('role', 'analis')->orderBy('name')->get();
+        $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
+
+        // Approval untuk supervisor & manager (sama dengan env section).
+        $supApproval = $report->approvals->firstWhere('step', 2);
         $mngrApproval = $report->approvals->firstWhere('step', 3);
 
         return [
-            'entryMap'          => $entryMap,
-            'sectionInstances'  => $sectionInstances,
-            'sectionSignatures' => $sectionSignatures,
-            'needsAirSampler'   => $sectionNeeds['needsAirSampler'],
-            'needsInkubator'    => $sectionNeeds['needsInkubator'],
-            'needsMedium'       => $sectionNeeds['needsMedium'],
-            'isEditable'        => $isEditable,
-            'isMonitoringPhase' => $report->status === 'monitoring',
-            'myShift'           => 1,
-            'instrument'        => $instrument,
-            'instrumentFieldLocks' => $instrumentFieldLocks,
-            'incubators'        => $incubators,
-            'incubatorFieldLocks' => $incubatorFieldLocks,
-            'incubatorTypes'  => $incubatorTypes,
-            'mediums'           => $mediums,
-            'mediumFieldLocks'  => $mediumFieldLocks,
             'monitoringAnalysts' => $monitoringAnalysts,
-            'readingAnalysts'   => $readingAnalysts,
-            'analis'            => $analis,
-            'otherAnalis'       => $otherAnalis,
-            'personnelMethods'   => $personnelMethods,
-            'personnelInstances' => $personnelInstances,
-            'personnelSignatures' => $personnelSignatures,
-            'supApproval'       => $supApproval,
-            'mngrApproval'      => $mngrApproval,
+            'readingAnalysts' => $readingAnalysts,
+            'analis' => $analis,
+            'otherAnalis' => $otherAnalis,
+            'supApproval' => $supApproval,
+            'mngrApproval' => $mngrApproval,
         ];
     }
 }
