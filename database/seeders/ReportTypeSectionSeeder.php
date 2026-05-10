@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\ReportType;
+use App\Services\Personnels\PersonnelService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -835,6 +837,12 @@ class ReportTypeSectionSeeder extends Seeder
                 'updated_at' => $now,
             ],
         ]));
+
+        // Generate personnel methods for all report types with has_personnel = true
+        $personnelService = new PersonnelService();
+        ReportType::where('has_personnel', true)->each(function ($reportType) use ($personnelService) {
+            $personnelService->generate($reportType);
+        });
     }
 
     private function insertMedia(string $reportTypeId, array $mediums, $now): void
