@@ -138,8 +138,8 @@ const _modalConfig = {
         btnClass: 'bg-sky-500 hover:bg-sky-600',
     },
     handover: {
-        title: 'Konfirmasi Estafet ke Shift 2',
-        desc:  'Setelah diteruskan, data Shift 1 tidak dapat diubah lagi. Masukkan username dan password Anda untuk melanjutkan.',
+        title: 'Konfirmasi Estafet Laporan',
+        desc:  'Setelah diteruskan, data yang sudah diisi tidak dapat diubah lagi. Masukkan username dan password Anda untuk melanjutkan.',
         btnText: 'Estafet',
         btnClass: 'bg-amber-500 hover:bg-amber-600',
     },
@@ -174,7 +174,7 @@ function openConfirmModal(action) {
         if (missing.size > 0) {
             showAlertModal(
                 'Data Belum Lengkap',
-                'Kolom Shift 1 berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.'
+                'Kolom berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.'
             );
             return;
         }

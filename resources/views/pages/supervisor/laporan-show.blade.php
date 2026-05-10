@@ -545,15 +545,6 @@
                             </div>
                             @endif
                             @endif
-
-                            {{-- Shift assignment badge --}}
-                            @if ($hasShiftToggle)
-                            <div class="flex justify-center mt-1.5">
-                                <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold {{ $colAsgn == 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
-                                    {{ $colAsgn == 1 ? 'S1' : 'S2' }}
-                                </span>
-                            </div>
-                            @endif
                         </th>
                         @endfor
                     </tr>
