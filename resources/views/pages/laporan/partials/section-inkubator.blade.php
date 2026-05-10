@@ -161,14 +161,14 @@
                 {{-- Masuk / Diinkubasi --}}
                 <div class="space-y-3">
                     @if ($isEditable)
-                    <div data-incubator-owner="in" @class(['hidden' => ! $showIncubatedBy])>
+                    <div data-incubator-owner="in">
                         <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
                         <div
                             data-incubator-owner-name
                             data-existing-name="{{ $existingIncubatedByName }}"
                             data-current-name="{{ $currentAnalystName }}"
                             class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700"
-                        >{{ $existingIncubatedByName ?: ($currentAnalystName ?: 'N/A') }}</div>
+                        >{{ $existingIncubatedByName ?: 'N/A' }}</div>
                     </div>
                     @elseif ($showIncubatedBy)
                     <div data-incubator-owner="in">
@@ -210,14 +210,14 @@
                 {{-- Keluar / Dikeluarkan --}}
                 <div class="space-y-3">
                     @if ($isEditable)
-                    <div data-incubator-owner="out" @class(['hidden' => ! $showRemovedBy])>
+                    <div data-incubator-owner="out">
                         <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
                         <div
                             data-incubator-owner-name
                             data-existing-name="{{ $existingRemovedByName }}"
                             data-current-name="{{ $currentAnalystName }}"
                             class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700"
-                        >{{ $existingRemovedByName ?: ($currentAnalystName ?: 'N/A') }}</div>
+                        >{{ $existingRemovedByName ?: 'N/A' }}</div>
                     </div>
                     @elseif ($showRemovedBy)
                     <div data-incubator-owner="out">

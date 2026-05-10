@@ -288,28 +288,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasOutValue = Boolean((dateOut?.value ?? '').trim()) || Boolean((timeOut?.value ?? '').trim());
 
         if (inOwner) {
-            inOwner.classList.toggle('hidden', !hasInValue);
+            inOwner.classList.remove('hidden');
 
-            if (hasInValue) {
-                const nameEl = inOwner.querySelector('[data-incubator-owner-name]');
-                if (nameEl) {
-                    const existingName = (nameEl.dataset.existingName ?? '').trim();
-                    const currentName = (nameEl.dataset.currentName ?? '').trim();
-                    nameEl.textContent = existingName || currentName || 'N/A';
-                }
+            const nameEl = inOwner.querySelector('[data-incubator-owner-name]');
+            if (nameEl) {
+                const existingName = (nameEl.dataset.existingName ?? '').trim();
+                const currentName = (nameEl.dataset.currentName ?? '').trim();
+                nameEl.textContent = hasInValue
+                    ? (existingName || currentName || 'N/A')
+                    : (existingName || 'N/A');
             }
         }
 
         if (outOwner) {
-            outOwner.classList.toggle('hidden', !hasOutValue);
+            outOwner.classList.remove('hidden');
 
-            if (hasOutValue) {
-                const nameEl = outOwner.querySelector('[data-incubator-owner-name]');
-                if (nameEl) {
-                    const existingName = (nameEl.dataset.existingName ?? '').trim();
-                    const currentName = (nameEl.dataset.currentName ?? '').trim();
-                    nameEl.textContent = existingName || currentName || 'N/A';
-                }
+            const nameEl = outOwner.querySelector('[data-incubator-owner-name]');
+            if (nameEl) {
+                const existingName = (nameEl.dataset.existingName ?? '').trim();
+                const currentName = (nameEl.dataset.currentName ?? '').trim();
+                nameEl.textContent = hasOutValue
+                    ? (existingName || currentName || 'N/A')
+                    : (existingName || 'N/A');
             }
         }
     };
