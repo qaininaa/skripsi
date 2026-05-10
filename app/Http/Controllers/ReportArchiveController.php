@@ -140,6 +140,7 @@ class ReportArchiveController extends Controller
             'reportType.personnelMethods.limits',
             'environmentalEntries.envSectionInstance',
             'sectionColumnNames',
+            'sectionNotes',
             'instrumentEntries',
             'mediumIdentities',
             'incubators.entries.incubatedBy',

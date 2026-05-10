@@ -140,6 +140,16 @@ class Report extends Model
             ->orderBy('period_number');
     }
 
+    /**
+     * Catatan dan kesimpulan per section untuk laporan ini.
+     */
+    public function sectionNotes()
+    {
+        return $this->hasMany(ReportSectionNote::class)
+            ->orderBy('section_id')
+            ->orderBy('instance_number');
+    }
+
     public function personnelInstances()
     {
         return $this->hasMany(PersonnelInstance::class)->orderBy('created_at');

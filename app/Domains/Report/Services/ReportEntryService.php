@@ -32,6 +32,7 @@ class ReportEntryService
 
         $this->saveAnalysts($request, $report);
         $this->personnelEntryService->saveSectionColumnNames($request, $report);
+        $this->personnelEntryService->saveSectionNotes($request, $report);
 
         $savedSectionIds = [];
         [$sectionLocations, $locationSectionType, $locationSectionId, $locationSectionTimeSlot] =
@@ -104,6 +105,11 @@ class ReportEntryService
             $exposureTimes,
             $report
         );
+    }
+
+    public function saveSectionNotes(Request $request, Report $report): void
+    {
+        $this->personnelEntryService->saveSectionNotes($request, $report);
     }
 
     private function saveAnalysts(Request $request, Report $report): void

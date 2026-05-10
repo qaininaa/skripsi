@@ -1,5 +1,7 @@
 @php
     $hd = $report->header_data ?? [];
+    $sectionNotesBySectionInstance = $report->sectionNotes
+        ->keyBy(fn ($row) => (string) $row->section_id . '|' . (int) ($row->instance_number ?? 1));
     $printPreviewOnly = $printPreviewOnly ?? false;
 @endphp
 <!DOCTYPE html>
@@ -401,7 +403,11 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         ->keyBy(fn($r) => (int) $r->period_number)
         ->map(fn($r) => $r->label)
         ->all();
-    $secNote  = $hd['section_notes'][$section->id] ?? [];
+    $secNoteRow = $sectionNotesBySectionInstance->get((string) $section->id . '|1');
+    $secNote  = [
+        'notes' => $secNoteRow?->notes,
+        'conclusion' => $secNoteRow?->conclusion,
+    ];
     $subColsPerExp = $isPerLocation ? 4 : 3;
     $totalCols = 5 + ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp + 4 + 1;
     $pageOrientation = ($hasMachineSetup && $maxCols >= 4) ? 'landscape' : 'portrait';

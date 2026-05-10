@@ -439,8 +439,8 @@ document.addEventListener('input', function (e) {
 
 function recalcSectionKonklusi(sectionInstance) {
     // sectionInstance is "{section_id}-{instance}" (e.g. "3-1" or "3-2")
-    const rawId = sectionInstance.replace(/-\d+$/, '');  // extract base section_id for IDs
-    const el = document.getElementById(`section-konklusi-${rawId}`);
+    const sectionKey = sectionInstance;
+    const el = document.getElementById(`section-konklusi-${sectionKey}`);
     if (!el) return;
     let hasTMS = false, hasAny = false, newVal = '';
     document.querySelectorAll(`.konklusi-cell[data-section-instance="${sectionInstance}"]`).forEach(cell => {
@@ -460,7 +460,7 @@ function recalcSectionKonklusi(sectionInstance) {
         el.innerHTML = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Memenuhi Spesifikasi <span class="font-bold">(MS)</span></span>';
         newVal = 'MS';
     }
-    const hiddenInput = document.getElementById(`section-konklusi-input-${rawId}`);
+    const hiddenInput = document.getElementById(`section-konklusi-input-${sectionKey}`);
     if (hiddenInput) hiddenInput.value = newVal;
 }
 

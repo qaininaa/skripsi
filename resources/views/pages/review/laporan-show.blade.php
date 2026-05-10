@@ -5,6 +5,8 @@
 @section('content')
 @php
     $hd = $report->header_data ?? [];
+    $sectionNotesBySectionInstance = $report->sectionNotes
+        ->keyBy(fn ($row) => (string) $row->section_id . '|' . (int) ($row->instance_number ?? 1));
     // Role-specific route & label config
     $routeBack    = $reviewRole . '.laporan-masuk';
     $routeCetak   = $reviewRole . '.laporan.cetak';
@@ -444,7 +446,11 @@
             ->keyBy(fn($r) => (int) $r->period_number)
             ->map(fn($r) => $r->label)
             ->all();
-        $secNote       = $hd['section_notes'][$section->id] ?? [];
+        $secNoteRow    = $sectionNotesBySectionInstance->get((string) $section->id . '|1');
+        $secNote       = [
+            'notes' => $secNoteRow?->notes,
+            'conclusion' => $secNoteRow?->conclusion,
+        ];
         $subColsPerExp = $isPerLocation ? 4 : 3;
 
         // Build time lookup from report_environmental_entries (no more $hd time reads)

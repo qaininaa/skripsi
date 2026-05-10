@@ -101,6 +101,7 @@ class ManagerReportController extends Controller
             'reportType.personnelMethods.limits',
             'environmentalEntries',
             'sectionColumnNames',
+            'sectionNotes',
             'approvals.user',
             'analysts.user',
             'signatures',
@@ -307,6 +308,9 @@ class ManagerReportController extends Controller
             $report
         );
 
+        // Catatan & kesimpulan per section -> report_section_notes
+        $entryService->saveSectionNotes($request, $report);
+
         // Waktu monitoring personel → personnel_rows
         $this->savePersonnelMonitoringTimes($request, $report);
 
@@ -376,6 +380,7 @@ class ManagerReportController extends Controller
             'environmentalEntries.envSectionInstance',
             'approvals.user',
             'sectionColumnNames',
+            'sectionNotes',
             'instrumentEntries',
             'mediumIdentities',
             'incubators.entries.incubatedBy',

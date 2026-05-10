@@ -14,7 +14,6 @@ class SectionTableComposer
     {
         $data       = $view->getData();
         $section    = $data['section'];
-        $hd         = $data['hd'];
         $instance   = $data['instance'] ?? 1;
         $report     = $data['report'];
         $isEditable = $data['isEditable'] ?? false;
@@ -122,7 +121,17 @@ class SectionTableComposer
         // ── Section-level conclusion (only meaningful for instance === 1 render) ─
         $totalInstances    = (int) ($data['totalInstances'] ?? 1);
         $sectionConclusion = $this->sectionService->computeSectionConclusion($section, $entryMap, $totalInstances);
-        $sectionNote       = $hd['section_notes'][$section->id] ?? [];
+        $sectionNoteRows = $report->relationLoaded('sectionNotes')
+            ? $report->sectionNotes
+            : $report->sectionNotes()->get();
+        $sectionNoteRow = $sectionNoteRows->first(
+            fn ($row) => (string) $row->section_id === (string) $section->id
+                && (int) ($row->instance_number ?? 1) === (int) $instance
+        );
+        $sectionNote = [
+            'notes' => $sectionNoteRow?->notes,
+            'conclusion' => $sectionNoteRow?->conclusion,
+        ];
 
         $view->with(compact(
             // Type flags

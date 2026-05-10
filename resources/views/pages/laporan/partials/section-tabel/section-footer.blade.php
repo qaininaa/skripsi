@@ -1,16 +1,15 @@
 {{-- ── Section Footer: Catatan, Kesimpulan, Tanda Tangan ────────────────── --}}
-{{-- Rendered only by instance === 1 (wraps all instances' conclusions).      --}}
-{{-- Variables: $section, $instance, $hd, $sectionConclusion, $sectionNote   --}}
+{{-- Rendered per instance so duplicated sections can hold independent notes.  --}}
+{{-- Variables: $section, $instance, $sectionConclusion, $sectionNote        --}}
 {{--             $sectionSignatures, $report, $isEditable, $totalInstances    --}}
 {{-- $sectionConclusion and $sectionNote are provided by SectionTableComposer --}}
 
-@if ($instance === 1)
 <div class="px-5 py-4 border-t border-gray-100 space-y-3">
     {{-- Catatan --}}
     <div>
         <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
         @if ($isEditable)
-        <textarea name="header_data[section_notes][{{ $section->id }}][notes]" rows="2"
+        <textarea name="section_notes[{{ $section->id }}][{{ $instance }}][notes]" rows="2"
                   placeholder="Catatan untuk section ini..."
                   class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 resize-none
                          focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">{{ $sectionNote['notes'] ?? '' }}</textarea>
@@ -25,10 +24,10 @@
     <div>
         <label class="block text-xs font-medium text-gray-500 mb-1.5">Kesimpulan</label>
         <input type="hidden"
-               name="header_data[section_notes][{{ $section->id }}][conclusion]"
-               id="section-konklusi-input-{{ $section->id }}"
+               name="section_notes[{{ $section->id }}][{{ $instance }}][conclusion]"
+               id="section-konklusi-input-{{ $section->id }}-{{ $instance }}"
                value="{{ $sectionConclusion ?? '' }}">
-        <div id="section-konklusi-{{ $section->id }}">
+        <div id="section-konklusi-{{ $section->id }}-{{ $instance }}">
             @if ($sectionConclusion === 'TMS')
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
                     Tidak Memenuhi Spesifikasi <span class="font-bold">(TMS)</span>
@@ -43,7 +42,6 @@
         </div>
     </div>
 </div>
-@endif
 
 {{-- ── Per-section Signature ───────────────────────────────────────────────── --}}
 @php

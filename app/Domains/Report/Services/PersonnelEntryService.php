@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
  *
  * Fokus ke persistence data entry untuk:
  * - label kolom section (column_names)
+ * - catatan/kesimpulan per section (section_notes)
  * - pemantauan personel (page_notes, personnel rows, sampling entries)
  */
 class PersonnelEntryService
@@ -59,6 +60,47 @@ class PersonnelEntryService
                         $value !== '' ? $value : null
                     );
                 }
+            }
+        }
+    }
+
+    public function saveSectionNotes(Request $request, Report $report): void
+    {
+        $sectionNotes = $request->input('section_notes', []);
+        if (! is_array($sectionNotes) || empty($sectionNotes)) {
+            return;
+        }
+
+        foreach ($sectionNotes as $sectionId => $instanceData) {
+            if (! is_array($instanceData) || empty($instanceData)) {
+                continue;
+            }
+
+            $firstKey = array_key_first($instanceData);
+            $isFlatNote = $firstKey !== null && ! is_array($instanceData[$firstKey]);
+            if ($isFlatNote) {
+                $instanceData = [1 => $instanceData];
+            }
+
+            foreach ($instanceData as $instanceNum => $noteData) {
+                if (! is_array($noteData)) {
+                    continue;
+                }
+
+                $instanceNumber = max(1, (int) $instanceNum);
+                $notes = is_string($noteData['notes'] ?? null) ? trim($noteData['notes']) : null;
+                $conclusionRaw = is_string($noteData['conclusion'] ?? null)
+                    ? strtoupper(trim($noteData['conclusion']))
+                    : null;
+                $conclusion = in_array($conclusionRaw, ['MS', 'TMS'], true) ? $conclusionRaw : null;
+
+                $this->repository->upsertSectionNote(
+                    (string) $report->id,
+                    (string) $sectionId,
+                    $instanceNumber,
+                    $notes !== '' ? $notes : null,
+                    $conclusion
+                );
             }
         }
     }

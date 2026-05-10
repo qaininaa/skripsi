@@ -7,6 +7,7 @@ use App\Models\PersonnelRow;
 use App\Models\PersonnelSamplingEntry;
 use App\Models\ReportEnvironmentalEntry;
 use App\Models\ReportSectionColumn;
+use App\Models\ReportSectionNote;
 
 /**
  * Repository for ReportEntry persistence operations.
@@ -55,6 +56,26 @@ class ReportEntryRepository
                 'period_number' => $periodNumber,
             ],
             ['label' => $label]
+        );
+    }
+
+    public function upsertSectionNote(
+        string $reportId,
+        string $sectionId,
+        int $instanceNumber,
+        ?string $notes,
+        ?string $conclusion
+    ): void {
+        ReportSectionNote::updateOrCreate(
+            [
+                'report_id' => $reportId,
+                'section_id' => $sectionId,
+                'instance_number' => $instanceNumber,
+            ],
+            [
+                'notes' => $notes,
+                'conclusion' => $conclusion,
+            ]
         );
     }
 

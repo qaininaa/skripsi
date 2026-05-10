@@ -34,6 +34,7 @@ class ReportViewService
         'incubators.entries.removedBy',
         'analysts.user',
         'sectionColumnNames',
+        'sectionNotes',
         'sectionSignatures.user',
         'reportType.personnelMethods.activities',
         'reportType.personnelMethods.samplingPoints',
