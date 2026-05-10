@@ -1,5 +1,4 @@
 @php
-    $hd = $report->header_data ?? [];
     $sectionNotesBySectionInstance = $report->sectionNotes
         ->keyBy(fn ($row) => (string) $row->section_id . '|' . (int) ($row->instance_number ?? 1));
     $printPreviewOnly = $printPreviewOnly ?? false;
@@ -751,28 +750,30 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 
     {{-- Tanda Tangan --}}
     @php
-        $_pSectionPivotIds = $section->locations->pluck('id')->toArray();
-        $_pSecAnalysts = [];
-        foreach ($_pSectionPivotIds as $_pid) {
-            foreach ($entryMap[$_pid] ?? [] as $_pMap) {
-                foreach ($_pMap as $_e) {
-                    if ((int) $_e->analyst_id) $_pSecAnalysts[(string) $_e->analyst_id] = true;
-                }
+        $_pSectionSigs = $report->sectionSignatures->where('section_id', $section->id);
+        $_pSecMonSigs = $_pSectionSigs->where('role', 'monitoring')->sortBy('signed_at');
+        $_pSecReadSigs = $_pSectionSigs->where('role', 'reading')->sortBy('signed_at');
+
+        $_pSecMonIds = array_values(array_unique(
+            $_pSecMonSigs->pluck('user_id')->filter()->map(fn ($id) => (string) $id)->all()
+        ));
+        $_pSecReadIds = array_values(array_unique(
+            $_pSecReadSigs->pluck('user_id')->filter()->map(fn ($id) => (string) $id)->all()
+        ));
+
+        $_pSecMonTs = [];
+        foreach ($_pSecMonSigs as $_sig) {
+            if ($_sig->user_id && $_sig->signed_at) {
+                $_pSecMonTs[(string) $_sig->user_id] = $_sig->signed_at;
             }
         }
-        $_pSecAnalystIds = array_keys($_pSecAnalysts);
-        $_pAllMonIds  = array_map('strval', $report->analyst_monitoring ?? []);
-        $_pAllReadIds = array_map('strval', $report->analyst_reading    ?? []);
-        $_pSecMonTs   = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
-        $_pSecReadTs  = $hd['section_ttd_reading'][(string) $section->id]    ?? [];
-        $_pSecMonIds  = array_values(array_unique(array_merge(
-            array_intersect($_pSecAnalystIds, $_pAllMonIds),
-            array_intersect(array_keys($_pSecMonTs), $_pAllMonIds)
-        )));
-        $_pSecReadIds = array_values(array_unique(array_merge(
-            array_intersect($_pSecAnalystIds, $_pAllReadIds),
-            array_intersect(array_keys($_pSecReadTs), $_pAllReadIds)
-        )));
+        $_pSecReadTs = [];
+        foreach ($_pSecReadSigs as $_sig) {
+            if ($_sig->user_id && $_sig->signed_at) {
+                $_pSecReadTs[(string) $_sig->user_id] = $_sig->signed_at;
+            }
+        }
+
         $_pSupApproval  = $report->approvals->firstWhere('step', 2);
         $_pMngrApproval = $report->approvals->firstWhere('step', 3);
         $_pUniqueIds = array_unique(array_filter(array_merge($_pSecMonIds, $_pSecReadIds)));

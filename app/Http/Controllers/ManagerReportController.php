@@ -9,6 +9,7 @@ use App\Models\PersonnelInstance;
 use App\Models\PersonnelRow;
 use App\Models\Report;
 use App\Models\ReportApproval;
+use App\Models\SectionSignature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -160,13 +161,37 @@ class ManagerReportController extends Controller
             'signed_at' => $signedAt,
         ]);
 
-        // Stamp per-section manager TTD
-        $headerData = $report->header_data ?? [];
-        $signedAtStr = $signedAt->toDateTimeString();
-        $report->loadMissing('reportType.sections');
+        // Stamp per-section manager TTD ke tabel section_signatures.
+        $report->loadMissing(['reportType.sections', 'sectionSignatures']);
         foreach ($report->reportType->sections as $sec) {
-            $headerData['section_ttd_manager'][(string) $sec->id][(string) $userId] = $signedAtStr;
+            $instanceNumbers = $report->sectionSignatures
+                ->where('section_id', $sec->id)
+                ->whereIn('role', ['monitoring', 'reading', 'supervisor'])
+                ->pluck('instance_number')
+                ->filter()
+                ->map(fn ($num) => (int) $num)
+                ->unique()
+                ->values();
+
+            if ($instanceNumbers->isEmpty()) {
+                $instanceNumbers = collect([1]);
+            }
+
+            foreach ($instanceNumbers as $instanceNumber) {
+                SectionSignature::updateOrCreate(
+                    [
+                        'report_id' => $report->id,
+                        'section_id' => $sec->id,
+                        'instance_number' => (int) $instanceNumber,
+                        'user_id' => $userId,
+                        'role' => 'manager',
+                    ],
+                    ['signed_at' => $signedAt]
+                );
+            }
         }
+
+        $headerData = $report->header_data ?? [];
 
         // Snapshot report type structure so archived reports are immutable
         $headerData['_snapshot_section_ids'] = $report->reportType->sections->pluck('id')->toArray();
@@ -228,14 +253,10 @@ class ManagerReportController extends Controller
         ]);
 
         if ($isToAnalyst) {
-            // Clear per-section TTDs so all roles re-sign from scratch
-            $hd = $report->header_data ?? [];
-            unset(
-                $hd['section_ttd_monitoring'],
-                $hd['section_ttd_reading'],
-                $hd['section_ttd_supervisor'],
-                $hd['section_ttd_manager']
-            );
+            // Clear per-section TTDs so all roles re-sign from scratch.
+            SectionSignature::where('report_id', $report->id)
+                ->whereIn('role', ['monitoring', 'reading', 'supervisor', 'manager'])
+                ->delete();
 
             $analystApproval = ReportApproval::where('report_id', $report->id)
                 ->where('step', 1)
@@ -247,7 +268,7 @@ class ManagerReportController extends Controller
                 $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
             }
 
-            $report->update(['status' => 'returned', 'locked_by' => null, 'header_data' => $hd]);
+            $report->update(['status' => 'returned', 'locked_by' => null]);
 
             return redirect()->route('manajer.laporan-masuk')
                 ->with('success', 'Laporan telah dikembalikan ke Analis.');
@@ -289,10 +310,7 @@ class ManagerReportController extends Controller
         $entryService = app(\App\Domains\Report\Services\ReportEntryService::class);
 
         // Identitas instrumen (Air Sampler) → instrument_entries
-        $asData = $request->input('header_data.air_sampler');
-        if (is_array($asData)) {
-            $instrumentIdentityEntryService->saveFromArray($asData, $report);
-        }
+        $instrumentIdentityEntryService->saveFromRequest($request, $report);
 
         // Identitas medium agar → medium_identities
         $mediumEntryService->saveFromRequest($request, $report);

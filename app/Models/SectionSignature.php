@@ -19,8 +19,6 @@ class SectionSignature extends Model
 {
     use HasUuids;
 
-    protected $table = 'sectionSignatures';
-
     protected $fillable = [
         'report_id',
         'section_id',

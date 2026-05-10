@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sectionSignatures', function (Blueprint $table) {
+        Schema::create('section_signatures', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('report_id')->constrained('reports')->cascadeOnDelete();
             $table->foreignUuid('section_id')->constrained('sections')->cascadeOnDelete();

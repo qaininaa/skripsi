@@ -4,7 +4,6 @@
 @section('page-title', 'Tinjau Laporan')
 @section('content')
 @php
-    $hd = $report->header_data ?? [];
     $sectionNotesBySectionInstance = $report->sectionNotes
         ->keyBy(fn ($row) => (string) $row->section_id . '|' . (int) ($row->instance_number ?? 1));
     // Role-specific route & label config
@@ -183,7 +182,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
                 @if ($isEditable)
-                <input type="text" name="header_data[air_sampler][no_id]" value="{{ $as?->no_id ?? '' }}"
+                <input type="text" name="air_sampler[no_id]" value="{{ $as?->no_id ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                 @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->no_id ?? '—' }}</div>
@@ -192,7 +191,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
                 @if ($isEditable)
-                <input type="date" name="header_data[air_sampler][calibration_date]" value="{{ $as?->calibration_date?->format('Y-m-d') ?? '' }}"
+                <input type="date" name="air_sampler[calibration_date]" value="{{ $as?->calibration_date?->format('Y-m-d') ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                 @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->calibration_date ? $as->calibration_date->format('d/m/Y') : '—' }}</div>
@@ -201,7 +200,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
                 @if ($isEditable)
-                <input type="date" name="header_data[air_sampler][due_date]" value="{{ $as?->due_date?->format('Y-m-d') ?? '' }}"
+                <input type="date" name="air_sampler[due_date]" value="{{ $as?->due_date?->format('Y-m-d') ?? '' }}"
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
                 @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->due_date ? $as->due_date->format('d/m/Y') : '—' }}</div>
@@ -918,19 +917,6 @@
                 if ($_sig->user_id && $_sig->signed_at) {
                     $_secReadTs[(string) $_sig->user_id] = $_sig->signed_at;
                 }
-            }
-
-            // Fallback source (legacy data): header_data section_ttd_*.
-            if (empty($_secMonIds) && empty($_secReadIds)) {
-                $_allMonIds = $report->analysts->where('type', 'monitoring')->pluck('user_id')->map('strval')->toArray();
-                $_allReadIds = $report->analysts->where('type', 'reading')->pluck('user_id')->map('strval')->toArray();
-                $_legacyMonTs = $hd['section_ttd_monitoring'][(string) $section->id] ?? [];
-                $_legacyReadTs = $hd['section_ttd_reading'][(string) $section->id] ?? [];
-
-                $_secMonIds = array_values(array_unique(array_intersect(array_keys($_legacyMonTs), $_allMonIds)));
-                $_secReadIds = array_values(array_unique(array_intersect(array_keys($_legacyReadTs), $_allReadIds)));
-                $_secMonTs = $_legacyMonTs;
-                $_secReadTs = $_legacyReadTs;
             }
 
             $_supApproval = $supApproval;
