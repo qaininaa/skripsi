@@ -116,19 +116,17 @@ class EnvironmentalEntryService
     /**
      * Simpan settle times (section dual_ab: jam per kelas ruangan A/B) dan fan-out ke entries.
      *
-     * @return array [$savedSectionIds, $hd]
+     * @return array $savedSectionIds
      */
     public function saveSettleTimes(
         array $settleTimes,
         Report $report,
         array $sectionLocations,
         array $instanceLookup,
-        array $savedSectionIds,
-        array $hd,
-        int $myShift
+        array $savedSectionIds
     ): array {
         if (empty($settleTimes)) {
-            return [$savedSectionIds, $hd];
+            return $savedSectionIds;
         }
 
         foreach ($settleTimes as $secId => $instanceData) {
@@ -164,39 +162,33 @@ class EnvironmentalEntryService
                                     'report_id' => $report->id,
                                     'env_section_instance_id' => $instanceId,
                                     'period_number' => (int) $col,
-                                    'shift' => $myShift,
+                                    'shift' => 1,
                                 ],
                                 ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
                             );
                         }
                     }
-                    $hd['settle_times'][$secId][$instNum][$col] = array_replace_recursive(
-                        $hd['settle_times'][$secId][$instNum][$col] ?? [],
-                        $abData
-                    );
                 }
             }
         }
 
-        return [$savedSectionIds, $hd];
+        return $savedSectionIds;
     }
 
     /**
      * Simpan swab times (section swab: jam per slot s1/s1_2/s1_3) dan fan-out ke entries.
      *
-     * @return array [$savedSectionIds, $hd]
+     * @return array $savedSectionIds
      */
     public function saveSwabTimes(
         array $swabTimes,
         Report $report,
         array $sectionLocations,
         array $instanceLookup,
-        array $savedSectionIds,
-        array $hd,
-        int $myShift
+        array $savedSectionIds
     ): array {
         if (empty($swabTimes)) {
-            return [$savedSectionIds, $hd];
+            return $savedSectionIds;
         }
 
         foreach ($swabTimes as $secId => $instanceData) {
@@ -239,39 +231,33 @@ class EnvironmentalEntryService
                                     'report_id' => $report->id,
                                     'env_section_instance_id' => $instanceId,
                                     'period_number' => (int) $col,
-                                    'shift' => $myShift,
+                                    'shift' => 1,
                                 ],
                                 ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
                             );
                         }
                     }
-                    $hd['swab_times'][$secId][$instNum][$col] = array_replace_recursive(
-                        $hd['swab_times'][$secId][$instNum][$col] ?? [],
-                        $slotData
-                    );
                 }
             }
         }
 
-        return [$savedSectionIds, $hd];
+        return $savedSectionIds;
     }
 
     /**
      * Simpan exposure times (jam yang sama untuk semua lokasi section) dan fan-out ke entries.
      *
-     * @return array [$savedSectionIds, $hd]
+     * @return array $savedSectionIds
      */
     public function saveExposureTimes(
         array $exposureTimes,
         Report $report,
         array $sectionLocations,
         array $instanceLookup,
-        array $savedSectionIds,
-        array $hd,
-        int $myShift
+        array $savedSectionIds
     ): array {
         if (empty($exposureTimes)) {
-            return [$savedSectionIds, $hd];
+            return $savedSectionIds;
         }
 
         foreach ($exposureTimes as $secId => $instanceData) {
@@ -305,21 +291,17 @@ class EnvironmentalEntryService
                                     'report_id' => $report->id,
                                     'env_section_instance_id' => $instanceId,
                                     'period_number' => (int) $col,
-                                    'shift' => $myShift,
+                                    'shift' => 1,
                                 ],
                                 ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
                             );
                         }
                     }
-                    $hd['exposure_times'][$secId][$instNum][$col] = array_replace_recursive(
-                        $hd['exposure_times'][$secId][$instNum][$col] ?? [],
-                        $times
-                    );
                 }
             }
         }
 
-        return [$savedSectionIds, $hd];
+        return $savedSectionIds;
     }
 
     /**
@@ -335,8 +317,7 @@ class EnvironmentalEntryService
         array $locationSectionId,
         array $locationSectionTimeSlot,
         array $instanceLookup,
-        array $savedSectionIds,
-        int $myShift
+        array $savedSectionIds
     ): array {
         $lockedEntryKeys = $this->repository->getLockedEnvironmentalEntryKeys(
             (string) $report->id,
@@ -356,7 +337,7 @@ class EnvironmentalEntryService
 
                 foreach ($cols as $colIdx => $data) {
                     $periodNumber = (int) $colIdx;
-                    $shift = $myShift;
+                    $shift = 1;
 
                     $hasCfuData = (($data['cfu_bacteria'] ?? '') !== '' && ($data['cfu_bacteria'] ?? null) !== null)
                         || (($data['cfu_fungi'] ?? '') !== '' && ($data['cfu_fungi'] ?? null) !== null);
@@ -442,7 +423,7 @@ class EnvironmentalEntryService
                     continue;
                 }
                 foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
-                    foreach ($instanceLookup[(string) $locInfo['pivot_id']] ?? [] as $instanceId) {
+                    foreach ($instanceLookup[(string) $locInfo['location_id']] ?? [] as $instanceId) {
                         $this->repository->updateEnvironmentalEntryTimes(
                             [
                                 'report_id' => $report->id,
@@ -479,7 +460,7 @@ class EnvironmentalEntryService
                         if ($locInfo['class'] !== strtolower((string) $ab)) {
                             continue;
                         }
-                        foreach ($instanceLookup[(string) $locInfo['pivot_id']] ?? [] as $instanceId) {
+                        foreach ($instanceLookup[(string) $locInfo['location_id']] ?? [] as $instanceId) {
                             $this->repository->updateEnvironmentalEntryTimes(
                                 [
                                     'report_id' => $report->id,
@@ -526,7 +507,7 @@ class EnvironmentalEntryService
                         if ($swabKey === 's1' && ($matchS1_2 || $matchS1_3)) {
                             continue;
                         }
-                        foreach ($instanceLookup[(string) $locInfo['pivot_id']] ?? [] as $instanceId) {
+                        foreach ($instanceLookup[(string) $locInfo['location_id']] ?? [] as $instanceId) {
                             $this->repository->updateEnvironmentalEntryTimes(
                                 [
                                     'report_id' => $report->id,

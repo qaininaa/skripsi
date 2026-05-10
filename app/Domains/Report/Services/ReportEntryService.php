@@ -2,9 +2,6 @@
 
 namespace App\Domains\Report\Services;
 
-use App\Domains\Report\Services\IncubatorEntryService;
-use App\Domains\Report\Services\InstrumentIdentityEntryService;
-use App\Domains\Report\Services\MediumEntryService;
 use App\Models\Analyst;
 use App\Models\Report;
 use Illuminate\Http\Request;
@@ -29,13 +26,9 @@ class ReportEntryService
      */
     public function process(Request $request, Report $report): array
     {
-        $myShift = 1;
-
         $this->instrumentIdentityEntryService->saveFromRequest($request, $report);
         $this->mediumEntryService->saveFromRequest($request, $report);
-        $hd = $this->saveIncubators($request, $report);
-
-        $hd = $this->saveHeaderData($request, $hd);
+        $this->incubatorEntryService->saveFromRequest($request, $report);
 
         $this->saveAnalysts($request, $report);
         $this->personnelEntryService->saveSectionColumnNames($request, $report);
@@ -49,39 +42,27 @@ class ReportEntryService
         $swabTimes = $request->input('swab_times', []);
         $exposureTimes = $request->input('exposure_times', []);
 
-        [$savedSectionIds, $hd] = $this->environmentalEntryService->saveSettleTimes(
+        $savedSectionIds = $this->environmentalEntryService->saveSettleTimes(
             $settleTimes,
             $report,
             $sectionLocations,
             $instanceLookup,
-            $savedSectionIds,
-            $hd,
-            $myShift
+            $savedSectionIds
         );
-        [$savedSectionIds, $hd] = $this->environmentalEntryService->saveSwabTimes(
+        $savedSectionIds = $this->environmentalEntryService->saveSwabTimes(
             $swabTimes,
             $report,
             $sectionLocations,
             $instanceLookup,
-            $savedSectionIds,
-            $hd,
-            $myShift
+            $savedSectionIds
         );
-        [$savedSectionIds, $hd] = $this->environmentalEntryService->saveExposureTimes(
+        $savedSectionIds = $this->environmentalEntryService->saveExposureTimes(
             $exposureTimes,
             $report,
             $sectionLocations,
             $instanceLookup,
-            $savedSectionIds,
-            $hd,
-            $myShift
+            $savedSectionIds
         );
-
-        if ($request->has('header_data')
-            || ! empty($settleTimes) || ! empty($swabTimes) || ! empty($exposureTimes)) {
-            unset($hd['_field_owners']);
-            $report->update(['header_data' => $hd]);
-        }
 
         $savedSectionIds = $this->environmentalEntryService->saveCfuEntries(
             $request,
@@ -90,8 +71,7 @@ class ReportEntryService
             $locationSectionId,
             $locationSectionTimeSlot,
             $instanceLookup,
-            $savedSectionIds,
-            $myShift
+            $savedSectionIds
         );
 
         $hasPersonnelData = false;
@@ -116,50 +96,14 @@ class ReportEntryService
         array $settleTimes,
         array $swabTimes,
         array $exposureTimes,
-        Report $report,
-        int $shift = 1
+        Report $report
     ): void {
         $this->environmentalEntryService->saveReviewTimesToEntries(
             $settleTimes,
             $swabTimes,
             $exposureTimes,
-            $report,
-            $shift
+            $report
         );
-    }
-
-    private function saveIncubators(Request $request, Report $report): array
-    {
-        $this->incubatorEntryService->saveFromRequest($request, $report);
-
-        return $report->header_data ?? [];
-    }
-
-    private function saveHeaderData(Request $request, array $hd): array
-    {
-        if (! $request->has('header_data')) {
-            return $hd;
-        }
-
-        $incoming = $request->input('header_data', []);
-        if (! is_array($incoming)) {
-            return $hd;
-        }
-
-        unset($incoming['_field_owners']);
-
-        foreach ($incoming as $sectionKey => $sectionData) {
-            if (! is_array($sectionData)) {
-                $hd[$sectionKey] = $sectionData;
-                continue;
-            }
-
-            foreach ($sectionData as $fieldKey => $fieldValue) {
-                $hd[$sectionKey][$fieldKey] = $fieldValue;
-            }
-        }
-
-        return $hd;
     }
 
     private function saveAnalysts(Request $request, Report $report): void
