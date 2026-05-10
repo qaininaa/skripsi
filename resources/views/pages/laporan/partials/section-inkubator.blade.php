@@ -170,7 +170,7 @@
                             class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700"
                         >{{ $existingIncubatedByName ?: 'N/A' }}</div>
                     </div>
-                    @elseif ($showIncubatedBy)
+                    @else
                     <div data-incubator-owner="in">
                         <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->incubatedBy?->name ?? 'N/A' }}</div>
@@ -219,7 +219,7 @@
                             class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700"
                         >{{ $existingRemovedByName ?: 'N/A' }}</div>
                     </div>
-                    @elseif ($showRemovedBy)
+                    @else
                     <div data-incubator-owner="out">
                         <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $entry?->removedBy?->name ?? 'N/A' }}</div>
