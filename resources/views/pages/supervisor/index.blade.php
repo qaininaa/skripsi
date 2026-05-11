@@ -4,21 +4,7 @@
 @section('page-title', 'Dashboard')
 @section('content')
 
-{{-- Welcome Banner --}}
-<div class="mb-6 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold">Selamat Datang, {{ Auth::user()->name }}!</h2>
-            <p class="mt-1 text-emerald-200 text-sm">Panel Supervisor Lab. Mikrobiologi — tinjau dan setujui laporan dari analis.</p>
-            <p class="mt-2 text-emerald-300 text-xs">{{ now()->isoFormat('dddd, D MMMM Y') }}</p>
-        </div>
-        <div class="hidden md:flex h-20 w-20 rounded-2xl bg-white bg-opacity-10 items-center justify-center flex-shrink-0">
-            <svg class="w-11 h-11 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        </div>
-    </div>
-</div>
+<x-welcome-banner />
 
 {{-- Stats --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
