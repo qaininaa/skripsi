@@ -121,7 +121,7 @@ window.personnelLimits = {
 
     $isReadingPhase = $isReadingPhase ?? false;
     $canEditPersonnelTime = $canEditPersonnelTime ?? false;
-    $canManagePersonnelPages = $canManagePersonnelPages ?? ($isEditable && $isMonitoringPhase);
+    $canManagePersonnelPages = auth()->user()?->role === 'admin' && in_array($report->status, ['pending', 'monitoring']);
     $personnelActionRoute = $personnelActionRoute ?? null;
 @endphp
 @foreach ($pagesToRender as $pageNum)

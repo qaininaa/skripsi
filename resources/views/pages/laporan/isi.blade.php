@@ -79,7 +79,7 @@
 @endif
 
 @php
-    $canDuplicateSections = auth()->user()?->role === 'admin';
+    $canDuplicateSections = auth()->user()?->role === 'admin' && in_array($report->status, ['pending', 'monitoring']);
 @endphp
 
 {{-- ── 4+. Tabel Pengukuran per Section ─────────────────── --}}
