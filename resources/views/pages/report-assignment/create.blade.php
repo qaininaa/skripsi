@@ -57,10 +57,10 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Laporan <span class="text-red-500">*</span></label>
                 <select name="report_type_id"
                         class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" required>
-                    <option value="">— Pilih Jenis Laporan —</option>
+                    <option value="">- Pilih Jenis Laporan -</option>
                     @foreach ($reportTypes as $rt)
                         <option value="{{ $rt->id }}" {{ old('report_type_id') == $rt->id ? 'selected' : '' }}>
-                            {{ $rt->annex_number }} — {{ $rt->name }}
+                            Annex {{ $rt->annex_number }} - {{ $rt->name }}
                         </option>
                     @endforeach
                 </select>

@@ -78,7 +78,7 @@
 
                             {{-- Alat Instrumen --}}
                             <td class="px-4 py-3 text-sm text-gray-800">
-                                {{ $item->reportType->annex_number ?? '-' }} — {{ $item->reportType->name ?? '-' }}
+                                Annex {{ $item->reportType->annex_number ?? '-' }} - {{ $item->reportType->name ?? '-' }}
                             </td>
 
                             <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ $item->createdBy->name ?? '-' }}</td>
