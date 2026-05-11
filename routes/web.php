@@ -54,15 +54,15 @@ Route::get('/dashboard/admin-qc', function () {
 
 // Manajemen Pengguna (hanya Super Admin)
 Route::middleware(['auth', 'password.check', 'role:super'])
-    ->prefix('dashboard')
+    ->prefix('dashboard/super-admin')
     ->group(function () {
         Route::resource('users', UserController::class)
             ->only(['index', 'create', 'store', 'destroy'])
             ->names('users');
-        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
-        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-        Route::get('settings', [PasswordSettingController::class, 'index'])->name('settings.index');
-        Route::put('settings', [PasswordSettingController::class, 'update'])->name('settings.update');
+        Route::post('super-admin/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::get('super-admin/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('super-admin/settings', [PasswordSettingController::class, 'index'])->name('settings.index');
+        Route::put('super-admin/settings', [PasswordSettingController::class, 'update'])->name('settings.update');
 
         // Jenis Laporan CRUD — dipindah ke admin
 
@@ -72,23 +72,23 @@ Route::middleware(['auth', 'password.check', 'role:super'])
 Route::middleware(['auth', 'password.check', 'role:admin'])
     ->prefix('dashboard')
     ->group(function () {
-        Route::resource('report-assignment', ReportAssignmentController::class)
+        Route::resource('admin-qc/report-assignment', ReportAssignmentController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('report-assignment');
-        Route::get('report-assignment/{report}/preview', [ReportPreviewController::class, 'show'])->name('admin.laporan.preview');
-        Route::post('report-assignment/{report}/personnel-page', [ReportPreviewStructureController::class, 'personnelPage'])->name('admin.laporan.personnel-page');
-        Route::post('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
-        Route::delete('report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'removeSection'])->name('report-assignment.sections.remove');
+        Route::get('admin-qc/report-assignment/{report}/preview', [ReportPreviewController::class, 'show'])->name('admin.laporan.preview');
+        Route::post('admin-qc/report-assignment/{report}/personnel-page', [ReportPreviewStructureController::class, 'personnelPage'])->name('admin.laporan.personnel-page');
+        Route::post('admin-qc/report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
+        Route::delete('admin-qc/report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'removeSection'])->name('report-assignment.sections.remove');
         // Data Master
-        Route::resource('master/room', RoomController::class)->names('master.room');
-        Route::resource('master/location', LocationController::class)->names('master.location');
+        Route::resource('admin-qc/master/room', RoomController::class)->names('master.room');
+        Route::resource('admin-qc/master/location', LocationController::class)->names('master.location');
         // Manajemen Laporan
-        Route::resource('report-types', ReportTypeController::class)->names('report-types');
-        Route::post('report-types/{reportType}/sections', [ReportSectionController::class, 'store'])->name('report-types.sections.store');
-        Route::put('report-types/{reportType}/sections/{section}', [ReportSectionController::class, 'update'])->name('report-types.sections.update');
-        Route::delete('report-types/{reportType}/sections/{section}', [ReportSectionController::class, 'destroy'])->name('report-types.sections.destroy');
-        Route::post('report-types/{reportType}/sections/{section}/locations', [ReportLocationController::class, 'store'])->name('report-types.sections.locations.store');
-        Route::delete('report-types/{reportType}/sections/{section}/locations/{location}', [ReportLocationController::class, 'destroy'])->name('report-types.sections.locations.destroy');
+        Route::resource('admin-qc/report-types', ReportTypeController::class)->names('report-types');
+        Route::post('admin-qc/report-types/{reportType}/sections', [ReportSectionController::class, 'store'])->name('report-types.sections.store');
+        Route::put('admin-qc/report-types/{reportType}/sections/{section}', [ReportSectionController::class, 'update'])->name('report-types.sections.update');
+        Route::delete('admin-qc/report-types/{reportType}/sections/{section}', [ReportSectionController::class, 'destroy'])->name('report-types.sections.destroy');
+        Route::post('admin-qc/report-types/{reportType}/sections/{section}/locations', [ReportLocationController::class, 'store'])->name('report-types.sections.locations.store');
+        Route::delete('admin-qc/report-types/{reportType}/sections/{section}/locations/{location}', [ReportLocationController::class, 'destroy'])->name('report-types.sections.locations.destroy');
     });
 
 // Dashboard & Laporan Analis
@@ -99,11 +99,11 @@ Route::middleware(['auth', 'password.check', 'role:analis'])
             return view('pages.dashboard.analis');
         })->name('dashboard.analis');
 
-        Route::get('reports', [ReportClaimingController::class, 'index'])->name('laporan.index');
-        Route::get('reports/{report}/fill', [ReportClaimingController::class, 'isi'])->name('laporan.isi');
-        Route::get('reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('laporan.lihat');
-        Route::post('reports/{report}/save', [ReportDraftingController::class, 'save'])->name('laporan.save');
-        Route::post('reports/verify-password', [ReportDraftingController::class, 'verifyPassword'])->name('laporan.verify-password');
+        Route::get('analyst/reports', [ReportClaimingController::class, 'index'])->name('laporan.index');
+        Route::get('analyst/reports/{report}/fill', [ReportClaimingController::class, 'isi'])->name('laporan.isi');
+        Route::get('analyst/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('laporan.lihat');
+        Route::post('analyst/reports/{report}/save', [ReportDraftingController::class, 'save'])->name('laporan.save');
+        Route::post('analyst/reports/verify-password', [ReportDraftingController::class, 'verifyPassword'])->name('laporan.verify-password');
     });
 
 // Dashboard & Laporan Masuk Supervisor
