@@ -59,12 +59,12 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'confirmed', new PasswordComplexity],
         ]);
 
-        $dto = PasswordChangeDTO::fromArray($request->validated());
+        $dto = PasswordChangeDTO::fromArray($validated);
 
         $this->passwordService->changePassword(
             $request->user(),
