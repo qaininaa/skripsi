@@ -103,9 +103,9 @@
                                     ->first(fn ($approval) => (int) $approval->step === 3 && $approval->status === 'pending');
 
                                 if ($report->status === 'pending') {
-                                    $activeWorker = 'Belum diklaim';
+                                    $activeWorker = '-';
                                 } elseif (in_array($report->status, ['monitoring', 'reading'], true)) {
-                                    $activeWorker = optional($report->lockedByUser)->name ?: 'Belum diklaim';
+                                    $activeWorker = optional($report->lockedByUser)->name ?: '-';
                                 } elseif ($pendingSupervisorApproval) {
                                     $activeWorker = optional($pendingSupervisorApproval->user)->name ?: 'Menunggu penetapan supervisor';
                                 } elseif ($pendingManagerApproval) {
