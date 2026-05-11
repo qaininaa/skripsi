@@ -153,7 +153,7 @@ const _modalConfig = {
         title: 'Konfirmasi Kirim Revisi ke Supervisor',
         desc:  'Laporan akan langsung dikirim ke supervisor tanpa melalui tahap pembacaan. Masukkan username dan password Anda untuk melanjutkan.',
         btnText: 'Kirim ke Supervisor',
-        btnClass: 'bg-emerald-500 hover:bg-emerald-600',
+        btnClass: 'bg-sky-500 hover:bg-sky-600',
     },
 };
 
