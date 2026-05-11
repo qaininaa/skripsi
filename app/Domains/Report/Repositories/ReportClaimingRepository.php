@@ -25,7 +25,7 @@ class ReportClaimingRepository
 
     public function claimReport(Report $report, string $userId): void
     {
-        if (in_array($report->status, ['pending', 'returned'], true)
+        if (in_array($report->status, ['pending'], true)
             || ($report->status === 'monitoring' && $report->locked_by === null)) {
             $report->update(['status' => 'monitoring', 'locked_by' => $userId]);
 
@@ -33,6 +33,20 @@ class ReportClaimingRepository
                 'report_id' => $report->id,
                 'user_id' => $userId,
                 'type' => 'monitoring',
+            ]);
+
+            return;
+        }
+
+        if ($report->status === 'returned' && $report->locked_by === null) {
+            $targetStatus = $this->resolveReturnedTargetStatus($report, $userId);
+
+            $report->update(['status' => $targetStatus, 'locked_by' => $userId]);
+
+            Analyst::updateOrCreate([
+                'report_id' => $report->id,
+                'user_id' => $userId,
+                'type' => $targetStatus,
             ]);
 
             return;
@@ -47,6 +61,33 @@ class ReportClaimingRepository
                 'type' => 'reading',
             ]);
         }
+    }
+
+    private function resolveReturnedTargetStatus(Report $report, string $userId): string
+    {
+        $types = Analyst::query()
+            ->where('report_id', $report->id)
+            ->where('user_id', $userId)
+            ->pluck('type')
+            ->map(fn ($type) => strtolower((string) $type))
+            ->unique();
+
+        $hasMonitoring = $types->contains('monitoring');
+        $hasReading = $types->contains('reading');
+
+        if ($hasMonitoring && ! $hasReading) {
+            return 'monitoring';
+        }
+
+        if ($hasReading && ! $hasMonitoring) {
+            return 'reading';
+        }
+
+        if ($hasMonitoring && $hasReading) {
+            return 'monitoring';
+        }
+
+        return 'monitoring';
     }
 
     /**
