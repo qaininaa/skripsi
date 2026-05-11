@@ -14,7 +14,7 @@
     $routeReturn  = $reviewRole . '.laporan.return';
     $isEditable   = $approval->isPending();
     $reviewTimeRequiresAnalystValue = $reviewRole === 'supervisor';
-    $reviewTimePlaceholder = $reviewTimeRequiresAnalystValue ? 'N/A' : '—';
+    $reviewTimePlaceholder = 'N/A';
     $canEditReviewTime = static function (...$values) use ($isEditable, $reviewTimeRequiresAnalystValue): bool {
         if (! $isEditable) {
             return false;
@@ -77,7 +77,7 @@
             <h2 class="text-lg font-semibold text-gray-800">
                 {{ $report->reportType->annex_number ?? '' }}
                 <span class="text-gray-400 font-normal mx-1">—</span>
-                <span class="text-base font-normal text-gray-600">{{ $report->reportType->name ?? '—' }}</span>
+                <span class="text-base font-normal text-gray-600">{{ $report->reportType->name ?? 'N/A' }}</span>
             </h2>
             <p class="text-sm text-gray-500 mt-0.5">
                 {{ $report->product_name }} · Batch <span>{{ $report->batch_number }}</span>
@@ -95,13 +95,20 @@
         </a>
     </div>
 
+    {{-- Flash message --}}
+    @if (session('success'))
+    <div class="px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+        {{ session('success') }}
+    </div>
+    @endif
+
     {{-- Approval status strip --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex flex-wrap items-center gap-3">
         <p class="text-xs text-gray-400 font-medium">Status Tinjauan:</p>
         @if ($approval->isPending())
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Menunggu Review</span>
         @elseif ($approval->isApproved())
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Disetujui</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Disetujui</span>
             @if ($approval->signed_at)
                 <span class="text-xs text-gray-400">pada {{ $approval->signed_at->isoFormat('D MMM Y, HH:mm') }}</span>
             @endif
@@ -133,14 +140,14 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php $monitoringNames = $report->analysts->where('type', 'monitoring')->map(fn($a) => optional($a->user)->name)->filter(); @endphp
-                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
+                    {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : 'N/A' }}
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dibaca Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php $readingNames = $report->analysts->where('type', 'reading')->map(fn($a) => optional($a->user)->name)->filter(); @endphp
-                    {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
+                    {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : 'N/A' }}
                 </div>
             </div>
             <div>
@@ -149,17 +156,10 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Produk</label>
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $report->batch_number ?: '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $report->batch_number ?: 'N/A' }}</div>
             </div>
         </div>
     </div>
-
-    {{-- Flash message --}}
-    @if (session('success'))
-    <div class="px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
-        {{ session('success') }}
-    </div>
-    @endif
 
     {{-- Edit form opens here (only when pending) --}}
     @if ($isEditable)
@@ -183,27 +183,27 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
                 @if ($isEditable)
                 <input type="text" name="air_sampler[no_id]" value="{{ $as?->no_id ?? '' }}"
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 @else
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->no_id ?? '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->no_id ?? 'N/A' }}</div>
                 @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
                 @if ($isEditable)
                 <input type="date" name="air_sampler[calibration_date]" value="{{ $as?->calibration_date?->format('Y-m-d') ?? '' }}"
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 @else
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->calibration_date ? $as->calibration_date->format('d/m/Y') : '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->calibration_date ? $as->calibration_date->format('d/m/Y') : 'N/A' }}</div>
                 @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
                 @if ($isEditable)
                 <input type="date" name="air_sampler[due_date]" value="{{ $as?->due_date?->format('Y-m-d') ?? '' }}"
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 @else
-                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->due_date ? $as->due_date->format('d/m/Y') : '—' }}</div>
+                <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->due_date ? $as->due_date->format('d/m/Y') : 'N/A' }}</div>
                 @endif
             </div>
         </div>
@@ -212,7 +212,9 @@
 
     {{-- ── 3. Identitas Medium ────────────────────────────── --}}
     @php
-        $mediumTypeList = $report->relationLoaded('reportType') ? $report->reportType->mediumTypes : collect();
+        $mediumTypeList = ($report->relationLoaded('reportType') ? $report->reportType->mediumTypes : collect())
+            ->sortBy(fn ($m) => str_contains(strtolower($m->name), 'swab') ? 1 : 0)
+            ->values();
         $mediumByName   = $report->mediumIdentities->keyBy('name');
     @endphp
     @if ($needsMedium && $mediumTypeList->isNotEmpty())
@@ -228,25 +230,25 @@
                 $isSwab  = str_contains(strtolower($medName), 'swab');
             @endphp
             <div>
-                <h4 class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-3">{{ $medName }}</h4>
+                <h4 class="text-xs font-semibold text-sky-600 uppercase tracking-wide mb-3">{{ $medName }}</h4>
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
                         @if ($isEditable)
-                        <input type="text" name="medium[{{ $medName }}][batch_number]" value="{{ $med?->batch_number ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                           <input type="text" name="medium[{{ $medName }}][batch_number]" value="{{ $med?->batch_number ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->batch_number ?? '—' }}</div>
+                           <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->batch_number ?? 'N/A' }}</div>
                         @endif
                     </div>
                     @if (!$isSwab)
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
                         @if ($isEditable)
-                        <input type="text" name="medium[{{ $medName }}][gpt_number]" value="{{ $med?->gpt_number ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                           <input type="text" name="medium[{{ $medName }}][gpt_number]" value="{{ $med?->gpt_number ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->gpt_number ?? '—' }}</div>
+                           <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->gpt_number ?? 'N/A' }}</div>
                         @endif
                     </div>
                     @endif
@@ -254,10 +256,10 @@
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $isSwab ? 'Swab Kit' : 'Medium' }}</label>
                         @if ($isEditable)
                         <input type="date" name="medium[{{ $medName }}][expiration_date]" value="{{ $med?->expiration_date?->format('Y-m-d') ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                            {{ $med?->expiration_date ? $med->expiration_date->format('d/m/Y') : '—' }}
+                            {{ $med?->expiration_date ? $med->expiration_date->format('d/m/Y') : 'N/A' }}
                         </div>
                         @endif
                     </div>
@@ -274,14 +276,15 @@
         <div class="px-5 py-3.5 border-b border-gray-100">
             <h3 class="font-semibold text-sm text-gray-700">4. Proses Inkubasi Medium Monitoring</h3>
         </div>
-        @foreach ($report->reportType->incubatorTypes->sortByDesc('min_day') as $inkRti)
+        @foreach ($report->reportType->incubatorTypes as $inkRti)
         @php
             $inkRecord = $incubatorByRtiId[$inkRti->id] ?? null;
+            $inkEntry  = ($inkRecord?->entries ?? collect())->firstWhere('medium_type', 'monitoring');
             $inkLabel  = $inkRti->temperature_label;
             $inkMin    = $inkRti->min_day;
         @endphp
         <div class="p-5 space-y-4 @if(!$loop->last) border-b border-gray-100 @endif">
-            <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{{ $inkLabel }}</p>
+            <p class="text-xs font-semibold text-sky-600 uppercase tracking-wide">Inkubator suhu {{ $inkLabel }}</p>
 
             {{-- Row 1: Alat + Kalibrasi --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -293,19 +296,19 @@
                     <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Inkubator</label>
                     @if ($isEditable)
                     <input type="text" name="incubator[{{ $inkRti->id }}][no_id]" value="{{ $inkRecord?->no_id ?? '' }}"
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                     @else
-                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->no_id ?? '—' }}</div>
+                    <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->no_id ?? 'N/A' }}</div>
                     @endif
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
                     @if ($isEditable)
                     <input type="date" name="incubator[{{ $inkRti->id }}][calibration_date]" value="{{ $inkRecord?->calibration_date?->format('Y-m-d') ?? '' }}"
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                     @else
                     <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                        {{ $inkRecord?->calibration_date ? $inkRecord->calibration_date->format('d/m/Y') : '—' }}
+                        {{ $inkRecord?->calibration_date ? $inkRecord->calibration_date->format('d/m/Y') : 'N/A' }}
                     </div>
                     @endif
                 </div>
@@ -313,10 +316,10 @@
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
                     @if ($isEditable)
                     <input type="date" name="incubator[{{ $inkRti->id }}][due_date]" value="{{ $inkRecord?->due_date_calibration?->format('Y-m-d') ?? '' }}"
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                     @else
                     <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                        {{ $inkRecord?->due_date_calibration ? $inkRecord->due_date_calibration->format('d/m/Y') : '—' }}
+                        {{ $inkRecord?->due_date_calibration ? $inkRecord->due_date_calibration->format('d/m/Y') : 'N/A' }}
                     </div>
                     @endif
                 </div>
@@ -326,71 +329,59 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-50">
                 {{-- Masuk / Diinkubasi --}}
                 <div class="space-y-3">
-                    <p class="text-xs font-semibold text-emerald-600">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</p>
+                    <p class="text-xs font-semibold text-sky-600">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</p>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
-                        @if ($isEditable)
-                        <input type="text" name="incubator[{{ $inkRti->id }}][incubated_by]" value="{{ $inkRecord?->incubated_by ?? '' }}"
-                               placeholder="Nama analis"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->incubated_by ?? '—' }}</div>
-                        @endif
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkEntry?->incubatedBy?->name ?? 'N/A' }}</div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
                         @if ($isEditable)
-                        <input type="date" name="incubator[{{ $inkRti->id }}][date_in]" value="{{ $inkRecord?->date_in?->format('Y-m-d') ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        <input type="date" name="incubator[{{ $inkRti->id }}][date_in]" value="{{ $inkEntry?->date_in?->format('Y-m-d') ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                            {{ $inkRecord?->date_in ? $inkRecord->date_in->format('d/m/Y') : '—' }}
+                            {{ $inkEntry?->date_in ? $inkEntry->date_in->format('d/m/Y') : 'N/A' }}
                         </div>
                         @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
-                        @php $canEditIncubatorTimeIn = $canEditReviewTime($inkRecord?->time_in); @endphp
+                        @php $canEditIncubatorTimeIn = $canEditReviewTime($inkEntry?->time_in); @endphp
                         @if ($canEditIncubatorTimeIn)
-                        <input type="time" name="incubator[{{ $inkRti->id }}][time_in]" value="{{ $inkRecord?->time_in ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        <input type="time" name="incubator[{{ $inkRti->id }}][time_in]" value="{{ $inkEntry?->time_in ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm {{ filled($inkRecord?->time_in) ? 'text-gray-700' : 'text-gray-400 italic' }}">{{ $formatReviewTimeValue($inkRecord?->time_in) }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm {{ filled($inkEntry?->time_in) ? 'text-gray-700' : 'text-gray-400 italic' }}">{{ $formatReviewTimeValue($inkEntry?->time_in) }}</div>
                         @endif
                     </div>
                 </div>
                 {{-- Keluar / Dikeluarkan --}}
                 <div class="space-y-3">
-                    <p class="text-xs font-semibold text-emerald-600">&nbsp;</p>
+                    <p class="text-xs font-semibold text-sky-600">&nbsp;</p>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
-                        @if ($isEditable)
-                        <input type="text" name="incubator[{{ $inkRti->id }}][removed_by]" value="{{ $inkRecord?->removed_by ?? '' }}"
-                               placeholder="Nama analis"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkRecord?->removed_by ?? '—' }}</div>
-                        @endif
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $inkEntry?->removedBy?->name ?? 'N/A' }}</div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
                         @if ($isEditable)
-                        <input type="date" name="incubator[{{ $inkRti->id }}][date_out]" value="{{ $inkRecord?->date_out?->format('Y-m-d') ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        <input type="date" name="incubator[{{ $inkRti->id }}][date_out]" value="{{ $inkEntry?->date_out?->format('Y-m-d') ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
                         <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
-                            {{ $inkRecord?->date_out ? $inkRecord->date_out->format('d/m/Y') : '—' }}
+                            {{ $inkEntry?->date_out ? $inkEntry->date_out->format('d/m/Y') : 'N/A' }}
                         </div>
                         @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
-                        @php $canEditIncubatorTimeOut = $canEditReviewTime($inkRecord?->time_out); @endphp
+                        @php $canEditIncubatorTimeOut = $canEditReviewTime($inkEntry?->time_out); @endphp
                         @if ($canEditIncubatorTimeOut)
-                        <input type="time" name="incubator[{{ $inkRti->id }}][time_out]" value="{{ $inkRecord?->time_out ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                        <input type="time" name="incubator[{{ $inkRti->id }}][time_out]" value="{{ $inkEntry?->time_out ?? '' }}"
+                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                         @else
-                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm {{ filled($inkRecord?->time_out) ? 'text-gray-700' : 'text-gray-400 italic' }}">{{ $formatReviewTimeValue($inkRecord?->time_out) }}</div>
+                        <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm {{ filled($inkEntry?->time_out) ? 'text-gray-700' : 'text-gray-400 italic' }}">{{ $formatReviewTimeValue($inkEntry?->time_out) }}</div>
                         @endif
                     </div>
                 </div>
@@ -479,8 +470,8 @@
     @endphp
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-3.5 border-b border-gray-100 flex items-center gap-3">
-            <div class="h-7 w-7 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <span class="text-xs font-bold text-emerald-600">{{ $secNum }}</span>
+            <div class="h-7 w-7 rounded-lg bg-sky-50 flex items-center justify-center flex-shrink-0">
+                <span class="text-xs font-bold text-sky-600">{{ $secNum }}</span>
             </div>
             <div>
                 <h3 class="font-semibold text-sm text-gray-700">{{ $section->measurement_unit }}</h3>
@@ -491,21 +482,21 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs border-collapse">
                 <thead>
-                    <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No.</th>
-                        <th class="px-3 py-2 text-left font-semibold border-r border-emerald-100" rowspan="3">Nama Ruangan</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">Kelas</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No. Ruangan</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No.<br>Lokasi</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100"
+                    <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">No.</th>
+                        <th class="px-3 py-2 text-left font-semibold border-r border-sky-100" rowspan="3">Nama Ruangan</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">Kelas</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">No. Ruangan</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" rowspan="3">No.<br>Lokasi</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100"
                             colspan="{{ ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp }}">
                             {{ $section->measurement_unit }}
                         </th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Alert</th>
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Tindakan</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Alert</th>
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Tindakan</th>
                         <th class="px-2 py-2 text-center font-semibold whitespace-nowrap" rowspan="3">Kesimpulan</th>
                     </tr>
-                    <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
+                    <tr class="bg-sky-50 text-gray-600 border-b border-sky-100">
                         @if ($hasMachineSetup)
                         @php
                             $msJamMulai = null; $msJamSelesai = null;
@@ -518,7 +509,7 @@
                                 }
                             }
                         @endphp
-                        <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100" colspan="3">
+                        <th class="px-2 py-2 text-center font-semibold border-r border-sky-100" colspan="3">
                             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
                             @php
                                 $msHdMulai   = $msJamMulai;
@@ -529,11 +520,11 @@
                             <div class="flex justify-center items-center gap-1">
                                 <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
                                        value="{{ $msHdMulai }}"
-                                       class="rounded border border-emerald-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                       class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 <span class="text-gray-400 text-[10px] font-normal">–</span>
                                 <input type="time" name="exposure_times[{{ $section->id }}][0][end_time]"
                                        value="{{ $msHdSelesai }}"
-                                       class="rounded border border-emerald-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                       class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                             </div>
                             @else
                             <div class="text-[10px] font-normal whitespace-nowrap {{ filled($msHdMulai) || filled($msHdSelesai) ? 'text-gray-500' : 'text-gray-400 italic' }}">
@@ -547,7 +538,7 @@
                             $colAsgn = $secAssignments[$col] ?? 1;
                             $colName = $secColumnNames[$col] ?? null;
                         @endphp
-                        <th class="px-2 py-1.5 text-center font-semibold border-r border-emerald-100 whitespace-nowrap"
+                        <th class="px-2 py-1.5 text-center font-semibold border-r border-sky-100 whitespace-nowrap"
                             colspan="{{ $subColsPerExp }}">
                             @php
                                 $hasColLabel = (($colLabel ?? '') !== '');
@@ -557,7 +548,7 @@
                             {{ $colHeaderTitle }}
 
                             <div class="text-[10px] text-gray-500 mt-1">
-                                {{ $isSettlePlate ? 'SP' : 'Shift' }}: {{ $colName ?: '—' }}
+                                {{ $isSettlePlate ? 'SP' : 'Shift' }}: {{ $colName ?: 'N/A' }}
                             </div>
 
                             {{-- Swab time slots --}}
@@ -574,11 +565,11 @@
                                     <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
                                     <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][mulai]"
                                            value="{{ $st['mulai'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                     <span class="text-gray-400 text-[10px]">–</span>
                                     <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][selesai]"
                                            value="{{ $st['selesai'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 </div>
                                 @else
                                 <div class="flex items-center justify-center gap-0.5 text-[10px]">
@@ -612,11 +603,11 @@
                                     <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
                                     <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][start_time]"
                                            value="{{ $stAB['start_time'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                     <span class="text-gray-400 text-[10px]">–</span>
                                     <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][end_time]"
                                            value="{{ $stAB['end_time'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 </div>
                                 @else
                                 <div class="flex items-center justify-center gap-0.5 text-[10px]">
@@ -649,13 +640,13 @@
                                     <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
                                     <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][start_time]"
                                            value="{{ $expJamMulai }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 </div>
                                 <div class="flex items-center justify-center gap-0.5">
                                     <span class="text-[9px] text-gray-500 w-10 shrink-0">Selesai:</span>
                                     <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][end_time]"
                                            value="{{ $expJamSelesai }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
+                                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                                 </div>
                             </div>
                             @else
@@ -668,24 +659,24 @@
                         </th>
                         @endfor
                     </tr>
-                    <tr class="bg-emerald-50/60 text-gray-500 border-b border-gray-200">
+                    <tr class="bg-sky-50/60 text-gray-500 border-b border-gray-200">
                         @if ($hasMachineSetup)
-                            <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
-                            <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
-                            <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
+                            <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
+                            <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
+                            <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
                         @endif
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @if ($isPerLocation)
-                            <th class="px-1.5 py-1.5 text-center font-medium border-r border-emerald-100 whitespace-nowrap">JAM</th>
+                            <th class="px-1.5 py-1.5 text-center font-medium border-r border-sky-100 whitespace-nowrap">JAM</th>
                         @endif
-                            <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
-                            <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
-                            <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
+                            <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">B</th>
+                            <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
+                            <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
                         @endfor
-                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
-                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
-                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">T</th>
-                        <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">F</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">T</th>
+                        <th class="px-2 py-1.5 text-center font-medium border-r border-sky-100">F</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -703,8 +694,8 @@
                     @endphp
                     @foreach ($_freqKeysR as $_freqNameR)
                     @if ($_showFHdrR)
-                    <tr class="bg-emerald-50 border-t border-emerald-200">
-                        <td colspan="{{ $_totalColsR }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
+                    <tr class="bg-sky-50 border-t border-sky-200">
+                        <td colspan="{{ $_totalColsR }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-sky-700 uppercase">
                             FREKUENSI : {{ $_freqNameR === '__' ? 'Tidak Ditentukan' : strtoupper(\App\Models\ReportLocation::frequencyLabel($_freqNameR)) }}
                         </td>
                     </tr>
@@ -736,7 +727,7 @@
                             default => 'bg-gray-100 text-gray-600',
                         };
                     @endphp
-                    <tr class="hover:bg-emerald-50/20 transition-colors">
+                    <tr class="hover:bg-sky-50/20 transition-colors">
                         <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $_rowNumR }}</td>
                         <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room->room_name }}</td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
@@ -758,17 +749,17 @@
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $msEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
-                                {{ $msEntry?->cfu_bacteria ?? '—' }}
+                                {{ $msEntry?->cfu_bacteria ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $msEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
-                                {{ $msEntry?->cfu_fungi ?? '—' }}
+                                {{ $msEntry?->cfu_fungi ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-1 py-2 border-r border-gray-100 text-center bg-gray-50/40">
                             <span class="text-[11px] font-semibold {{ $msTVal !== null ? 'text-gray-700' : 'text-gray-300' }}">
-                                {{ $msTVal ?? '—' }}
+                                {{ $msTVal ?? 'N/A' }}
                             </span>
                         </td>
                         @endif
@@ -782,54 +773,54 @@
                         @if ($isPerLocation)
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-gray-{{ $existEntry?->start_time ? '600' : '300' }} text-[11px]">
-                                {{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : '-' }}
+                                {{ $existEntry?->start_time ? \Illuminate\Support\Str::substr($existEntry->start_time, 0, 5) : 'N/A' }}
                             </span>
                         </td>
                         @endif
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $existEntry?->cfu_bacteria !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
-                                {{ $existEntry?->cfu_bacteria ?? '—' }}
+                                {{ $existEntry?->cfu_bacteria ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
                             <span class="text-[11px] {{ $existEntry?->cfu_fungi !== null ? 'text-gray-700 font-medium' : 'text-gray-300' }}">
-                                {{ $existEntry?->cfu_fungi ?? '—' }}
+                                {{ $existEntry?->cfu_fungi ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-1 py-2 border-r border-gray-100 text-center bg-gray-50/40">
                             <span class="text-[11px] font-semibold {{ $tVal !== null ? 'text-gray-700' : 'text-gray-300' }}">
-                                {{ $tVal ?? '—' }}
+                                {{ $tVal ?? 'N/A' }}
                             </span>
                         </td>
                         @endfor
 
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="text-[11px] font-medium {{ $loc->alert_limit_total !== null ? 'text-amber-700' : 'text-gray-300' }}">
-                                {{ $loc->alert_limit_total ?? '—' }}
+                                {{ $loc->alert_limit_total ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="text-[11px] font-medium {{ $loc->alert_limit_fungi !== null ? 'text-amber-700' : 'text-gray-300' }}">
-                                {{ $loc->alert_limit_fungi ?? '—' }}
+                                {{ $loc->alert_limit_fungi ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="text-[11px] font-medium {{ $loc->alert_action_total !== null ? 'text-red-600' : 'text-gray-300' }}">
-                                {{ $loc->alert_action_total !== null ? ($loc->alert_action_total == 1 ? '<1' : $loc->alert_action_total) : '—' }}
+                                {{ $loc->alert_action_total !== null ? ($loc->alert_action_total == 1 ? '<1' : $loc->alert_action_total) : 'N/A' }}
                             </span>
                         </td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="text-[11px] font-medium {{ $loc->alert_action_fungi !== null ? 'text-red-600' : 'text-gray-300' }}">
-                                {{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : '—' }}
+                                {{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : 'N/A' }}
                             </span>
                         </td>
                         <td class="px-2 py-2.5 text-center">
                             @if ($konklusi === 'TMS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
                             @elseif ($konklusi === 'MS')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">MS</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-700">MS</span>
                             @else
-                                <span class="text-gray-300 text-[11px]">—</span>
+                                <span class="text-gray-300 text-[11px]">N/A</span>
                             @endif
                         </td>
                     </tr>
@@ -852,7 +843,7 @@
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700 min-h-[40px]">
-                    {{ $secNote['notes'] ?? '—' }}
+                    {{ $secNote['notes'] ?? 'N/A' }}
                 </div>
             </div>
             <div>
@@ -882,7 +873,7 @@
                 @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
-                        <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
+                        <span class="text-sky-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
                     @elseif ($sk === 'TMS')
                         <span class="text-red-700 font-semibold">Tidak Memenuhi Spesifikasi (TMS)</span>
                     @else
@@ -987,7 +978,7 @@
                         <div class="text-center">
                             <p class="text-sm font-semibold text-gray-700">{{ $_supApproval->user->name }}</p>
                             @if ($_supApproval->signed_at)
-                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
+                            <span class="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700 mt-0.5">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 Disetujui
                             </span>
@@ -1046,7 +1037,7 @@
     @if ($isEditable)
     <div class="flex justify-end">
         <button type="submit"
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl shadow hover:bg-emerald-700 transition-colors">
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl shadow hover:bg-sky-700 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
@@ -1070,16 +1061,16 @@
         <div class="flex flex-col gap-3">
 
             {{-- Approve --}}
-            <div class="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 flex items-center justify-between gap-4">
+            <div class="rounded-xl border-2 border-sky-200 bg-sky-50 p-4 flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="h-9 w-9 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-semibold text-emerald-800">Setujui Laporan</p>
-                        <p class="text-xs text-emerald-600">
+                        <p class="text-sm font-semibold text-sky-800">Setujui Laporan</p>
+                        <p class="text-xs text-sky-600">
                             @if ($reviewRole === 'manajer')
                                 Laporan akan ditandai sebagai disetujui (final)
                             @else
@@ -1089,7 +1080,7 @@
                     </div>
                 </div>
                 <button type="button" onclick="openConfirmModal('approve')"
-                    class="px-5 py-2.5 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 active:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+                    class="px-5 py-2.5 rounded-lg bg-sky-500 text-white text-sm font-semibold hover:bg-sky-600 active:bg-sky-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
@@ -1150,9 +1141,9 @@
 <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl shadow-black ring-1 ring-black/10 w-full max-w-md p-6">
-        <div id="modal-icon-approve" class="hidden flex items-center gap-3 mb-5">
-            <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div id="modal-icon-approve" class="hidden items-center gap-3 mb-5">
+            <div class="h-10 w-10 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
@@ -1161,7 +1152,7 @@
                 <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk menyetujui laporan ini</p>
             </div>
         </div>
-        <div id="modal-icon-return" class="hidden flex items-center gap-3 mb-5">
+        <div id="modal-icon-return" class="hidden items-center gap-3 mb-5">
             <div class="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -1219,8 +1210,10 @@ function openConfirmModal(action) {
     if (action === 'approve') {
         form.action = '{{ route($routeApprove, $report->id) }}';
         iconApprove.classList.remove('hidden');
+        iconApprove.classList.add('flex');
         iconReturn.classList.add('hidden');
-        submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700';
+        iconReturn.classList.remove('flex');
+        submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-sky-500 hover:bg-sky-600 active:bg-sky-700';
         document.getElementById('modal-returned-to-user-id').value = '';
         document.getElementById('modal-notes').value = '';
     } else {
@@ -1231,18 +1224,23 @@ function openConfirmModal(action) {
         }
         form.action = '{{ route($routeReturn, $report->id) }}';
         iconApprove.classList.add('hidden');
+        iconApprove.classList.remove('flex');
         iconReturn.classList.remove('hidden');
+        iconReturn.classList.add('flex');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700';
         document.getElementById('modal-returned-to-user-id').value = targetVal;
         document.getElementById('modal-notes').value = document.getElementById('return-notes-input').value;
     }
 
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
     setTimeout(() => document.getElementById('modal-username').focus(), 100);
 }
 
 function closeConfirmModal() {
-    document.getElementById('confirm-modal').classList.add('hidden');
+    const modal = document.getElementById('confirm-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 
 document.addEventListener('keydown', function(e) {
