@@ -32,7 +32,7 @@ class UserController extends Controller
 
     public function store(CreateUserRequest $request): RedirectResponse
     {
-        if ($request->input('role') === 'manajer' && $this->service->isManajerTaken()) {
+        if ($request->input('role') === 'manajer' && $this->service->isManagerTaken()) {
             return back()->withInput()->withErrors([
                 'role' => 'Sudah ada pengguna dengan role Manajer. Hanya boleh ada 1 Manajer.',
             ]);

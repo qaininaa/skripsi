@@ -76,9 +76,9 @@ class UserService
     /**
      * Check manager role uniqueness.
      */
-    public function isManajerTaken(?string $excludeUserId = null): bool
+    public function isManagerTaken(?string $excludeUserId = null): bool
     {
-        return $this->repository->isManajerTaken($excludeUserId);
+        return $this->repository->isManagerTaken($excludeUserId);
     }
 
     /**

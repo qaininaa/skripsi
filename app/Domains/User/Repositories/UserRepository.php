@@ -69,7 +69,7 @@ class UserRepository
     /**
      * Check whether a manager role already exists.
      */
-    public function isManajerTaken(?string $excludeUserId = null): bool
+    public function isManagerTaken(?string $excludeUserId = null): bool
     {
         return User::where('role', 'manajer')
             ->when($excludeUserId, fn ($q) => $q->where('id', '!=', $excludeUserId))
