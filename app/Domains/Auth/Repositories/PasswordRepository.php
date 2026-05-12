@@ -4,7 +4,7 @@ namespace App\Domains\Auth\Repositories;
 
 use App\Domains\Auth\Models\PasswordHistory;
 use App\Domains\Auth\Models\PasswordSetting;
-use App\Models\User;
+use App\Domains\User\Models\User;
 use Illuminate\Support\Collection;
 
 /**

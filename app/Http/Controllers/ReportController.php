@@ -7,7 +7,7 @@ use App\Domains\Report\Services\EnvironmentalEntryService;
 use App\Domains\Report\Services\ReportEntryService;
 use App\Models\Report;
 use App\Models\ReportApproval;
-use App\Models\User;
+use App\Domains\User\Models\User;
 use App\Services\PersonnelInstanceService;
 use App\Services\Reports\ReportViewService;
 use App\Services\Reports\ReportWorkflowService;

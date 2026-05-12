@@ -10,7 +10,7 @@ use App\Models\PersonnelRow;
 use App\Models\Report;
 use App\Models\ReportApproval;
 use App\Models\SectionSignature;
-use App\Models\User;
+use App\Domains\User\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;

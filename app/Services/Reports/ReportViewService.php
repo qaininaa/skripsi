@@ -6,7 +6,7 @@ use App\Domains\Report\Services\IncubatorEntryService;
 use App\Domains\Report\Services\InstrumentIdentityEntryService;
 use App\Domains\Report\Services\MediumEntryService;
 use App\Models\Report;
-use App\Models\User;
+use App\Domains\User\Models\User;
 use App\Services\ReportSectionService;
 use App\Services\SectionInstanceService;
 

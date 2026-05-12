@@ -2,7 +2,7 @@
 
 namespace App\Domains\Report\Repositories;
 
-use App\Models\User;
+use App\Domains\User\Models\User;
 
 /**
  * Repository for analyst submission checks.

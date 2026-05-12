@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 {{-- Limits JSON untuk auto-kalkulasi kesimpulan (client-side) --}}
 @php
-    $allPersonnelUsers = \App\Models\User::where('role', 'analis')->orderBy('name')->get();
+    $allPersonnelUsers = \App\Domains\User\Models\User::where('role', 'analis')->orderBy('name')->get();
 @endphp
 <script>
 window.personnelLimits = {

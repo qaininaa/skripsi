@@ -4,7 +4,7 @@ namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\DTOs\PasswordChangeDTO;
 use App\Domains\Auth\Repositories\PasswordRepository;
-use App\Models\User;
+use App\Domains\User\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 

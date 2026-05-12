@@ -4,7 +4,7 @@ namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\DTOs\LoginDTO;
 use App\Domains\Auth\Repositories\AuthRepository;
-use App\Models\User;
+use App\Domains\User\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
