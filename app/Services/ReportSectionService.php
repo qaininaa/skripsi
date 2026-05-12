@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Domains\Report\Models\EnvSectionInstance;
+use App\Domains\Report\Models\Report;
+use App\Domains\ReportType\Models\ReportSection;
 use App\Helpers\CfuHelper;
-use App\Models\EnvSectionInstance;
-use App\Models\Report;
-use App\Models\ReportSection;
 use Illuminate\Support\Collection;
 
 /**

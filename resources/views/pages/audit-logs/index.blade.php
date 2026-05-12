@@ -18,8 +18,8 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Deskripsi</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">IP</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User Agent</th>
+                        <!-- <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">IP</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User Agent</th> -->
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -50,8 +50,8 @@
                             </td>
                             <td class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">{{ str_replace('_', ' ', $log->action) }}</td>
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $log->description }}</td>
-                            <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ $log->ip_address ?? '—' }}</td>
-                            <td class="px-4 py-3 text-[11px] text-gray-400 max-w-xs truncate">{{ $log->user_agent ?? '—' }}</td>
+                            <!-- <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ $log->ip_address ?? '—' }}</td>
+                            <td class="px-4 py-3 text-[11px] text-gray-400 max-w-xs truncate">{{ $log->user_agent ?? '—' }}</td> -->
                         </tr>
                     @empty
                         <tr>

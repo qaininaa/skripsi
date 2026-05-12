@@ -2,8 +2,7 @@
 
 namespace App\Domains\Report\Models;
 
-use App\Models\IncubatorType;
-use App\Models\Report;
+use App\Domains\ReportType\Models\IncubatorType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

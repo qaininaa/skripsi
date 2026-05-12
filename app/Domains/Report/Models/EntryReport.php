@@ -2,7 +2,7 @@
 
 namespace App\Domains\Report\Models;
 
-use App\Models\Report as BaseReport;
+use App\Domains\Report\Models\Report as BaseReport;
 
 /**
  * Domain model alias for report entry save flow.

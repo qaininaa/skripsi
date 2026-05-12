@@ -2,8 +2,8 @@
 
 namespace App\Services\Personnels;
 
-use App\Models\PersonnelMethod;
-use App\Models\ReportType;
+use App\Domains\ReportType\Models\PersonnelMethod;
+use App\Domains\ReportType\Models\ReportType;
 
 class PersonnelService
 {

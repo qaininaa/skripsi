@@ -15,7 +15,7 @@
     {{-- Role Badge --}}
     <div class="px-5 py-3 border-b border-gray-100 flex-shrink-0">
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700">
-            <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+            <!-- <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> -->
             @if(Auth::user()->role === 'super')
                 Super Admin
             @elseif(Auth::user()->role === 'admin')
@@ -39,13 +39,13 @@
         if (in_array($currentRole, ['supervisor', 'manajer'], true)) {
             $userId = Auth::id();
 
-            $sidebarIncomingCount = \App\Models\ReportApproval::query()
+            $sidebarIncomingCount = \App\Domains\Report\Models\ReportApproval::query()
                 ->where('step', $currentRole === 'supervisor' ? 2 : 3)
                 ->where('user_id', $userId)
                 ->where('status', 'pending')
                 ->count();
 
-            $sidebarOngoingCount = \App\Models\Report::query()
+            $sidebarOngoingCount = \App\Domains\Report\Models\Report::query()
                 ->whereDoesntHave('approvals', function ($query) {
                     $query->where('step', 3)->where('status', 'approved');
                 })

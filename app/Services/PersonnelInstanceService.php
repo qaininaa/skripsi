@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\PersonnelInstance;
-use App\Models\PersonnelRow;
-use App\Models\Report;
+use App\Domains\Report\Models\PersonnelInstance;
+use App\Domains\Report\Models\PersonnelRow;
+use App\Domains\Report\Models\Report;
 use Illuminate\Support\Facades\DB;
 
 /**

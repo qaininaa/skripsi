@@ -5,7 +5,7 @@ namespace App\Domains\Report\Services;
 use App\Domains\Report\Repositories\FieldLockRepository;
 use App\Domains\Report\DTOs\MediumEntryData;
 use App\Domains\Report\Repositories\MediumEntryRepository;
-use App\Models\Report;
+use App\Domains\Report\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 

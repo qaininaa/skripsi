@@ -2,7 +2,7 @@
 
 namespace App\Domains\ReportPreview\Services;
 
-use App\Models\Report;
+use App\Domains\Report\Models\Report;
 use App\Services\PersonnelInstanceService;
 use App\Services\SectionInstanceService;
 

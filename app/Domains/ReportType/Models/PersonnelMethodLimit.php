@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Domains\ReportType\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PersonnelMethodLimit extends Model
+{
+    use HasUuids;
+
+    protected $fillable = ['personnel_section_method_id', 'class', 'limit_type', 'cfu_total', 'cfu_fungi'];
+
+    protected $casts = [
+        'cfu_total' => 'integer',
+        'cfu_fungi' => 'integer',
+    ];
+
+    public function method(): BelongsTo
+    {
+        return $this->belongsTo(PersonnelMethod::class, 'personnel_section_method_id');
+    }
+}

@@ -2,11 +2,11 @@
 
 namespace App\Services\Reports;
 
-use App\Models\Analyst;
-use App\Models\Report;
-use App\Models\ReportApproval;
-use App\Models\SectionSignature;
-use App\Models\PersonnelSignature;
+use App\Domains\Report\Models\Analyst;
+use App\Domains\Report\Models\Report;
+use App\Domains\Report\Models\ReportApproval;
+use App\Domains\Report\Models\SectionSignature;
+use App\Domains\Report\Models\PersonnelSignature;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -146,7 +146,7 @@ class ReportWorkflowService
         $role = $report->status === 'reading' ? 'reading' : 'monitoring';
 
         // Cek apakah user ini benar-benar mengisi personnel row
-        $hasFilledPersonnel = \App\Models\PersonnelRow::whereHas('instance', fn ($q) =>
+        $hasFilledPersonnel = \App\Domains\Report\Models\PersonnelRow::whereHas('instance', fn ($q) =>
                 $q->where('report_id', $report->id)
             )
             ->where('filled_by', Auth::id())

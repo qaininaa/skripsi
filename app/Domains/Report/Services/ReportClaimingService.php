@@ -5,7 +5,7 @@ namespace App\Domains\Report\Services;
 use App\Domains\Report\DTOs\ReportClaimingFilterDTO;
 use App\Domains\Report\Models\AnalystReport;
 use App\Domains\Report\Repositories\ReportClaimingRepository;
-use App\Models\ReportApproval;
+use App\Domains\Report\Models\ReportApproval;
 use App\Services\Reports\ReportViewService;
 use Illuminate\Support\Collection;
 

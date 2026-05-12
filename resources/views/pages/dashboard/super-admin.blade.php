@@ -18,7 +18,7 @@
             </div>
             <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Aktif</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Models\User::count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \App\Domains\User\Models\User::count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Total Pengguna</p>
         <p class="text-xs text-gray-400 mt-1">Semua akun terdaftar</p>
     </div>
@@ -33,7 +33,7 @@
             </div>
             <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Bertugas</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Models\User::where('role', 'admin')->count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \App\Domains\User\Models\User::where('role', 'admin')->count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Admin QC</p>
         <p class="text-xs text-gray-400 mt-1">Petugas Quality Control</p>
     </div>
@@ -48,12 +48,12 @@
             </div>
             <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">Admin</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Models\User::where('role', 'super')->count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \App\Domains\User\Models\User::where('role', 'super')->count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Super Admin</p>
         <p class="text-xs text-gray-400 mt-1">Administrator sistem</p>
     </div>
 
-    {{-- Status Sistem --}}
+    <!-- {{-- Status Sistem --}}
     <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-3">
             <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -64,7 +64,7 @@
         <p class="text-3xl font-bold text-green-600">Online</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Status Sistem</p>
         <p class="text-xs text-gray-400 mt-1">Semua layanan normal</p>
-    </div>
+    </div> -->
 
 </div>
 
@@ -88,7 +88,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @foreach(\App\Models\User::latest()->take(5)->get() as $user)
+                    @foreach(\App\Domains\User\Models\User::latest()->take(5)->get() as $user)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-3.5">
                             <div class="flex items-center gap-3">
@@ -148,7 +148,7 @@
                         <p class="text-xs text-gray-400">Buat akun baru</p>
                     </div>
                 </a>
-                <a href="#" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 transition-colors group">
+                <!-- <a href="#" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 transition-colors group">
                     <div class="h-9 w-9 rounded-lg bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center flex-shrink-0 transition-colors">
                         <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -169,11 +169,11 @@
                         <p class="text-sm font-medium text-gray-800">Edit Profil</p>
                         <p class="text-xs text-gray-400">Ubah data akun</p>
                     </div>
-                </a>
+                </a> -->
             </div>
         </div>
 
-        {{-- System Info --}}
+        <!-- {{-- System Info --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <h3 class="font-semibold text-gray-800 mb-4">Info Sistem</h3>
             <div class="space-y-3">
@@ -197,7 +197,7 @@
                     <span class="text-xs font-semibold text-gray-800 capitalize">{{ app()->environment() }}</span>
                 </div>
             </div>
-        </div>
+        </div> -->
 
     </div>
 

@@ -2,8 +2,8 @@
 
 namespace App\Domains\Report\Services;
 
-use App\Models\Analyst;
-use App\Models\Report;
+use App\Domains\Report\Models\Analyst;
+use App\Domains\Report\Models\Report;
 use Illuminate\Http\Request;
 
 /**

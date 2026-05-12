@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\EnvSectionInstance;
-use App\Models\Report;
+use App\Domains\Report\Models\EnvSectionInstance;
+use App\Domains\Report\Models\Report;
 use App\Domains\Location\Models\Location;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

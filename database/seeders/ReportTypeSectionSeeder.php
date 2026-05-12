@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\ReportType;
+use App\Domains\ReportType\Models\ReportType;
 use App\Services\Personnels\PersonnelService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

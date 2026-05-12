@@ -2,12 +2,12 @@
 
 namespace App\Domains\Report\Repositories;
 
-use App\Models\PersonnelInstance;
-use App\Models\PersonnelRow;
-use App\Models\PersonnelSamplingEntry;
-use App\Models\ReportEnvironmentalEntry;
-use App\Models\ReportSectionColumn;
-use App\Models\ReportSectionNote;
+use App\Domains\Report\Models\PersonnelInstance;
+use App\Domains\Report\Models\PersonnelRow;
+use App\Domains\Report\Models\PersonnelSamplingEntry;
+use App\Domains\Report\Models\ReportEnvironmentalEntry;
+use App\Domains\Report\Models\ReportSectionColumn;
+use App\Domains\Report\Models\ReportSectionNote;
 
 /**
  * Repository for ReportEntry persistence operations.

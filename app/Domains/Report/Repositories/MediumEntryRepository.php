@@ -3,7 +3,7 @@
 namespace App\Domains\Report\Repositories;
 
 use App\Domains\Report\Models\MediumEntry;
-use App\Models\Report;
+use App\Domains\Report\Models\Report;
 
 /**
  * Repository for medium identity write operations.

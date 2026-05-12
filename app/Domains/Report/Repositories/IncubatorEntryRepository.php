@@ -4,7 +4,7 @@ namespace App\Domains\Report\Repositories;
 
 use App\Domains\Report\Models\Incubator;
 use App\Domains\Report\Models\IncubatorEntry;
-use App\Models\Report;
+use App\Domains\Report\Models\Report;
 
 /**
  * Repository for incubator write operations.

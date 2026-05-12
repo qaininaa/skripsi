@@ -3,9 +3,9 @@
 namespace App\Domains\Report\Repositories;
 
 use App\Domains\Report\Models\AnalystReport;
-use App\Models\Analyst;
-use App\Models\Report;
-use App\Models\ReportApproval;
+use App\Domains\Report\Models\Analyst;
+use App\Domains\Report\Models\Report;
+use App\Domains\Report\Models\ReportApproval;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;

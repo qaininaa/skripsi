@@ -8,7 +8,7 @@
 {{-- Stats Grid --}}
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
 
-    {{-- Total Inspeksi --}}
+    <!-- {{-- Total Inspeksi --}}
     <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-3">
             <div class="h-11 w-11 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -152,6 +152,6 @@
 
     </div>
 
-</div>
+</div> -->
 
 @endsection
