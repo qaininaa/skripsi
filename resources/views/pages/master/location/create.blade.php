@@ -72,7 +72,7 @@
                     <select name="frequency"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                         <option value="" disabled {{ old('frequency') ? '' : 'selected' }}>— Pilih Frekuensi Pemantauan —</option>
-                        @foreach (\App\Models\ReportLocation::FREQUENCY_LABELS as $freqValue => $freqLabel)
+                        @foreach (\App\Domains\Location\Models\Location::FREQUENCY_LABELS as $freqValue => $freqLabel)
                             <option value="{{ $freqValue }}" {{ old('frequency') == $freqValue ? 'selected' : '' }}>
                                 {{ $freqLabel }}
                             </option>

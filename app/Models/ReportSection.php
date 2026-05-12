@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Domains\Location\Models\Location;
 
 class ReportSection extends Model
 {
@@ -58,7 +59,7 @@ class ReportSection extends Model
 
     public function locations(): HasMany
     {
-        return $this->hasMany(ReportLocation::class, 'section_id')
+        return $this->hasMany(Location::class, 'section_id')
             ->orderBy('section_assigned_at')
             ->orderBy('created_at')
             ->orderBy('id');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domains\Location\Models\Location;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,7 +49,7 @@ class EnvSectionInstance extends Model
      */
     public function location(): BelongsTo
     {
-        return $this->belongsTo(ReportLocation::class, 'location_id');
+        return $this->belongsTo(Location::class, 'location_id');
     }
 
     /**

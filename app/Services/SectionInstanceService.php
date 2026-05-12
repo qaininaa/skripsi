@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\EnvSectionInstance;
 use App\Models\Report;
-use App\Models\ReportLocation;
+use App\Domains\Location\Models\Location;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -202,7 +202,7 @@ class SectionInstanceService
      */
     private function getLocationIdsForSection(string $sectionId): Collection
     {
-        return ReportLocation::query()
+        return Location::query()
             ->where('section_id', $sectionId)
             ->pluck('id');
     }

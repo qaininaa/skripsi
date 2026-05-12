@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ReportLocation;
-use App\Models\Room;
+use App\Domains\Location\Models\Location;
+use App\Domains\Room\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,7 +15,7 @@ class PersonnelReportController extends Controller
         $search = $request->input('search');
         $roomId = $request->input('room_id');
 
-        $locations = ReportLocation::with(['room'])
+        $locations = Location::with(['room'])
             ->when($search, fn ($q) => $q->whereHas('room', fn ($q) => $q
                 ->where('room_name', 'like', "%{$search}%")
                 ->orWhere('room_number', 'like', "%{$search}%")
@@ -33,7 +33,7 @@ class PersonnelReportController extends Controller
     public function create(): View
     {
         $rooms = Room::orderBy('class', 'asc')->orderBy('room_name', 'asc')->get();
-        $frequencies = ReportLocation::FREQUENCY_LABELS;
+        $frequencies = Location::FREQUENCY_LABELS;
 
         return view('pages.master.lokasi.create', compact('rooms', 'frequencies'));
     }
@@ -51,22 +51,22 @@ class PersonnelReportController extends Controller
             'alert_action_fungi' => ['nullable', 'integer', 'min:0', 'max:65535'],
         ]);
 
-        ReportLocation::create($validated);
+        Location::create($validated);
 
         return redirect()
             ->route('master.lokasi.index')
             ->with('success', 'Lokasi berhasil ditambahkan.');
     }
 
-    public function edit(ReportLocation $lokasi): View
+    public function edit(Location $lokasi): View
     {
         $rooms = Room::orderBy('class', 'asc')->orderBy('room_name', 'asc')->get();
-        $frequencies = ReportLocation::FREQUENCY_LABELS;
+        $frequencies = Location::FREQUENCY_LABELS;
 
         return view('pages.master.lokasi.edit', compact('lokasi', 'rooms', 'frequencies'));
     }
 
-    public function update(Request $request, ReportLocation $lokasi): RedirectResponse
+    public function update(Request $request, Location $lokasi): RedirectResponse
     {
         $validated = $request->validate([
             'room_id' => ['required', 'exists:rooms,id'],
@@ -86,7 +86,7 @@ class PersonnelReportController extends Controller
             ->with('success', 'Lokasi berhasil diperbarui.');
     }
 
-    public function destroy(ReportLocation $lokasi): RedirectResponse
+    public function destroy(Location $lokasi): RedirectResponse
     {
         $lokasi->delete();
 
