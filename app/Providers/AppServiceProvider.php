@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\AuditLog;
+use App\Domains\AuditLog\Models\AuditLog;
 use App\Services\ReportSectionService;
 use App\View\Composers\SectionTableComposer;
 use Illuminate\Auth\Events\Login;

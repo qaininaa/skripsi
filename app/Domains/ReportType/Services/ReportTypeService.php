@@ -5,7 +5,7 @@ namespace App\Domains\ReportType\Services;
 use App\Domains\Location\Models\Location;
 use App\Domains\ReportType\Models\ReportType;
 use App\Domains\ReportType\Repositories\ReportTypeRepository;
-use App\Models\AuditLog;
+use App\Domains\AuditLog\Models\AuditLog;
 use App\Services\Personnels\PersonnelService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;

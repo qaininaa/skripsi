@@ -5,7 +5,7 @@ namespace App\Domains\User\Services;
 use App\Domains\User\DTOs\UserDTO;
 use App\Domains\User\Models\User;
 use App\Domains\User\Repositories\UserRepository;
-use App\Models\AuditLog;
+use App\Domains\AuditLog\Models\AuditLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserService

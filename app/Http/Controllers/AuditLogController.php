@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AuditLog;
+use App\Domains\AuditLog\Models\AuditLog;
 use Illuminate\View\View;
 
 class AuditLogController extends Controller
