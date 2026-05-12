@@ -9,7 +9,7 @@ use App\Domains\ReportType\Repositories\ReportSectionRepository;
 /**
  * Service for report section management use-cases.
  */
-class ReportSectionService
+class SectionService
 {
     public function __construct(private ReportSectionRepository $repository) {}
 
