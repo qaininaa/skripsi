@@ -143,6 +143,7 @@ class ReportArchiveController extends Controller
             'incubators.entries.incubatedBy',
             'incubators.entries.removedBy',
             'approvals.user',
+            'analysts.user',
         ]);
         $report->applyReportTypeSnapshot();
 

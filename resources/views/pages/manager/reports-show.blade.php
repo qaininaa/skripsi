@@ -78,7 +78,12 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
-                        $monitoringNames = \Domain\User\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
+                        $monitoringNames = $report->analysts
+                            ->where('type', 'monitoring')
+                            ->map(fn ($a) => $a->user?->name)
+                            ->filter()
+                            ->unique()
+                            ->values();
                     @endphp
                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                 </div>
@@ -87,7 +92,12 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dibaca Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
-                        $readingNames = \Domain\User\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
+                        $readingNames = $report->analysts
+                            ->where('type', 'reading')
+                            ->map(fn ($a) => $a->user?->name)
+                            ->filter()
+                            ->unique()
+                            ->values();
                     @endphp
                     {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                 </div>
@@ -878,7 +888,17 @@
     </div>
 </div>
 
+<script type="application/json" id="manager-review-config">
+@php
+    echo json_encode([
+        'approveUrl' => route('manager.reports.approve', $report->id),
+        'returnUrl' => route('manager.reports.return', $report->id),
+    ], JSON_UNESCAPED_SLASHES);
+@endphp
+</script>
 <script>
+const MANAGER_REVIEW_CONFIG = JSON.parse(document.getElementById('manager-review-config').textContent);
+
 function openConfirmModal(action) {
     const modal = document.getElementById('confirm-modal');
     const form  = document.getElementById('confirm-form');
@@ -890,7 +910,7 @@ function openConfirmModal(action) {
     document.getElementById('modal-password').value = '';
 
     if (action === 'approve') {
-        form.action = '{{ route('manager.reports.approve', $report->id) }}';
+        form.action = MANAGER_REVIEW_CONFIG.approveUrl;
         iconApprove.classList.remove('hidden');
         iconReturn.classList.add('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700';
@@ -903,7 +923,7 @@ function openConfirmModal(action) {
         }
         const [type, id] = select.value.split(':');
         const label = type === 'analyst' ? 'Analis' : 'Supervisor';
-        form.action = '{{ route('manager.reports.return', $report->id) }}';
+        form.action = MANAGER_REVIEW_CONFIG.returnUrl;
         iconApprove.classList.add('hidden');
         iconReturn.classList.remove('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700';

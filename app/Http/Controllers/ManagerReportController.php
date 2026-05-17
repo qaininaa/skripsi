@@ -230,10 +230,12 @@ class ManagerReportController extends Controller
             ->where('step', 2)
             ->first();
 
-        $allowedAnalysts = array_merge(
-            $report->analyst_monitoring ?? [],
-            $report->analyst_reading ?? []
-        );
+        $allowedAnalysts = $report->analysts
+            ->pluck('user_id')
+            ->map(fn ($id) => (string) $id)
+            ->unique()
+            ->values()
+            ->all();
 
         $isToSupervisor = $supervisorApproval && $supervisorApproval->user_id === $returnedToUserId;
         $isToAnalyst = in_array($returnedToUserId, $allowedAnalysts);
@@ -332,6 +334,7 @@ class ManagerReportController extends Controller
             'reportType.incubatorTypes',
             'environmentalEntries.envSectionInstance',
             'approvals.user',
+            'analysts.user',
             'sectionColumnNames',
             'sectionNotes',
             'instrumentEntries',

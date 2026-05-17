@@ -78,7 +78,12 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
-                        $monitoringNames = \Domain\User\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
+                        $monitoringNames = $report->analysts
+                            ->where('type', 'monitoring')
+                            ->map(fn ($a) => $a->user?->name)
+                            ->filter()
+                            ->unique()
+                            ->values();
                     @endphp
                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                 </div>
@@ -87,7 +92,12 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dibaca Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
-                        $readingNames = \Domain\User\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
+                        $readingNames = $report->analysts
+                            ->where('type', 'reading')
+                            ->map(fn ($a) => $a->user?->name)
+                            ->filter()
+                            ->unique()
+                            ->values();
                     @endphp
                     {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                 </div>
@@ -1011,7 +1021,11 @@
                         class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
                         <option value="">-- Pilih Analis Tujuan --</option>
                         @php
-                            $allReturnableIds = array_unique(array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []));
+                            $allReturnableIds = $report->analysts
+                                ->pluck('user_id')
+                                ->unique()
+                                ->values()
+                                ->all();
                             $returnableUsers = \Domain\User\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
                         @endphp
                         @foreach ($returnableUsers as $analyst)

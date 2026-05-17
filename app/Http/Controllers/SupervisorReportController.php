@@ -329,6 +329,7 @@ class SupervisorReportController extends Controller
             'reportType.incubatorTypes',
             'environmentalEntries.envSectionInstance',
             'approvals.user',
+            'analysts.user',
             'sectionColumnNames',
             'sectionNotes',
             'instrumentEntries',

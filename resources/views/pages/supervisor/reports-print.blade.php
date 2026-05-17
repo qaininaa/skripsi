@@ -253,8 +253,14 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">1. Pemantauan Ruang</td></tr>
         <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->created_at->isoFormat('D MMMM Y') }}</td></tr>
-        @php $names = \Domain\User\Models\User::whereIn('id', array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []))->pluck('name'); @endphp
-        <tr><td>Nama Analis</td><td>{{ $names->isNotEmpty() ? $names->join(' , ') : '' }}</td></tr>
+        @php
+            $analystNames = $report->analysts
+                ->map(fn ($a) => $a->user?->name)
+                ->filter()
+                ->unique()
+                ->values();
+        @endphp
+        <tr><td>Nama Analis</td><td>{{ $analystNames->isNotEmpty() ? $analystNames->join(', ') : '' }}</td></tr>
         <tr><td>Nama Produk</td><td>{{ $report->product_name }}</td></tr>
         <tr><td>Nomor Batch Produk</td><td>{{ $report->batch_number ?: '' }}</td></tr>
     </table>
