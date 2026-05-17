@@ -3,7 +3,7 @@
 namespace App\Domains\ReportAssignment\Models;
 
 use App\Domains\Report\Models\Report as BaseReport;
-use App\Domains\ReportType\Models\ReportType;
+use Domain\ReportType\Models\ReportType;
 use Domain\User\Models\User;
 
 /**

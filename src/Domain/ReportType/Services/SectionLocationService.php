@@ -1,26 +1,27 @@
 <?php
 
-namespace App\Domains\ReportType\Services;
+namespace Domain\ReportType\Services;
 
-use App\Domains\ReportType\Models\ReportSection;
-use App\Domains\ReportType\Repositories\SectionLocationRepository;
 use Domain\Location\Models\Location;
+use Domain\ReportType\Dtos\AssignSectionLocationDto;
+use Domain\ReportType\Interfaces\SectionLocationRepositoryInterface;
+use Domain\ReportType\Models\ReportSection;
 
 /**
  * Service for assigning and detaching locations to report sections.
  */
 class SectionLocationService
 {
-    public function __construct(private SectionLocationRepository $repository) {}
+    public function __construct(private SectionLocationRepositoryInterface $repository) {}
 
     /**
      * Attach location to section if not already used by another section.
      *
      * @return array{success: bool, message: string}
      */
-    public function attach(ReportSection $section, string $locationId): array
+    public function attach(ReportSection $section, AssignSectionLocationDto $dto): array
     {
-        $location = $this->repository->findLocationOrFail($locationId);
+        $location = $this->repository->findLocationOrFail($dto->locationId);
 
         if ($location->section_id && (string) $location->section_id !== (string) $section->id) {
             return [

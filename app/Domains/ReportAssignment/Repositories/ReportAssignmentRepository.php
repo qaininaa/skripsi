@@ -3,7 +3,7 @@
 namespace App\Domains\ReportAssignment\Repositories;
 
 use App\Domains\ReportAssignment\Models\ReportAssignment;
-use App\Domains\ReportType\Models\ReportType;
+use Domain\ReportType\Models\ReportType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 

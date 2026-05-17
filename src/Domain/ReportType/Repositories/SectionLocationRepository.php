@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Domains\ReportType\Repositories;
+namespace Domain\ReportType\Repositories;
 
-use App\Domains\ReportType\Models\ReportSection;
 use Domain\Location\Models\Location;
+use Domain\ReportType\Interfaces\SectionLocationRepositoryInterface;
+use Domain\ReportType\Models\ReportSection;
 
 /**
- * Repository for section-location assignment persistence.
+ * Eloquent implementation of SectionLocationRepositoryInterface.
  */
-class SectionLocationRepository
+class SectionLocationRepository implements SectionLocationRepositoryInterface
 {
     /**
      * Find location by ID or throw exception.

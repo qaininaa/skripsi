@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Domains\ReportType\Repositories;
+namespace Domain\ReportType\Repositories;
 
-use App\Domains\ReportType\Models\ReportSection;
-use App\Domains\ReportType\Models\ReportType;
+use Domain\ReportType\Interfaces\ReportSectionRepositoryInterface;
+use Domain\ReportType\Models\ReportSection;
+use Domain\ReportType\Models\ReportType;
 
 /**
- * Repository for report section persistence operations.
+ * Eloquent implementation of ReportSectionRepositoryInterface.
  */
-class ReportSectionRepository
+class ReportSectionRepository implements ReportSectionRepositoryInterface
 {
     /**
      * Calculate next sort order for sections in a report type.
@@ -19,7 +20,7 @@ class ReportSectionRepository
     }
 
     /**
-     * Create a report section record.
+     * Persist a report section record.
      *
      * @param  array<string, mixed>  $payload
      */

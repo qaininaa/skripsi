@@ -5,8 +5,8 @@ namespace App\Domains\ReportAssignment\Services;
 use App\Domains\ReportAssignment\DTOs\ReportAssignmentDTO;
 use App\Domains\ReportAssignment\Models\ReportAssignment;
 use App\Domains\ReportAssignment\Repositories\ReportAssignmentRepository;
-use App\Domains\ReportType\Models\ReportType;
 use App\Services\SectionInstanceService;
+use Domain\ReportType\Models\ReportType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 

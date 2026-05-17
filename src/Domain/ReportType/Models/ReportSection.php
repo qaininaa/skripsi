@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\ReportType\Models;
+namespace Domain\ReportType\Models;
 
 use Domain\Location\Models\Location;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
+/**
+ * Section configuration for a report type.
+ */
 class ReportSection extends Model
 {
     use HasUuids;

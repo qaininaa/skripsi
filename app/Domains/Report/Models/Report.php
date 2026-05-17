@@ -2,9 +2,9 @@
 
 namespace App\Domains\Report\Models;
 
-use App\Domains\ReportType\Models\ReportType;
-use Domain\User\Models\User;
 use App\Domains\Report\Models\Analyst;
+use Domain\ReportType\Models\ReportType;
+use Domain\User\Models\User;
 use App\Domains\Report\Models\SectionSignature;
 use App\Domains\Report\Models\ReportApproval;
 use App\Domains\Report\Models\ReportEnvironmentalEntry;

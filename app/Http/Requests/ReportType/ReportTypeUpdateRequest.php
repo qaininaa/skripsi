@@ -1,16 +1,25 @@
 <?php
 
-namespace App\Domains\ReportType\Http\Requests\ReportType;
+namespace App\Http\Requests\ReportType;
 
+use Domain\ReportType\Dtos\UpdateReportTypeDto;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReportTypeRequest extends FormRequest
+/**
+ * Form request for report type update payload.
+ */
+class ReportTypeUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Validation rules for report type update.
+     *
+     * @return array<string, array<int, string>>
+     */
     public function rules(): array
     {
         return [
@@ -27,6 +36,11 @@ class ReportTypeRequest extends FormRequest
         ];
     }
 
+    /**
+     * Custom validation messages.
+     *
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [
@@ -44,9 +58,16 @@ class ReportTypeRequest extends FormRequest
 
             'incubator_min_days.required' => 'Durasi minimum inkubator wajib diisi.',
             'incubator_min_days.array' => 'Format durasi minimum inkubator tidak valid.',
-
             'incubator_min_days.*.integer' => 'Hari minimal inkubator harus berupa angka.',
             'incubator_min_days.*.min' => 'Hari minimal inkubator minimal 1.',
         ];
+    }
+
+    /**
+     * Transform validated data into DTO.
+     */
+    public function toDTO(): UpdateReportTypeDto
+    {
+        return UpdateReportTypeDto::fromArray($this->validated());
     }
 }

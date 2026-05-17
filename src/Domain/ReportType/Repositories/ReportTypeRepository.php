@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Domains\ReportType\Repositories;
+namespace Domain\ReportType\Repositories;
 
-use App\Domains\ReportType\Models\IncubatorType;
-use App\Domains\ReportType\Models\ReportType;
 use Domain\Location\Models\Location;
-use App\Domains\ReportType\Models\MediumType;
+use Domain\ReportType\Interfaces\ReportTypeRepositoryInterface;
+use Domain\ReportType\Models\IncubatorType;
+use Domain\ReportType\Models\MediumType;
+use Domain\ReportType\Models\ReportType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
- * Repository for report type aggregate persistence and query operations.
+ * Eloquent implementation of ReportTypeRepositoryInterface.
  */
-class ReportTypeRepository
+class ReportTypeRepository implements ReportTypeRepositoryInterface
 {
     /**
      * Get paginated report types for management page.
@@ -28,9 +29,22 @@ class ReportTypeRepository
     }
 
     /**
-     * Create a report type record.
+     * Find duplicate report type by SOP code, SOP version, and annex number.
+     */
+    public function findDuplicate(string $sopCode, string $sopVersion, int $annexNumber, ?string $ignoreReportTypeId = null): ?ReportType
+    {
+        return ReportType::query()
+            ->when($ignoreReportTypeId, fn ($q) => $q->whereKeyNot($ignoreReportTypeId))
+            ->where('sop_code', $sopCode)
+            ->where('sop_version', $sopVersion)
+            ->where('annex_number', $annexNumber)
+            ->first();
+    }
+
+    /**
+     * Persist a new report type record.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array{sop_code: string, sop_version: string, name: string, annex_number: int}  $payload
      */
     public function create(array $payload): ReportType
     {
@@ -38,24 +52,9 @@ class ReportTypeRepository
     }
 
     /**
-     * Find duplicate report type by SOP code, SOP version, and annex number.
-     *
-     * @param  array<string, mixed>  $validated
-     */
-    public function findDuplicate(array $validated, ?string $ignoreReportTypeId = null): ?ReportType
-    {
-        return ReportType::query()
-            ->when($ignoreReportTypeId, fn ($q) => $q->whereKeyNot($ignoreReportTypeId))
-            ->where('sop_code', $validated['sop_code'])
-            ->where('sop_version', $validated['sop_version'])
-            ->where('annex_number', $validated['annex_number'])
-            ->first();
-    }
-
-    /**
      * Update an existing report type record.
      *
-     * @param  array<string, mixed>  $payload
+     * @param  array{sop_code: string, sop_version: string, name: string, annex_number: int}  $payload
      */
     public function update(ReportType $reportType, array $payload): ReportType
     {
@@ -81,7 +80,7 @@ class ReportTypeRepository
     }
 
     /**
-     * Remove all related medium and incubator type rows for a report type.
+     * Remove related medium and incubator type rows for a report type.
      */
     public function clearMediumAndIncubatorTypes(ReportType $reportType): void
     {

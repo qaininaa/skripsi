@@ -1,10 +1,14 @@
 <?php
 
-namespace App\Domains\ReportType\Models;
+namespace Domain\ReportType\Models;
 
+use App\Domains\Report\Models\Report;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Aggregate root for the ReportType domain.
+ */
 class ReportType extends Model
 {
     use HasUuids;
@@ -40,6 +44,6 @@ class ReportType extends Model
 
     public function reports()
     {
-        return $this->hasMany(\App\Domains\Report\Models\Report::class);
+        return $this->hasMany(Report::class);
     }
 }

@@ -1,10 +1,13 @@
 <?php
 
-namespace App\Domains\ReportType\Models;
+namespace Domain\ReportType\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Medium type entry tied to a report type.
+ */
 class MediumType extends Model
 {
     use HasUuids;

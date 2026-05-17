@@ -1,22 +1,26 @@
 <?php
 
-namespace App\Domains\ReportType\Http\Requests\ReportSection;
+namespace App\Http\Requests\ReportType;
 
+use Domain\ReportType\Dtos\UpdateReportSectionDto;
 use Illuminate\Foundation\Http\FormRequest;
 
-abstract class ReportSectionRequest extends FormRequest
+/**
+ * Form request for report section update payload.
+ */
+class ReportSectionUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Validation rules for report section update.
+     *
+     * @return array<string, array<int, string>>
+     */
     public function rules(): array
-    {
-        return array_merge($this->baseRules(), $this->extraRules());
-    }
-
-    protected function baseRules(): array
     {
         return [
             'measurement_unit' => ['required', 'string', 'max:50'],
@@ -25,11 +29,15 @@ abstract class ReportSectionRequest extends FormRequest
             'column_label' => ['required', 'string', 'max:50'],
             'time_slot_type' => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
             'has_machine_setup' => ['boolean'],
+            'order' => ['required', 'integer', 'min:0'],
         ];
     }
 
-    protected function extraRules(): array
+    /**
+     * Transform validated data into DTO.
+     */
+    public function toDTO(): UpdateReportSectionDto
     {
-        return [];
+        return UpdateReportSectionDto::fromArray($this->validated());
     }
 }
