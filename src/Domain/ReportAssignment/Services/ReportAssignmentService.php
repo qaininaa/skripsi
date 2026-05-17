@@ -1,27 +1,28 @@
 <?php
 
-namespace App\Domains\ReportAssignment\Services;
+namespace Domain\ReportAssignment\Services;
 
-use App\Domains\ReportAssignment\DTOs\ReportAssignmentDTO;
-use App\Domains\ReportAssignment\Models\ReportAssignment;
-use App\Domains\ReportAssignment\Repositories\ReportAssignmentRepository;
 use App\Services\SectionInstanceService;
+use Domain\ReportAssignment\Dtos\CreateReportAssignmentDto;
+use Domain\ReportAssignment\Dtos\UpdateReportAssignmentDto;
+use Domain\ReportAssignment\Interfaces\ReportAssignmentRepositoryInterface;
+use Domain\ReportAssignment\Models\ReportAssignment;
 use Domain\ReportType\Models\ReportType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
- * Service for admin report assignment use-cases.
+ * Handles business logic for admin report assignment management.
  */
 class ReportAssignmentService
 {
     public function __construct(
-        private ReportAssignmentRepository $repository,
+        private ReportAssignmentRepositoryInterface $repository,
         private SectionInstanceService $sectionInstanceService,
     ) {}
 
     /**
-     * Get paginated report assignments.
+     * Retrieve paginated report assignments for management page.
      *
      * @return LengthAwarePaginator<int, ReportAssignment>
      */
@@ -31,7 +32,7 @@ class ReportAssignmentService
     }
 
     /**
-     * Get report type options.
+     * Get report type options for assignment form.
      *
      * @return Collection<int, ReportType>
      */
@@ -41,11 +42,11 @@ class ReportAssignmentService
     }
 
     /**
-     * Create a report assignment and initialize section instances.
+     * Create a report assignment and initialize its section instances.
      */
-    public function createAssignment(ReportAssignmentDTO $dto, string $createdBy): ReportAssignment
+    public function createAssignment(CreateReportAssignmentDto $dto, string $createdBy): ReportAssignment
     {
-        $report = $this->repository->create($dto->toCreatePayload($createdBy));
+        $report = $this->repository->create($dto, $createdBy);
 
         $this->sectionInstanceService->ensureInstancesInitialized($report);
 
@@ -53,11 +54,11 @@ class ReportAssignmentService
     }
 
     /**
-     * Update assignment and re-sync section instances.
+     * Update an existing assignment and re-sync its section instances.
      */
-    public function updateAssignment(ReportAssignment $report, ReportAssignmentDTO $dto): ReportAssignment
+    public function updateAssignment(ReportAssignment $report, UpdateReportAssignmentDto $dto): ReportAssignment
     {
-        $updated = $this->repository->update($report, $dto->toUpdatePayload());
+        $updated = $this->repository->update($report, $dto);
 
         $this->sectionInstanceService->ensureInstancesInitialized($updated->fresh());
 
@@ -65,7 +66,7 @@ class ReportAssignmentService
     }
 
     /**
-     * Delete assignment only if status is still pending.
+     * Delete an assignment only if its status is still pending.
      */
     public function deletePendingAssignment(ReportAssignment $report): bool
     {

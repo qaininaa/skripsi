@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\ReportAssignment\Models;
+namespace Domain\ReportAssignment\Models;
 
 use App\Domains\Report\Models\Report as BaseReport;
 use Domain\ReportType\Models\ReportType;
@@ -8,6 +8,9 @@ use Domain\User\Models\User;
 
 /**
  * Domain model alias for report assignment context.
+ *
+ * Reuses the underlying `reports` table from the Report domain while
+ * exposing the relationships specific to admin assignment workflows.
  */
 class ReportAssignment extends BaseReport
 {

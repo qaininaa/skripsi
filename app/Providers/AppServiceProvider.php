@@ -20,6 +20,8 @@ use Domain\AuditLog\Repositories\AuditLogRepository;
 use Domain\AuditLog\Services\AuditLogService;
 use Domain\PasswordPolicy\Interfaces\PasswordSettingRepositoryInterface;
 use Domain\PasswordPolicy\Repositories\PasswordSettingRepository;
+use Domain\ReportAssignment\Interfaces\ReportAssignmentRepositoryInterface;
+use Domain\ReportAssignment\Repositories\ReportAssignmentRepository;
 use Domain\User\Interfaces\AuthRepositoryInterface;
 use Domain\User\Interfaces\PasswordRepositoryInterface;
 use Domain\User\Interfaces\UserRepositoryInterface;
@@ -51,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ReportTypeRepositoryInterface::class, ReportTypeRepository::class);
         $this->app->bind(ReportSectionRepositoryInterface::class, ReportSectionRepository::class);
         $this->app->bind(SectionLocationRepositoryInterface::class, SectionLocationRepository::class);
+        $this->app->bind(ReportAssignmentRepositoryInterface::class, ReportAssignmentRepository::class);
     }
 
     /**

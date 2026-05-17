@@ -1,19 +1,22 @@
 <?php
 
-namespace App\Domains\ReportAssignment\Repositories;
+namespace Domain\ReportAssignment\Repositories;
 
-use App\Domains\ReportAssignment\Models\ReportAssignment;
+use Domain\ReportAssignment\Dtos\CreateReportAssignmentDto;
+use Domain\ReportAssignment\Dtos\UpdateReportAssignmentDto;
+use Domain\ReportAssignment\Interfaces\ReportAssignmentRepositoryInterface;
+use Domain\ReportAssignment\Models\ReportAssignment;
 use Domain\ReportType\Models\ReportType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
- * Repository for report assignment data access.
+ * Eloquent implementation of ReportAssignmentRepositoryInterface.
  */
-class ReportAssignmentRepository
+class ReportAssignmentRepository implements ReportAssignmentRepositoryInterface
 {
     /**
-     * Get paginated report assignments for admin page.
+     * Get paginated report assignments with optional search and status filters.
      *
      * @return LengthAwarePaginator<int, ReportAssignment>
      */
@@ -32,7 +35,7 @@ class ReportAssignmentRepository
     }
 
     /**
-     * Get report type options for assignment form.
+     * Get report type options ordered by annex number.
      *
      * @return Collection<int, ReportType>
      */
@@ -42,29 +45,25 @@ class ReportAssignmentRepository
     }
 
     /**
-     * Create report assignment.
-     *
-     * @param  array{report_type_id: string, product_name: string, batch_number: string, created_by: string}  $payload
+     * Persist a new report assignment record.
      */
-    public function create(array $payload): ReportAssignment
+    public function create(CreateReportAssignmentDto $dto, string $createdBy): ReportAssignment
     {
-        return ReportAssignment::create($payload);
+        return ReportAssignment::create($dto->toArray($createdBy));
     }
 
     /**
-     * Update report assignment.
-     *
-     * @param  array{report_type_id: string, product_name: string, batch_number: string}  $payload
+     * Update an existing report assignment record.
      */
-    public function update(ReportAssignment $report, array $payload): ReportAssignment
+    public function update(ReportAssignment $report, UpdateReportAssignmentDto $dto): ReportAssignment
     {
-        $report->update($payload);
+        $report->update($dto->toArray());
 
         return $report;
     }
 
     /**
-     * Delete report assignment.
+     * Delete a report assignment record.
      */
     public function delete(ReportAssignment $report): void
     {

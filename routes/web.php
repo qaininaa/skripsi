@@ -8,7 +8,7 @@ use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Location\LocationController;
 use App\Domains\Report\Http\Controllers\ReportClaimingController;
 use App\Domains\Report\Http\Controllers\ReportDraftingController;
-use App\Domains\ReportAssignment\Http\Controllers\ReportAssignmentController;
+use App\Http\Controllers\ReportAssignment\ReportAssignmentController;
 use App\Domains\ReportPreview\Http\Controllers\ReportPreviewController;
 use App\Domains\ReportPreview\Http\Controllers\ReportPreviewStructureController;
 use App\Http\Controllers\ReportType\ReportLocationController;
