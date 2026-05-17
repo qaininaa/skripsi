@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UserIndexRequest;
 use App\Http\Requests\User\UserStoreRequest;
+use App\Http\Requests\User\UserUpdateRequest;
 use Domain\User\Models\User;
 use Domain\User\Services\UserService;
 use Illuminate\Http\RedirectResponse;
@@ -39,16 +40,32 @@ class UserController extends Controller
 
         return redirect()
             ->route('users.index')
-            ->with('success', 'Pengguna baru berhasil dibuat. Password default.');
+            ->with('success', 'Pengguna baru berhasil dibuat.');
     }
 
-    public function resetPassword(Request $request, User $user): RedirectResponse
+    public function edit(User $user): View
     {
-        $this->userService->resetPassword($user, $this->meta($request));
+        return view('pages.users.edit', compact('user'));
+    }
+
+    public function update(UserUpdateRequest $request, User $user): RedirectResponse
+    {
+        if ($request->input('role') === 'manajer' && $this->userService->isManagerTaken($user->id)) {
+            return back()->withInput()->withErrors([
+                'role' => 'Sudah ada pengguna dengan role Manajer. Hanya boleh ada 1 Manajer.',
+            ]);
+        }
+
+        $dto = $request->toDTO();
+        $this->userService->updateUser($user, $dto, $this->meta($request));
+
+        $message = $dto->hasPasswordReset()
+            ? "Pengguna {$user->username} berhasil diperbarui dan password direset."
+            : "Pengguna {$user->username} berhasil diperbarui.";
 
         return redirect()
             ->route('users.index')
-            ->with('success', "Password pengguna {$user->username} direset ke default");
+            ->with('success', $message);
     }
 
     public function destroy(Request $request, User $user): RedirectResponse

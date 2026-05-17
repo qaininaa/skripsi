@@ -5,9 +5,11 @@ namespace Domain\User\Services;
 use Domain\AuditLog\Services\AuditLogService;
 use Domain\User\Dtos\CreateUserDto;
 use Domain\User\Dtos\GetUsersFilterDto;
+use Domain\User\Dtos\UpdateUserDto;
 use Domain\User\Interfaces\UserRepositoryInterface;
 use Domain\User\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Handles business logic for user management.
@@ -17,6 +19,7 @@ class UserService
     public function __construct(
         private UserRepositoryInterface $repository,
         private AuditLogService $auditLogService,
+        private PasswordService $passwordService,
     ) {}
 
     /**
@@ -30,17 +33,22 @@ class UserService
     }
 
     /**
-     * Create new user with default password and write audit log.
+     * Create a new user with admin-supplied password.
+     *
+     * last_password_changed_at is set to null so the user is required to
+     * change their password on first login.
      *
      * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
      */
     public function createUser(CreateUserDto $dto, array $meta): User
     {
-        $payload = $dto->toArray();
-        $payload['password'] = $this->defaultPassword();
-        $payload['last_password_changed_at'] = null;
-
-        $user = $this->repository->create($payload);
+        $user = $this->repository->create([
+            'name' => $dto->name,
+            'username' => $dto->username,
+            'role' => $dto->role,
+            'password' => Hash::make($dto->password),
+            'last_password_changed_at' => null,
+        ]);
 
         $this->auditLogService->log(
             'create_user',
@@ -52,20 +60,29 @@ class UserService
     }
 
     /**
-     * Reset user password to default.
+     * Update existing user attributes. If the DTO carries a password,
+     * it is also reset (current password archived to history) and the
+     * user is forced to change password on next login.
      *
      * @param  array{user_id?: string|null, ip_address?: string|null, user_agent?: string|null}  $meta
      */
-    public function resetPassword(User $user, array $meta): User
+    public function updateUser(User $user, UpdateUserDto $dto, array $meta): User
     {
         $updatedUser = $this->repository->update($user, [
-            'password' => $this->defaultPassword(),
-            'last_password_changed_at' => null,
+            'name' => $dto->name,
+            'username' => $dto->username,
+            'role' => $dto->role,
         ]);
 
+        if ($dto->hasPasswordReset()) {
+            // Archive current password into history so the user cannot reuse it.
+            $this->passwordService->resetByAdmin($updatedUser, $dto->password);
+        }
+
         $this->auditLogService->log(
-            'reset_user_password',
-            "Reset password pengguna: {$updatedUser->name} ({$updatedUser->username}) ke default",
+            'update_user',
+            "Memperbarui pengguna: {$updatedUser->name} ({$updatedUser->username})"
+                . ($dto->hasPasswordReset() ? ' (password direset)' : ''),
             $meta
         );
 
@@ -87,21 +104,10 @@ class UserService
     }
 
     /**
-     * Check whether a manager role is already assigned.
+     * Check whether a manager role is already assigned, optionally excluding a user id.
      */
     public function isManagerTaken(?string $excludeUserId = null): bool
     {
         return $this->repository->isManagerTaken($excludeUserId);
-    }
-
-    private function defaultPassword(): string
-    {
-        $password = (string) config('auth.default_user_password');
-
-        if (trim($password) === '') {
-            throw new \RuntimeException('DEFAULT_USER_PASSWORD is not configured.');
-        }
-
-        return $password;
     }
 }

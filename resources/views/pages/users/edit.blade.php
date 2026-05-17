@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Pengguna')
-@section('page-title', 'Tambah Pengguna')
+@section('title', 'Edit Pengguna')
+@section('page-title', 'Edit Pengguna')
 @section('content')
 
     <div class="max-w-2xl mx-auto">
@@ -15,7 +15,12 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Tambah Pengguna Baru</h2>
+            <h2 class="text-lg font-semibold text-gray-800 mb-1">Edit Pengguna</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                <span class="font-medium text-gray-700">{{ $user->name }}</span>
+                <span class="text-gray-400">·</span>
+                <span class="text-gray-500">{{ $user->username }}</span>
+            </p>
 
             @if ($errors->any())
                 <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
@@ -28,19 +33,26 @@
                 </div>
             @endif
 
-            <form action="{{ route('users.store') }}" method="POST" class="space-y-4">
+            @php
+                $managerExistsForOther = \Domain\User\Models\User::where('role', 'manajer')
+                    ->where('id', '!=', $user->id)
+                    ->exists();
+            @endphp
+
+            <form action="{{ route('users.update', $user) }}" method="POST" class="space-y-4">
                 @csrf
+                @method('PUT')
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input type="text" name="name" value="{{ old('name') }}"
+                    <input type="text" name="name" value="{{ old('name', $user->name) }}"
                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                            required>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                    <input type="text" name="username" value="{{ old('username') }}"
+                    <input type="text" name="username" value="{{ old('username', $user->username) }}"
                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                            required>
                 </div>
@@ -48,39 +60,42 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih role</option>
-                        <option value="super" {{ old('role') === 'super' ? 'selected' : '' }}>Super Admin</option>
-                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin QC</option>
-                        <option value="analis" {{ old('role') === 'analis' ? 'selected' : '' }}>Analis</option>
-                        <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="manajer" {{ old('role') === 'manajer' ? 'selected' : '' }} {{ \Domain\User\Models\User::where('role', 'manajer')->exists() ? 'disabled' : '' }}>
-                            Manajer{{ \Domain\User\Models\User::where('role', 'manajer')->exists() ? ' (sudah ada)' : '' }}
+                        @php $currentRole = old('role', $user->role); @endphp
+                        <option value="super"      {{ $currentRole === 'super'      ? 'selected' : '' }}>Super Admin</option>
+                        <option value="admin"      {{ $currentRole === 'admin'      ? 'selected' : '' }}>Admin QC</option>
+                        <option value="analis"     {{ $currentRole === 'analis'     ? 'selected' : '' }}>Analis</option>
+                        <option value="supervisor" {{ $currentRole === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                        <option value="manajer"    {{ $currentRole === 'manajer'    ? 'selected' : '' }} {{ $managerExistsForOther ? 'disabled' : '' }}>
+                            Manajer{{ $managerExistsForOther ? ' (sudah ada)' : '' }}
                         </option>
                     </select>
                 </div>
 
+                <div class="border-t border-gray-100 pt-4">
+                    <h3 class="text-sm font-semibold text-gray-700">Reset Password (Opsional)</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Kosongkan kedua kolom jika tidak ingin mengganti password. Mengisi password berarti mereset akun.
+                    </p>
+                </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
                     <input type="password" name="password" autocomplete="new-password"
                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                           required>
+                           placeholder="Kosongkan jika tidak ingin mengubah">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
                     <input type="password" name="password_confirmation" autocomplete="new-password"
                            class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                           required>
-                </div>
-
-                <div class="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
-                    Pengguna akan diminta mengganti password sendiri saat login pertama kali.
+                           placeholder="Ulangi password baru">
                 </div>
 
                 <div class="pt-2 flex justify-end gap-3">
                     <a href="{{ route('users.index') }}" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</a>
                     <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">
-                        Simpan
+                        Simpan Perubahan
                     </button>
                 </div>
             </form>

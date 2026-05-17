@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\User;
 
-use Domain\User\Dtos\CreateUserDto;
+use Domain\User\Dtos\UpdateUserDto;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UserStoreRequest extends FormRequest
+class UserUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,11 +18,16 @@ class UserStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userId = $this->route('user')?->id;
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
+            'username' => [
+                'required', 'string', 'max:255',
+                Rule::unique('users', 'username')->ignore($userId),
+            ],
             'role' => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
-            'password' => ['required', 'string', 'min:1', 'confirmed'],
+            'password' => ['nullable', 'string', 'min:1', 'confirmed'],
         ];
     }
 
@@ -37,8 +42,8 @@ class UserStoreRequest extends FormRequest
         ];
     }
 
-    public function toDTO(): CreateUserDto
+    public function toDTO(): UpdateUserDto
     {
-        return CreateUserDto::fromArray($this->validated());
+        return UpdateUserDto::fromArray($this->validated());
     }
 }

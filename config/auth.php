@@ -114,16 +114,4 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default User Password
-    |--------------------------------------------------------------------------
-    |
-    | Default password used when creating/resetting user accounts via
-    | management flow. Keep this value in environment configuration.
-    |
-    */
-
-    'default_user_password' => env('DEFAULT_USER_PASSWORD'),
-
 ];

@@ -57,9 +57,8 @@ Route::middleware(['auth', 'password.check', 'role:super'])
     ->prefix('dashboard/super-admin')
     ->group(function () {
         Route::resource('users', UserController::class)
-            ->only(['index', 'create', 'store', 'destroy'])
+            ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('users');
-        Route::post('super-admin/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::get('super-admin/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('super-admin/settings', [PasswordPolicyController::class, 'index'])->name('settings.index');
         Route::put('super-admin/settings', [PasswordPolicyController::class, 'update'])->name('settings.update');

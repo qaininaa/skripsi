@@ -37,6 +37,12 @@ class PasswordService
         $historyCount = $this->passwordPolicyService->getHistoryCount();
         $newPassword = $dto->newPassword;
 
+        if (Hash::check($newPassword, $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => 'Password baru tidak boleh sama dengan password saat ini.',
+            ]);
+        }
+
         $recentPasswords = $this->repository->recentHistories($user, $historyCount);
         foreach ($recentPasswords as $history) {
             if (Hash::check($newPassword, $history->password)) {
@@ -46,14 +52,30 @@ class PasswordService
             }
         }
 
-        if (Hash::check($newPassword, $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => 'Password baru tidak boleh sama dengan password saat ini.',
-            ]);
-        }
-
         $this->repository->addHistory($user, $user->password);
         $this->repository->pruneHistories($user, $historyCount);
         $this->repository->updateUserPassword($user, Hash::make($newPassword));
+    }
+
+    /**
+     * Reset user password as administrator.
+     *
+     * Archives the user's current password into history so they cannot
+     * reuse it during the forced change-password flow, and clears
+     * last_password_changed_at to require an immediate change on next login.
+     */
+    public function resetByAdmin(User $user, string $newPlainPassword): void
+    {
+        $historyCount = $this->passwordPolicyService->getHistoryCount();
+
+        // Archive the current password before overwriting so it counts toward history.
+        if (! empty($user->password)) {
+            $this->repository->addHistory($user, $user->password);
+            $this->repository->pruneHistories($user, $historyCount);
+        }
+
+        $user->password = Hash::make($newPlainPassword);
+        $user->last_password_changed_at = null;
+        $user->save();
     }
 }

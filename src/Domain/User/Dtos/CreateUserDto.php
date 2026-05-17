@@ -11,6 +11,7 @@ class CreateUserDto
         public readonly string $name,
         public readonly string $username,
         public readonly string $role,
+        public readonly string $password,
     ) {}
 
     public static function fromArray(array $data): self
@@ -19,20 +20,7 @@ class CreateUserDto
             name: (string) $data['name'],
             username: (string) $data['username'],
             role: (string) $data['role'],
+            password: (string) $data['password'],
         );
-    }
-
-    /**
-     * Get base payload for user creation (without password and timestamps).
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(): array
-    {
-        return [
-            'name' => $this->name,
-            'username' => $this->username,
-            'role' => $this->role,
-        ];
     }
 }
