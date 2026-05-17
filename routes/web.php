@@ -76,7 +76,6 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('report-assignment');
         Route::get('admin-qc/report-assignment/{report}/preview', [ReportPreviewController::class, 'show'])->name('admin.laporan.preview');
-        Route::post('admin-qc/report-assignment/{report}/personnel-page', [ReportPreviewStructureController::class, 'personnelPage'])->name('admin.laporan.personnel-page');
         Route::post('admin-qc/report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
         Route::delete('admin-qc/report-assignment/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'removeSection'])->name('report-assignment.sections.remove');
         // Data Master

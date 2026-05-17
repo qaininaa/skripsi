@@ -6,7 +6,6 @@ use App\Domains\Report\Models\Analyst;
 use App\Domains\Report\Models\Report;
 use App\Domains\Report\Models\ReportApproval;
 use App\Domains\Report\Models\SectionSignature;
-use App\Domains\Report\Models\PersonnelSignature;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -131,39 +130,5 @@ class ReportWorkflowService
     public function handover(Report $report): void
     {
         Report::where('id', $report->id)->update(['locked_by' => null]);
-    }
-
-    /**
-     * Stamp tanda tangan personel untuk analis yang benar-benar mengisi.
-     * Aksi draft ('save') tidak menyimpan tanda tangan.
-     */
-    public function stampPersonnelSignature(Report $report, string $action): void
-    {
-        if ($action === 'save') {
-            return; // draft tidak menyimpan tanda tangan personel
-        }
-
-        $role = $report->status === 'reading' ? 'reading' : 'monitoring';
-
-        // Cek apakah user ini benar-benar mengisi personnel row
-        $hasFilledPersonnel = \App\Domains\Report\Models\PersonnelRow::whereHas('instance', fn ($q) =>
-                $q->where('report_id', $report->id)
-            )
-            ->where('filled_by', Auth::id())
-            ->whereNotNull('personnel_name')
-            ->exists();
-
-        if (! $hasFilledPersonnel) {
-            return; // analis ini tidak ngisi personnel, skip
-        }
-
-        PersonnelSignature::updateOrCreate(
-            [
-                'report_id' => $report->id,
-                'user_id'   => Auth::id(),
-                'role'      => $role,
-            ],
-            ['signed_at' => now()]
-        );
     }
 }

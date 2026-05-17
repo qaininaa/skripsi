@@ -16,8 +16,6 @@ class ReportEntrySaveDTO
      * @param array $exposureTimes
      * @param array $columnNames
      * @param array $airSampler
-     * @param array $personnel
-     * @param array $pageNotes
      */
     public function __construct(
         public array $entries,
@@ -26,8 +24,6 @@ class ReportEntrySaveDTO
         public array $exposureTimes,
         public array $columnNames,
         public array $airSampler,
-        public array $personnel,
-        public array $pageNotes,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -39,8 +35,6 @@ class ReportEntrySaveDTO
             exposureTimes: (array) $request->input('exposure_times', []),
             columnNames: (array) $request->input('column_names', []),
             airSampler: (array) $request->input('air_sampler', []),
-            personnel: (array) $request->input('personnel', []),
-            pageNotes: (array) $request->input('page_notes', []),
         );
     }
 
@@ -56,8 +50,6 @@ class ReportEntrySaveDTO
             'exposure_times' => $this->exposureTimes,
             'column_names' => $this->columnNames,
             'air_sampler' => $this->airSampler,
-            'personnel' => $this->personnel,
-            'page_notes' => $this->pageNotes,
         ];
     }
 }

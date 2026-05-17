@@ -24,7 +24,6 @@ class ReportTypeRequest extends FormRequest
             'incubator_labels.*' => ['required', 'string', 'max:255'],
             'incubator_min_days' => ['required', 'array'],
             'incubator_min_days.*' => ['required', 'integer', 'min:1'],
-            'has_personnel' => ['nullable', 'boolean'],
         ];
     }
 

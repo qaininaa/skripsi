@@ -28,7 +28,7 @@ class ReportDraftingController extends Controller
     {
         $dto = ReportDraftingSaveDTO::fromRequest($request);
 
-        if ($dto->action === 'save' || $dto->personnelAction !== null) {
+        if ($dto->action === 'save') {
             return $this->draftingService->saveDraft($report, $dto);
         }
 

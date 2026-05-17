@@ -11,8 +11,6 @@ use App\Domains\Report\Models\ReportEnvironmentalEntry;
 use App\Domains\Report\Models\InstrumentIdentityEntry;
 use App\Domains\Report\Models\ReportSectionColumn;
 use App\Domains\Report\Models\ReportSectionNote;
-use App\Domains\Report\Models\PersonnelInstance;
-use App\Domains\Report\Models\PersonnelSignature;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -67,11 +65,6 @@ class Report extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function personnelSignatures()
-    {
-        return $this->hasMany(PersonnelSignature::class);
     }
 
     // -------------------------------------------------------------------------
@@ -147,11 +140,6 @@ class Report extends Model
         return $this->hasMany(ReportSectionNote::class)
             ->orderBy('section_id')
             ->orderBy('instance_number');
-    }
-
-    public function personnelInstances()
-    {
-        return $this->hasMany(PersonnelInstance::class)->orderBy('created_at');
     }
 
     /**

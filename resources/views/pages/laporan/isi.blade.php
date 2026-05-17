@@ -94,19 +94,7 @@
 @include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'instanceId' => $instanceId, 'totalInstances' => $totalInstances, 'secNum' => $secNum])
 @endforeach
 
-@if ($report->reportType->has_personnel ?? false)
-@include('pages.laporan.partials.section-personel', [
-    'isEditable'               => $isEditable,
-    'isMonitoringPhase'        => $isMonitoringPhase,
-    'isReadingPhase'           => !$isMonitoringPhase,
-    'canManagePersonnelPages'  => ($isAdminPreview ?? false) ? true : ($isEditable && $isMonitoringPhase),
-    'personnelActionRoute'     => ($isAdminPreview ?? false) ? route('admin.laporan.personnel-page', $report) : null,
-])
-@endif
-
 @include('pages.laporan.partials.bottom-bar')
-
-</form>
 <x-modals.report-modal :is-monitoring-phase="$isMonitoringPhase" />
 
 @endsection

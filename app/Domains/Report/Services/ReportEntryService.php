@@ -4,6 +4,8 @@ namespace App\Domains\Report\Services;
 
 use App\Domains\Report\Models\Analyst;
 use App\Domains\Report\Models\Report;
+use App\Domains\Report\Models\ReportSectionColumn;
+use App\Domains\Report\Models\ReportSectionNote;
 use Illuminate\Http\Request;
 
 /**
@@ -16,13 +18,12 @@ class ReportEntryService
         private InstrumentIdentityEntryService $instrumentIdentityEntryService,
         private MediumEntryService $mediumEntryService,
         private EnvironmentalEntryService $environmentalEntryService,
-        private PersonnelEntryService $personnelEntryService,
     ) {}
 
     /**
      * Save full report form payload.
      *
-     * @return array{0: array, 1: bool}
+     * @return array{0: array}
      */
     public function process(Request $request, Report $report): array
     {
@@ -31,8 +32,8 @@ class ReportEntryService
         $this->incubatorEntryService->saveFromRequest($request, $report);
 
         $this->saveAnalysts($request, $report);
-        $this->personnelEntryService->saveSectionColumnNames($request, $report);
-        $this->personnelEntryService->saveSectionNotes($request, $report);
+        $this->saveSectionColumnNames($request, $report);
+        $this->saveSectionNotes($request, $report);
 
         $savedSectionIds = [];
         [$sectionLocations, $locationSectionType, $locationSectionId, $locationSectionTimeSlot] =
@@ -75,12 +76,7 @@ class ReportEntryService
             $savedSectionIds
         );
 
-        $hasPersonnelData = false;
-        if ($request->has('personnel') || $request->has('page_notes')) {
-            $hasPersonnelData = $this->personnelEntryService->savePersonnel($request, $report);
-        }
-
-        return [$savedSectionIds, $hasPersonnelData];
+        return [$savedSectionIds];
     }
 
     public function buildSectionLocationMaps(Report $report): array
@@ -109,7 +105,94 @@ class ReportEntryService
 
     public function saveSectionNotes(Request $request, Report $report): void
     {
-        $this->personnelEntryService->saveSectionNotes($request, $report);
+        $sectionNotes = $request->input('section_notes', []);
+        if (! is_array($sectionNotes) || empty($sectionNotes)) {
+            return;
+        }
+
+        foreach ($sectionNotes as $sectionId => $instanceData) {
+            if (! is_array($instanceData) || empty($instanceData)) {
+                continue;
+            }
+
+            $firstKey = array_key_first($instanceData);
+            $isFlatNote = $firstKey !== null && ! is_array($instanceData[$firstKey]);
+            if ($isFlatNote) {
+                $instanceData = [1 => $instanceData];
+            }
+
+            foreach ($instanceData as $instanceNum => $noteData) {
+                if (! is_array($noteData)) {
+                    continue;
+                }
+
+                $instanceNumber = max(1, (int) $instanceNum);
+                $notes = is_string($noteData['notes'] ?? null) ? trim($noteData['notes']) : null;
+                $conclusionRaw = is_string($noteData['conclusion'] ?? null)
+                    ? strtoupper(trim($noteData['conclusion']))
+                    : null;
+                $conclusion = in_array($conclusionRaw, ['MS', 'TMS'], true) ? $conclusionRaw : null;
+
+                \App\Domains\Report\Models\ReportSectionNote::updateOrCreate(
+                    [
+                        'report_id' => (string) $report->id,
+                        'section_id' => (string) $sectionId,
+                        'instance_number' => $instanceNumber,
+                    ],
+                    [
+                        'notes' => $notes !== '' ? $notes : null,
+                        'conclusion' => $conclusion,
+                    ]
+                );
+            }
+        }
+    }
+
+    private function saveSectionColumnNames(Request $request, Report $report): void
+    {
+        $columnNames = $request->input('column_names', []);
+        if (! is_array($columnNames) || empty($columnNames)) {
+            return;
+        }
+
+        foreach ($columnNames as $sectionId => $instanceData) {
+            if (! is_array($instanceData) || empty($instanceData)) {
+                continue;
+            }
+
+            $firstKey = array_key_first($instanceData);
+            $isFlatColumns = $firstKey !== null && ! is_array($instanceData[$firstKey]);
+            if ($isFlatColumns) {
+                $instanceData = [1 => $instanceData];
+            }
+
+            foreach ($instanceData as $instanceNum => $columns) {
+                if (! is_array($columns) || empty($columns)) {
+                    continue;
+                }
+
+                $instanceNumber = max(1, (int) $instanceNum);
+
+                foreach ($columns as $period => $label) {
+                    $periodNumber = (int) $period;
+                    if ($periodNumber < 1) {
+                        continue;
+                    }
+
+                    $value = is_string($label) ? trim($label) : null;
+
+                    \App\Domains\Report\Models\ReportSectionColumn::updateOrCreate(
+                        [
+                            'report_id' => (string) $report->id,
+                            'section_id' => (string) $sectionId,
+                            'instance_number' => $instanceNumber,
+                            'period_number' => $periodNumber,
+                        ],
+                        ['label' => $value !== '' ? $value : null]
+                    );
+                }
+            }
+        }
     }
 
     private function saveAnalysts(Request $request, Report $report): void

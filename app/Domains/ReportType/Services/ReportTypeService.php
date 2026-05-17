@@ -6,7 +6,6 @@ use App\Domains\Location\Models\Location;
 use App\Domains\ReportType\Models\ReportType;
 use App\Domains\ReportType\Repositories\ReportTypeRepository;
 use App\Domains\AuditLog\Models\AuditLog;
-use App\Services\Personnels\PersonnelService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -17,7 +16,6 @@ class ReportTypeService
 {
     public function __construct(
         private ReportTypeRepository $repository,
-        private PersonnelService $personnelService,
     ) {}
 
     /**
@@ -48,7 +46,6 @@ class ReportTypeService
      *   sop_version: string,
      *   name: string,
      *   annex_number: int,
-     *   has_personnel?: bool,
      *   medium_labels?: array<int, string|null>,
      *   incubator_labels?: array<int, string|null>,
      *   incubator_min_days?: array<int, int|string|null>
@@ -62,7 +59,6 @@ class ReportTypeService
             'sop_version' => $validated['sop_version'],
             'name' => $validated['name'],
             'annex_number' => $validated['annex_number'],
-            'has_personnel' => $validated['has_personnel'] ?? false,
         ]);
 
         $this->syncMedia($reportType, $validated['medium_labels'] ?? []);
@@ -81,7 +77,6 @@ class ReportTypeService
      *   sop_version: string,
      *   name: string,
      *   annex_number: int,
-     *   has_personnel?: bool,
      *   medium_labels?: array<int, string|null>,
      *   incubator_labels?: array<int, string|null>,
      *   incubator_min_days?: array<int, int|string|null>
@@ -90,26 +85,16 @@ class ReportTypeService
      */
     public function update(ReportType $reportType, array $validated, array $meta): ReportType
     {
-        $wasPersonnel = (bool) $reportType->has_personnel;
-        $isPersonnel = (bool) ($validated['has_personnel'] ?? false);
-
         $reportType = $this->repository->update($reportType, [
             'sop_code' => $validated['sop_code'],
             'sop_version' => $validated['sop_version'],
             'name' => $validated['name'],
             'annex_number' => $validated['annex_number'],
-            'has_personnel' => $isPersonnel,
         ]);
 
         $this->repository->clearMediumAndIncubatorTypes($reportType);
         $this->syncMedia($reportType, $validated['medium_labels'] ?? []);
         $this->syncIncubators($reportType, $validated['incubator_labels'] ?? [], $validated['incubator_min_days'] ?? []);
-
-        if (! $wasPersonnel && $isPersonnel) {
-            $this->personnelService->generate($reportType);
-        } elseif ($wasPersonnel && ! $isPersonnel) {
-            $this->personnelService->remove($reportType);
-        }
 
         $this->auditLog('update_report_type', "Memperbarui jenis laporan: {$reportType->name} ({$reportType->annex_number})", $meta);
 

@@ -36,10 +36,6 @@ class ReportViewService
         'sectionColumnNames',
         'sectionNotes',
         'sectionSignatures.user',
-        'reportType.personnelMethods.activities',
-        'reportType.personnelMethods.samplingPoints',
-        'reportType.personnelMethods.limits',
-        'personnelInstances.rows.samplingEntries',
     ];
 
     public function __construct(
@@ -73,7 +69,6 @@ class ReportViewService
         return array_merge(
             $this->buildSectionViewData($report),
             $this->buildIdentityAndEquipmentViewData($report),
-            $this->buildPersonnelViewData($report),
             $this->buildAnalystAndApprovalViewData($report),
             [
                 'isEditable' => $isEditable,
@@ -130,28 +125,6 @@ class ReportViewService
             'incubatorTypes' => $incubatorTypes,
             'mediums' => $mediums,
             'mediumFieldLocks' => $mediumFieldLocks,
-        ];
-    }
-
-    /**
-     * Build data untuk section personel.
-     */
-    private function buildPersonnelViewData(Report $report): array
-    {
-        $personnelMethods = $report->reportType->personnelMethods;
-        $personnelInstances = $report->personnelInstances;
-
-        $personnelSignatures = $report->personnelSignatures()
-            ->with('user')
-            ->orderBy('signed_at')
-            ->orderBy('created_at')
-            ->get()
-            ->groupBy('role'); // ['monitoring' => Collection<Signature>, 'reading' => Collection<Signature>]
-
-        return [
-            'personnelMethods' => $personnelMethods,
-            'personnelInstances' => $personnelInstances,
-            'personnelSignatures' => $personnelSignatures,
         ];
     }
 

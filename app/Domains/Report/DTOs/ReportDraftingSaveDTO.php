@@ -11,13 +11,11 @@ class ReportDraftingSaveDTO
 {
     /**
      * @param string $action
-     * @param string|null $personnelAction
      * @param string|null $supervisorId
      * @param array $entries
      */
     public function __construct(
         public string $action,
-        public ?string $personnelAction,
         public ?string $supervisorId,
         public array $entries,
     ) {}
@@ -29,7 +27,6 @@ class ReportDraftingSaveDTO
     {
         return new self(
             action: (string) $request->input('action', 'save'),
-            personnelAction: $request->input('_personnel_action'),
             supervisorId: $request->input('supervisor_id'),
             entries: $request->input('entries', []),
         );

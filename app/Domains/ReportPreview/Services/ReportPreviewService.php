@@ -3,7 +3,6 @@
 namespace App\Domains\ReportPreview\Services;
 
 use App\Domains\Report\Models\Report;
-use App\Services\PersonnelInstanceService;
 use App\Services\SectionInstanceService;
 
 /**
@@ -13,7 +12,6 @@ class ReportPreviewService
 {
     public function __construct(
         private SectionInstanceService $sectionInstanceService,
-        private PersonnelInstanceService $personnelInstanceService,
     ) {}
 
     /**
@@ -38,27 +36,5 @@ class ReportPreviewService
     public function removeSection(Report $report, string $sectionId): array
     {
         return $this->sectionInstanceService->remove($report, $sectionId);
-    }
-
-    /**
-     * Handle personnel page add/remove action from preview context.
-     *
-     * @param Report $report
-     * @param string|null $action
-     * @return array{ok: bool, message: string}
-     */
-    public function handlePersonnelPageAction(Report $report, ?string $action): array
-    {
-        if ($action === 'add_page') {
-            return $this->personnelInstanceService->addPage($report);
-        }
-
-        if (str_starts_with((string) $action, 'remove_page_')) {
-            $pageNum = (int) str_replace('remove_page_', '', (string) $action);
-
-            return $this->personnelInstanceService->removePage($report, $pageNum);
-        }
-
-        return ['ok' => false, 'message' => 'Aksi tidak dikenali.'];
     }
 }

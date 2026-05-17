@@ -42,14 +42,10 @@ class ReportSubmissionService
         }
 
         $request = request();
-        [$savedSectionIds, $hasPersonnelData] = $this->entryService->process($request, $report);
+        [$savedSectionIds] = $this->entryService->process($request, $report);
 
         $this->workflowService->recordParticipation($report, (string) Auth::id());
         $this->workflowService->stampSignatures($report, $savedSectionIds, $dto->action);
-
-        if ($hasPersonnelData) {
-            $this->workflowService->stampPersonnelSignature($report, $dto->action);
-        }
 
         if ($dto->action === 'submit') {
             abort_unless($report->status === 'reading', 403);

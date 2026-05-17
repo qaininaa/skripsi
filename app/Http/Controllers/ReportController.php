@@ -8,7 +8,6 @@ use App\Domains\Report\Services\ReportEntryService;
 use App\Domains\Report\Models\Report;
 use App\Domains\Report\Models\ReportApproval;
 use App\Domains\User\Models\User;
-use App\Services\PersonnelInstanceService;
 use App\Services\Reports\ReportViewService;
 use App\Services\Reports\ReportWorkflowService;
 use Illuminate\Http\Request;
@@ -23,7 +22,6 @@ class ReportController extends Controller
         private ReportEntryService $entryService,
         private EnvironmentalEntryService $environmentalEntryService,
         private IncubatorEntryService $incubatorEntryService,
-        private PersonnelInstanceService $personnelInstanceService,
     ) {}
 
     /**
@@ -167,18 +165,6 @@ class ReportController extends Controller
     abort_if(in_array($report->status, ['submitted', 'approved']), 403);
     abort_if($report->locked_by !== auth()->id(), 403);
 
-    // ── Handle personnel page actions (add/remove) ────
-    $personnelAction = $request->input('_personnel_action');
-    if ($personnelAction === 'add_page') {
-        $result = $this->personnelInstanceService->addPage($report);
-        return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
-    }
-    if ($personnelAction && str_starts_with($personnelAction, 'remove_page_')) {
-        $pageNum = (int) str_replace('remove_page_', '', $personnelAction);
-        $result = $this->personnelInstanceService->removePage($report, $pageNum);
-        return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
-    }
-
     // ── Validasi CFU ──────────────────────────────────
     $invalidFields = $this->environmentalEntryService->validateCfu($request->input('entries', []));
     if (! empty($invalidFields)) {
@@ -190,7 +176,7 @@ class ReportController extends Controller
     $action = $request->input('action', 'save');
 
     // ── Simpan semua data form ────────────────────────
-    [$savedSectionIds, $hasPersonnelData] = $this->entryService->process($request, $report);
+    [$savedSectionIds] = $this->entryService->process($request, $report);
 
     // ── Validasi inkubator khusus saat finish monitoring ─────────────
     if ($action === 'finish_monitoring') {
@@ -216,11 +202,6 @@ class ReportController extends Controller
 
     // ── Stamp TTD env section (selain save) ───────────
     $this->workflowService->stampSignatures($report, $savedSectionIds, $action);
-
-    // ── Stamp TTD personnel (terpisah dari env section) ───
-    if ($hasPersonnelData) {
-        $this->workflowService->stampPersonnelSignature($report, $action);
-    }
 
     // ── Cabang aksi ───────────────────────────────────
     if ($action === 'submit') {

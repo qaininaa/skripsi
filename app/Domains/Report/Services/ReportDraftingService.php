@@ -4,7 +4,6 @@ namespace App\Domains\Report\Services;
 
 use App\Domains\Report\DTOs\ReportDraftingSaveDTO;
 use App\Domains\Report\Models\AnalystReport;
-use App\Services\PersonnelInstanceService;
 use App\Services\Reports\ReportWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +14,6 @@ use Illuminate\Support\Facades\Auth;
 class ReportDraftingService
 {
     public function __construct(
-        private PersonnelInstanceService $personnelInstanceService,
         private ReportEntryService $entryService,
         private EnvironmentalEntryService $environmentalEntryService,
         private ReportWorkflowService $workflowService,
@@ -28,19 +26,6 @@ class ReportDraftingService
     {
         abort_if(in_array($report->status, ['submitted', 'approved'], true), 403);
         abort_if((string) $report->locked_by !== (string) Auth::id(), 403);
-
-        if ($dto->personnelAction === 'add_page') {
-            $result = $this->personnelInstanceService->addPage($report);
-
-            return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
-        }
-
-        if ($dto->personnelAction && str_starts_with($dto->personnelAction, 'remove_page_')) {
-            $pageNum = (int) str_replace('remove_page_', '', $dto->personnelAction);
-            $result = $this->personnelInstanceService->removePage($report, $pageNum);
-
-            return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
-        }
 
         if ($dto->action !== 'save') {
             return back()->with('error', 'Aksi ini bukan simpan draft.');

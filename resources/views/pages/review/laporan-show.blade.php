@@ -40,10 +40,6 @@
 
         return ($start ?: $reviewTimePlaceholder) . ' – ' . ($end ?: $reviewTimePlaceholder);
     };
-    $canEditPersonnelTime = $isEditable;
-    $personnelMethods = $report->reportType->personnelMethods ?? collect();
-    $personnelInstances = $report->personnelInstances ?? collect();
-    $personnelSignatures = $report->personnelSignatures->groupBy('role');
     $latestApprovalByStep = static function (int $step) use ($report) {
         return $report->approvals
             ->where('step', $step)
@@ -1016,22 +1012,6 @@
         </div>
     </div>
     @endforeach
-
-    @if (($report->reportType->has_personnel ?? false) && $personnelMethods->isNotEmpty())
-    @include('pages.laporan.partials.section-personel', [
-        'isEditable' => false,
-        'isMonitoringPhase' => false,
-        'isReadingPhase' => false,
-        'canEditPersonnelTime' => $canEditPersonnelTime,
-        'restrictPersonnelTimeToExisting' => $reviewTimeRequiresAnalystValue,
-        'canManagePersonnelPages' => $isEditable,
-        'personnelMethods' => $personnelMethods,
-        'personnelInstances' => $personnelInstances,
-        'personnelSignatures' => $personnelSignatures,
-        'supApproval' => $supApproval,
-        'mngrApproval' => $mngrApproval,
-    ])
-    @endif
 
     {{-- Save button + close form (after all sections) --}}
     @if ($isEditable)

@@ -2,9 +2,6 @@
 
 namespace App\Domains\Report\Repositories;
 
-use App\Domains\Report\Models\PersonnelInstance;
-use App\Domains\Report\Models\PersonnelRow;
-use App\Domains\Report\Models\PersonnelSamplingEntry;
 use App\Domains\Report\Models\ReportEnvironmentalEntry;
 use App\Domains\Report\Models\ReportSectionColumn;
 use App\Domains\Report\Models\ReportSectionNote;
@@ -41,8 +38,7 @@ class ReportEntryRepository
         ]);
     }
 
-    public function upsertSectionColumn(
-        string $reportId,
+    public function upsertSectionColumn(        string $reportId,
         string $sectionId,
         int $instanceNumber,
         int $periodNumber,
@@ -76,41 +72,6 @@ class ReportEntryRepository
                 'notes' => $notes,
                 'conclusion' => $conclusion,
             ]
-        );
-    }
-
-    public function firstOrCreatePersonnelInstance(string $reportId, string $methodId, int $pageNumber): PersonnelInstance
-    {
-        return PersonnelInstance::firstOrCreate([
-            'report_id' => $reportId,
-            'personnel_section_method_id' => $methodId,
-            'page_number' => $pageNumber,
-        ]);
-    }
-
-    public function findPersonnelInstance(string $reportId, string $instanceId): ?PersonnelInstance
-    {
-        return PersonnelInstance::where('id', $instanceId)
-            ->where('report_id', $reportId)
-            ->first();
-    }
-
-    public function firstOrNewPersonnelRow(string $personnelInstanceId, int $rowOrder): PersonnelRow
-    {
-        return PersonnelRow::firstOrNew([
-            'personnel_instance_id' => $personnelInstanceId,
-            'row_order' => $rowOrder,
-        ]);
-    }
-
-    public function upsertPersonnelSamplingEntry(string $rowId, string $pointId, array $payload): void
-    {
-        PersonnelSamplingEntry::updateOrCreate(
-            [
-                'personnel_row_id' => $rowId,
-                'sampling_point_id' => $pointId,
-            ],
-            $payload
         );
     }
 }

@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Domains\Report\Services\IncubatorEntryService;
 use App\Domains\Report\Services\InstrumentIdentityEntryService;
 use App\Domains\Report\Services\MediumEntryService;
-use App\Domains\Report\Models\PersonnelInstance;
-use App\Domains\Report\Models\PersonnelRow;
 use App\Domains\Report\Models\Report;
 use App\Domains\Report\Models\ReportApproval;
 use App\Domains\Report\Models\SectionSignature;
@@ -97,9 +95,6 @@ class ManagerReportController extends Controller
         $report->load([
             'reportType.sections.locations.room',
             'reportType.mediumTypes',
-            'reportType.personnelMethods.activities',
-            'reportType.personnelMethods.samplingPoints',
-            'reportType.personnelMethods.limits',
             'environmentalEntries',
             'sectionColumnNames',
             'sectionNotes',
@@ -109,8 +104,6 @@ class ManagerReportController extends Controller
             'mediumIdentities',
             'instrumentEntries',
             'incubators',
-            'personnelInstances.rows.samplingEntries',
-            'personnelSignatures.user',
         ]);
 
         // Supervisor (step 2 user) for the return dropdown
@@ -291,19 +284,6 @@ class ManagerReportController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        // Handle personnel page actions (add/remove)
-        $personnelAction = $request->input('_personnel_action');
-        if ($personnelAction === 'add_page' || str_starts_with((string) $personnelAction, 'remove_page_')) {
-            $svc = app(\App\Services\PersonnelInstanceService::class);
-            if ($personnelAction === 'add_page') {
-                $result = $svc->addPage($report);
-            } else {
-                $pageNum = (int) str_replace('remove_page_', '', $personnelAction);
-                $result = $svc->removePage($report, $pageNum);
-            }
-            return back()->with($result['ok'] ? 'success' : 'error', $result['message']);
-        }
-
         $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
         $incubatorEntryService = app(IncubatorEntryService::class);
         $mediumEntryService = app(MediumEntryService::class);
@@ -329,50 +309,7 @@ class ManagerReportController extends Controller
         // Catatan & kesimpulan per section -> report_section_notes
         $entryService->saveSectionNotes($request, $report);
 
-        // Waktu monitoring personel → personnel_rows
-        $this->savePersonnelMonitoringTimes($request, $report);
-
         return back()->with('success', 'Data berhasil disimpan.');
-    }
-
-    private function savePersonnelMonitoringTimes(Request $request, Report $report): void
-    {
-        $personnelPayload = $request->input('personnel', []);
-        if (! is_array($personnelPayload) || empty($personnelPayload)) {
-            return;
-        }
-
-        foreach ($personnelPayload as $instanceId => $instanceData) {
-            if (! is_array($instanceData) || str_starts_with((string) $instanceId, '_new_')) {
-                continue;
-            }
-
-            $instance = PersonnelInstance::where('id', $instanceId)
-                ->where('report_id', $report->id)
-                ->first();
-
-            if (! $instance) {
-                continue;
-            }
-
-            foreach (($instanceData['row'] ?? []) as $rowOrder => $rowData) {
-                if (! is_array($rowData) || ! array_key_exists('time', $rowData)) {
-                    continue;
-                }
-
-                $row = PersonnelRow::where('personnel_instance_id', $instance->id)
-                    ->where('row_order', (int) $rowOrder)
-                    ->first();
-
-                if (! $row) {
-                    continue;
-                }
-
-                $time = trim((string) ($rowData['time'] ?? ''));
-                $row->monitoring_time = $time !== '' ? $time : null;
-                $row->save();
-            }
-        }
     }
 
     public function cetak(Report $report)
@@ -392,9 +329,6 @@ class ManagerReportController extends Controller
             'reportType.sections.locations.room',
             'reportType.mediumTypes',
             'reportType.incubatorTypes',
-            'reportType.personnelMethods.activities',
-            'reportType.personnelMethods.samplingPoints',
-            'reportType.personnelMethods.limits',
             'environmentalEntries.envSectionInstance',
             'approvals.user',
             'sectionColumnNames',
@@ -403,8 +337,6 @@ class ManagerReportController extends Controller
             'mediumIdentities',
             'incubators.entries.incubatedBy',
             'incubators.entries.removedBy',
-            'personnelInstances.rows.samplingEntries',
-            'personnelSignatures.user',
         ]);
         $report->applyReportTypeSnapshot();
         $entryMap = [];

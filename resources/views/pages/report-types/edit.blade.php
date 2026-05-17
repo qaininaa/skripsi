@@ -133,23 +133,6 @@
                 </div>
             </div>
 
-            {{-- Pemantauan Personel --}}
-            <div class="border-t border-gray-100 pt-5">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Pemantauan Personel</h3>
-                        <p class="text-xs text-gray-500">Aktifkan jika laporan ini mencakup laporan pemantauan personel (Cawan Kontak & Finger Dab).</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="hidden" name="has_personnel" value="0">
-                        <input type="checkbox" name="has_personnel" value="1"
-                               {{ old('has_personnel', $reportType->has_personnel) ? 'checked' : '' }}
-                               class="sr-only peer">
-                        <div class="w-10 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 transition-colors after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4"></div>
-                    </label>
-                </div>
-            </div>
-
             <div class="pt-3 border-t border-gray-100 flex justify-end gap-3">
                 <a href="{{ route('report-types.show', $reportType) }}" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</a>
                 <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-indigo-700 shadow-sm">Simpan Perubahan</button>

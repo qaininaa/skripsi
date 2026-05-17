@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Domains\Report\Models\Report;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Controller for report structure actions from admin preview context.
@@ -44,25 +43,6 @@ class ReportPreviewStructureController extends Controller
         $this->ensureAdminAccess();
 
         $result = $this->previewService->removeSection($report, $sectionId);
-
-        return $this->respond($result);
-    }
-
-    /**
-     * Add/remove personnel page from admin preview page.
-     *
-     * @param Request $request
-     * @param Report $report
-     * @return mixed
-     */
-    public function personnelPage(Request $request, Report $report): mixed
-    {
-        $this->ensureAdminAccess();
-
-        $result = $this->previewService->handlePersonnelPageAction(
-            $report,
-            $request->input('_personnel_action')
-        );
 
         return $this->respond($result);
     }
