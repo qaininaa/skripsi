@@ -630,7 +630,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
             @php $_rowNumP++; @endphp
             @php
                 $locEntries = collect();
-                for ($p = 1; $p <= $section->max_column; $p++) {
+                for ($p = 0; $p <= $section->max_column; $p++) {
                     for ($s = 1; $s <= 2; $s++) {
                         if (isset($entryMap[$loc->id][$instance][$p][$s])) $locEntries->push($entryMap[$loc->id][$instance][$p][$s]);
                     }

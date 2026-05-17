@@ -705,7 +705,7 @@
                     @php $_rowNumR++; @endphp
                     @php
                         $locEntries = collect();
-                        for ($p = 1; $p <= $section->max_column; $p++) {
+                        for ($p = 0; $p <= $section->max_column; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
                                 if (isset($entryMap[$loc->id][$instance][$p][$s])) {
                                     $locEntries->push($entryMap[$loc->id][$instance][$p][$s]);
@@ -768,7 +768,10 @@
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
-                            $existEntry = $entryMap[$loc->id][$instance][$col][$colAsgn] ?? null;
+                            $existEntry = $entryMap[$loc->id][$instance][$col][$colAsgn]
+                                       ?? $entryMap[$loc->id][$instance][$col][1]
+                                       ?? $entryMap[$loc->id][$instance][$col][2]
+                                       ?? null;
                             $tVal       = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
                         @if ($isPerLocation)

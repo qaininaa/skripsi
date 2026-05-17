@@ -631,7 +631,7 @@
                     @php $_rowNum2++; @endphp
                     @php
                         $locEntries = collect();
-                        for ($p = 1; $p <= $section->max_column; $p++) {
+                        for ($p = 0; $p <= $section->max_column; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
                                 if (isset($entryMap[$loc->id][$p][$s])) {
                                     $locEntries->push($entryMap[$loc->id][$p][$s]);
