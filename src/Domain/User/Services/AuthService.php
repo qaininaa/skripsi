@@ -51,12 +51,9 @@ class AuthService
      */
     public function resolveDashboardRouteName(User $user): ?string
     {
-        return match ($user->role) {
-            'super' => 'dashboard.super-admin',
-            'admin' => 'dashboard.admin-qc',
-            'analis' => 'dashboard.analis',
-            default => null,
-        };
+        return in_array($user->role, ['super', 'admin', 'analis', 'supervisor', 'manajer'], true)
+            ? 'dashboard'
+            : null;
     }
 
     /**

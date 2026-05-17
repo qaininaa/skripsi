@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuditLog\AuditLogController;
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\PasswordPolicy\PasswordPolicyController;
 use App\Http\Controllers\User\UserController;
 use App\Domains\Room\Http\Controllers\RoomController;
@@ -17,40 +18,16 @@ use App\Http\Controllers\ManagerReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportArchiveController;
 use App\Http\Controllers\SupervisorReportController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Redirect /dashboard berdasarkan role
-Route::get('/dashboard', function () {
-    $role = Auth::user()->role;
-    if ($role === 'super') {
-        return redirect()->route('dashboard.super-admin');
-    } elseif ($role === 'admin') {
-        return redirect()->route('dashboard.admin-qc');
-    } elseif ($role === 'analis') {
-        return redirect()->route('dashboard.analis');
-    } elseif ($role === 'supervisor') {
-        return redirect()->route('dashboard.supervisor');
-    } elseif ($role === 'manajer') {
-        return redirect()->route('dashboard.manajer');
-    }
-
-    return redirect('/');
-})->middleware(['auth', 'password.check'])->name('dashboard');
-
-// Dashboard Super Admin
-Route::get('/dashboard/super-admin', function () {
-    return view('pages.dashboard.super-admin');
-})->middleware(['auth', 'password.check', 'role:super'])->name('dashboard.super-admin');
-
-// Dashboard Admin QC
-Route::get('/dashboard/admin-qc', function () {
-    return view('pages.dashboard.admin-qc');
-})->middleware(['auth', 'password.check', 'role:admin'])->name('dashboard.admin-qc');
+// Single dashboard route - resolves view per role via DashboardService.
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'password.check'])
+    ->name('dashboard');
 
 // Manajemen Pengguna (hanya Super Admin)
 Route::middleware(['auth', 'password.check', 'role:super'])
@@ -93,10 +70,6 @@ Route::middleware(['auth', 'password.check', 'role:admin'])
 Route::middleware(['auth', 'password.check', 'role:analis'])
     ->prefix('dashboard')
     ->group(function () {
-        Route::get('analyst', function () {
-            return view('pages.dashboard.analis');
-        })->name('dashboard.analis');
-
         Route::get('analyst/reports', [ReportClaimingController::class, 'index'])->name('laporan.index');
         Route::get('analyst/reports/{report}/fill', [ReportClaimingController::class, 'isi'])->name('laporan.isi');
         Route::get('analyst/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('laporan.lihat');
@@ -108,7 +81,6 @@ Route::middleware(['auth', 'password.check', 'role:analis'])
 Route::middleware(['auth', 'password.check', 'role:supervisor'])
     ->prefix('dashboard')
     ->group(function () {
-        Route::get('supervisor', [SupervisorReportController::class, 'dashboard'])->name('dashboard.supervisor');
         Route::get('supervisor/incoming-reports', [SupervisorReportController::class, 'laporanMasuk'])->name('supervisor.laporan-masuk');
         Route::get('supervisor/ongoing-reports', [SupervisorReportController::class, 'laporanSedangDikerjakan'])->name('supervisor.laporan-sedang-dikerjakan');
         Route::get('supervisor/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('supervisor.laporan.preview');
@@ -123,7 +95,6 @@ Route::middleware(['auth', 'password.check', 'role:supervisor'])
 Route::middleware(['auth', 'password.check', 'role:manajer'])
     ->prefix('dashboard')
     ->group(function () {
-        Route::get('manager', [ManagerReportController::class, 'dashboard'])->name('dashboard.manajer');
         Route::get('manager/incoming-reports', [ManagerReportController::class, 'laporanMasuk'])->name('manajer.laporan-masuk');
         Route::get('manager/ongoing-reports', [ManagerReportController::class, 'laporanSedangDikerjakan'])->name('manajer.laporan-sedang-dikerjakan');
         Route::get('manager/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('manajer.laporan.preview');
