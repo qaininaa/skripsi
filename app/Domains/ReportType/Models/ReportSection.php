@@ -2,7 +2,7 @@
 
 namespace App\Domains\ReportType\Models;
 
-use App\Domains\Location\Models\Location;
+use Domain\Location\Models\Location;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

@@ -2,9 +2,9 @@
 
 namespace App\Domains\ReportType\Repositories;
 
-use App\Domains\Location\Models\Location;
-use App\Domains\ReportType\Models\ReportType;
 use App\Domains\ReportType\Models\IncubatorType;
+use App\Domains\ReportType\Models\ReportType;
+use Domain\Location\Models\Location;
 use App\Domains\ReportType\Models\MediumType;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;

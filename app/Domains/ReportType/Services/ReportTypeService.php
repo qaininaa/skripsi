@@ -2,9 +2,9 @@
 
 namespace App\Domains\ReportType\Services;
 
-use App\Domains\Location\Models\Location;
 use App\Domains\ReportType\Models\ReportType;
 use App\Domains\ReportType\Repositories\ReportTypeRepository;
+use Domain\Location\Models\Location;
 use Domain\AuditLog\Models\AuditLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;

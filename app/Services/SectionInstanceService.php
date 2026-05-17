@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Domains\Report\Models\EnvSectionInstance;
 use App\Domains\Report\Models\Report;
-use App\Domains\Location\Models\Location;
+use Domain\Location\Models\Location;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 

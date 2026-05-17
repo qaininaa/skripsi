@@ -2,9 +2,9 @@
 
 namespace App\Domains\ReportType\Services;
 
-use App\Domains\Location\Models\Location;
 use App\Domains\ReportType\Models\ReportSection;
 use App\Domains\ReportType\Repositories\SectionLocationRepository;
+use Domain\Location\Models\Location;
 
 /**
  * Service for assigning and detaching locations to report sections.

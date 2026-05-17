@@ -5,7 +5,7 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\PasswordPolicy\PasswordPolicyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\UserController;
-use App\Domains\Location\Http\Controllers\LocationController;
+use App\Http\Controllers\Location\LocationController;
 use App\Domains\Report\Http\Controllers\ReportClaimingController;
 use App\Domains\Report\Http\Controllers\ReportDraftingController;
 use App\Domains\ReportAssignment\Http\Controllers\ReportAssignmentController;

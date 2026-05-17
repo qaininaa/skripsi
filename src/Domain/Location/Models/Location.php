@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Domains\Location\Models;
+namespace Domain\Location\Models;
 
 use App\Domains\ReportType\Models\ReportSection;
 use Domain\Room\Models\Room;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Location model representing a sampling point.
+ */
 class Location extends Model
 {
     use HasUuids;

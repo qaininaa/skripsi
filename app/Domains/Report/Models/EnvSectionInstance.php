@@ -48,7 +48,7 @@ class EnvSectionInstance extends Model
      */
     public function location(): BelongsTo
     {
-        return $this->belongsTo(\App\Domains\Location\Models\Location::class, 'location_id');
+        return $this->belongsTo(\Domain\Location\Models\Location::class, 'location_id');
     }
 
     /**

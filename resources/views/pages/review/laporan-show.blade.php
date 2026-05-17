@@ -692,7 +692,7 @@
                     @if ($_showFHdrR)
                     <tr class="bg-sky-50 border-t border-sky-200">
                         <td colspan="{{ $_totalColsR }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-sky-700 uppercase">
-                            FREKUENSI : {{ $_freqNameR === '__' ? 'Tidak Ditentukan' : strtoupper(\App\Domains\Location\Models\Location::frequencyLabel($_freqNameR)) }}
+                            FREKUENSI : {{ $_freqNameR === '__' ? 'Tidak Ditentukan' : strtoupper(\Domain\Location\Models\Location::frequencyLabel($_freqNameR)) }}
                         </td>
                     </tr>
                     @endif

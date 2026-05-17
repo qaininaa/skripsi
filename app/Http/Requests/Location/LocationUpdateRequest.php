@@ -1,16 +1,25 @@
 <?php
 
-namespace App\Domains\Location\Http\Requests;
+namespace App\Http\Requests\Location;
 
+use Domain\Location\Dtos\UpdateLocationDto;
 use Illuminate\Foundation\Http\FormRequest;
 
-class LocationRequest extends FormRequest
+/**
+ * Form request for location update payload.
+ */
+class LocationUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Validation rules for location update.
+     *
+     * @return array<string, array<int, string>>
+     */
     public function rules(): array
     {
         return [
@@ -23,5 +32,13 @@ class LocationRequest extends FormRequest
             'alert_action_total' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'alert_action_fungi' => ['nullable', 'integer', 'min:0', 'max:65535'],
         ];
+    }
+
+    /**
+     * Transform validated data into DTO.
+     */
+    public function toDTO(): UpdateLocationDto
+    {
+        return UpdateLocationDto::fromArray($this->validated());
     }
 }

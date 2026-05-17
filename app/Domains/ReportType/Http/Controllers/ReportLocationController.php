@@ -2,9 +2,9 @@
 
 namespace App\Domains\ReportType\Http\Controllers;
 
-use App\Domains\Location\Models\Location;
 use App\Domains\ReportType\Http\Requests\SectionLocationRequest;
 use App\Domains\ReportType\Models\ReportSection;
+use Domain\Location\Models\Location;
 use App\Domains\ReportType\Models\ReportType;
 use App\Domains\ReportType\Services\SectionLocationService;
 use App\Http\Controllers\Controller;

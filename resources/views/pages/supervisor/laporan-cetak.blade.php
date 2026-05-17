@@ -607,7 +607,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
             @if ($_showFHdrP)
             <tr>
                 <td colspan="{{ $_totalColsP }}" style="font-weight:700;text-align:left;padding:3px 4px;font-size:7.5pt;border-top:1.5px solid #444;letter-spacing:0.05em">
-                    FREQUENCY : {{ $_freqNameP === '__' ? 'TIDAK DITENTUKAN' : strtoupper(\App\Domains\Location\Models\Location::frequencyLabel($_freqNameP)) }}
+                    FREQUENCY : {{ $_freqNameP === '__' ? 'TIDAK DITENTUKAN' : strtoupper(\Domain\Location\Models\Location::frequencyLabel($_freqNameP)) }}
                 </td>
             </tr>
             @endif

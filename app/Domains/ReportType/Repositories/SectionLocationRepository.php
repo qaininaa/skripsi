@@ -2,8 +2,8 @@
 
 namespace App\Domains\ReportType\Repositories;
 
-use App\Domains\Location\Models\Location;
 use App\Domains\ReportType\Models\ReportSection;
+use Domain\Location\Models\Location;
 
 /**
  * Repository for section-location assignment persistence.

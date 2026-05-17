@@ -1,20 +1,26 @@
 <?php
 
-namespace App\Domains\Location\Repositories;
+namespace Domain\Location\Repositories;
 
-use App\Domains\Location\Models\Location;
+use Domain\Location\Dtos\CreateLocationDto;
+use Domain\Location\Dtos\UpdateLocationDto;
+use Domain\Location\Interfaces\LocationRepositoryInterface;
+use Domain\Location\Models\Location;
 use Domain\Room\Models\Room;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
-class LocationRepository
+/**
+ * Eloquent implementation of LocationRepositoryInterface.
+ */
+class LocationRepository implements LocationRepositoryInterface
 {
     /**
-     * Get paginated locations with optional search and room filter.
+     * Retrieve paginated locations with optional search and room filter.
      *
      * @return LengthAwarePaginator<int, Location>
      */
-    public function paginateForManagement(?string $search, ?string $roomId, int $perPage = 10): LengthAwarePaginator
+    public function paginateForManagement(?string $search, ?string $roomId, int $perPage = 15): LengthAwarePaginator
     {
         return Location::query()
             ->with(['room', 'section'])
@@ -42,7 +48,7 @@ class LocationRepository
     }
 
     /**
-     * Fetch room options for location create/edit form.
+     * Fetch room options for create/edit form.
      *
      * @return Collection<int, Room>
      */
@@ -55,36 +61,31 @@ class LocationRepository
     }
 
     /**
-     * Create a location record.
-     *
-     * @param  array<string, mixed>  $validated
+     * Find duplicate location by room id and location number.
      */
-    public function create(array $validated): Location
+    public function findDuplicate(string $roomId, string $locationNumber, ?string $ignoreLocationId = null): ?Location
     {
-        return Location::create($validated);
+        return Location::query()
+            ->when($ignoreLocationId, fn ($q) => $q->whereKeyNot($ignoreLocationId))
+            ->where('room_id', $roomId)
+            ->where('location_number', $locationNumber)
+            ->first();
     }
 
     /**
-     * Find duplicate location by room ID and location number.
-     *
-     * @param  array<string, mixed>  $validated
+     * Persist a new location record.
      */
-    public function findDuplicate(array $validated, ?string $ignoreLocationId = null): ?Location
+    public function create(CreateLocationDto $dto): Location
     {
-    return Location::query()
-        ->when($ignoreLocationId, fn ($q) => $q->whereKeyNot($ignoreLocationId))
-        ->where('room_id', $validated['room_id'])
-        ->where('location_number', $validated['location_number'])
-        ->first();
+        return Location::create($dto->toArray());
     }
+
     /**
      * Update an existing location record.
-     *
-     * @param  array<string, mixed>  $validated
      */
-    public function update(Location $location, array $validated): Location
+    public function update(Location $location, UpdateLocationDto $dto): Location
     {
-        $location->update($validated);
+        $location->update($dto->toArray());
 
         return $location;
     }
