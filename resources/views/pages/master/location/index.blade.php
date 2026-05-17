@@ -86,7 +86,7 @@
                             </td>
                             <td class="px-4 py-3.5 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <x-buttons.edit-button onclick="window.location.href='{{ route('master.location.edit', $loc) }}'" />
+                                    <x-buttons.edit-button :href="route('master.location.edit', $loc)" />
                                     <x-buttons.delete-button
                                         :action="route('master.location.destroy', $loc)"
                                         :name="$loc->room->room_name ?? 'Lokasi' . ' - No. ' . ($loc->location_number ?? $loc->id)"

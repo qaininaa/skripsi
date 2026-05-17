@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\ReportSectionService;
 use App\View\Composers\SectionTableComposer;
+use App\View\Composers\SidebarComposer;
 use Domain\AuditLog\Interfaces\AuditLogRepositoryInterface;
 use Domain\AuditLog\Repositories\AuditLogRepository;
 use Domain\AuditLog\Services\AuditLogService;
@@ -46,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
             'pages.laporan.partials.section-tabel',
             SectionTableComposer::class
         );
+
+        View::composer('components.sidebar.sidebar', SidebarComposer::class);
 
         Event::listen(Login::class, function (Login $event): void {
             $user = $event->user;

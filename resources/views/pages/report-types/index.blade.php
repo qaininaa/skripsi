@@ -63,7 +63,7 @@
                             <td class="px-6 py-3.5 text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <x-buttons.detail-button :href="route('report-types.show', $reportType)" />
-                                    <x-buttons.edit-button onclick="window.location.href='{{ route('report-types.edit', $reportType) }}'" />
+                                    <x-buttons.edit-button :href="route('report-types.edit', $reportType)" />
                                     <x-buttons.delete-button
                                         :action="route('report-types.destroy', $reportType)"
                                         :name="$reportType->name"
