@@ -1,4 +1,18 @@
+<script type="application/json" id="laporan-config">
+@php
+    echo json_encode([
+        'verifyPasswordUrl' => route('laporan.verify-password'),
+        'myShift' => $myShift ?? 1,
+        'focusInput' => session('focus_input'),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+</script>
 <script>
+const LAPORAN_CONFIG       = JSON.parse(document.getElementById('laporan-config').textContent);
+const VERIFY_PASSWORD_URL  = LAPORAN_CONFIG.verifyPasswordUrl;
+const MY_SHIFT             = LAPORAN_CONFIG.myShift;
+const FOCUS_INPUT          = LAPORAN_CONFIG.focusInput;
+
 // ── Admin: duplikat / hapus section via fetch (avoid nested form) ───────
 function adminSectionAction(method, url) {
     const token = document.querySelector('meta[name="csrf-token"]')?.content
@@ -88,7 +102,7 @@ async function confirmHandover() {
     errEl.classList.add('hidden');
 
     try {
-        const res = await fetch('{{ route('laporan.verify-password') }}', {
+        const res = await fetch(VERIFY_PASSWORD_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -236,7 +250,7 @@ async function confirmSave() {
     errEl.classList.add('hidden');
 
     try {
-        const res = await fetch('{{ route('laporan.verify-password') }}', {
+        const res = await fetch(VERIFY_PASSWORD_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -332,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         inp.classList.toggle('ring-red-400',    !valid);
     });
 
-    const focusInputName = @json(session('focus_input'));
+    const focusInputName = FOCUS_INPUT;
     if (focusInputName) {
         const target = document.querySelector(`[name="${focusInputName}"]`);
         if (target) {
@@ -529,7 +543,7 @@ function getMissingCols(checkShift) {
 
 // Kirim Revisi langsung ke Supervisor (skip reading phase)
 function openRevisionSubmitFlow() {
-    const myShift = {{ $myShift }};
+    const myShift = MY_SHIFT;
     const missing = getMissingCols(myShift);
     if (missing.size > 0) {
         showAlertModal(
@@ -543,7 +557,7 @@ function openRevisionSubmitFlow() {
 
 // Kirim Laporan: validate then open password modal
 function openSubmitFlow() {
-    const myShift = {{ $myShift }};
+    const myShift = MY_SHIFT;
     const missing = getMissingCols(myShift);
     if (missing.size > 0) {
         showAlertModal(
@@ -557,7 +571,7 @@ function openSubmitFlow() {
 
 // Validate assigned columns before handover or submit
 function validateAction(action) {
-    const myShift = {{ $myShift }};
+    const myShift = MY_SHIFT;
     const checkShift = action === 'handover' ? 1 : myShift;
     const missing = getMissingCols(checkShift);
     if (missing.size > 0) {

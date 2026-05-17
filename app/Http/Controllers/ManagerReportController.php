@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Domains\Report\Services\IncubatorEntryService;
-use App\Domains\Report\Services\InstrumentIdentityEntryService;
-use App\Domains\Report\Services\MediumEntryService;
-use App\Domains\Report\Models\Report;
-use App\Domains\Report\Models\ReportApproval;
-use App\Domains\Report\Models\SectionSignature;
+use Domain\Report\Services\IncubatorEntryService;
+use Domain\Report\Services\InstrumentIdentityEntryService;
+use Domain\Report\Services\MediumEntryService;
+use Domain\Report\Models\Report;
+use Domain\Report\Models\ReportApproval;
+use Domain\Report\Models\SectionSignature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -287,7 +287,7 @@ class ManagerReportController extends Controller
         $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
         $incubatorEntryService = app(IncubatorEntryService::class);
         $mediumEntryService = app(MediumEntryService::class);
-        $entryService = app(\App\Domains\Report\Services\ReportEntryService::class);
+        $entryService = app(\Domain\Report\Services\ReportEntryService::class);
 
         // Identitas instrumen (Air Sampler) → instrument_entries
         $instrumentIdentityEntryService->saveFromRequest($request, $report);

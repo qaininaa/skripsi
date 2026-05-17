@@ -2,7 +2,7 @@
 
 namespace App\Services\Dashboard;
 
-use App\Domains\Report\Models\Report;
+use Domain\Report\Models\Report;
 use Domain\User\Models\User;
 use InvalidArgumentException;
 

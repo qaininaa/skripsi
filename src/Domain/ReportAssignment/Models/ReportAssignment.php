@@ -2,7 +2,7 @@
 
 namespace Domain\ReportAssignment\Models;
 
-use App\Domains\Report\Models\Report as BaseReport;
+use Domain\Report\Models\Report as BaseReport;
 use Domain\ReportType\Models\ReportType;
 use Domain\User\Models\User;
 

@@ -6,7 +6,7 @@
 <x-welcome-banner />
 
 @php
-    use App\Domains\Report\Models\Report;
+    use Domain\Report\Models\Report;
     $counts = Report::selectRaw('status, count(*) as total')
         ->groupBy('status')
         ->pluck('total', 'status');

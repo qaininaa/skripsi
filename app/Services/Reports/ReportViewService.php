@@ -2,10 +2,10 @@
 
 namespace App\Services\Reports;
 
-use App\Domains\Report\Services\IncubatorEntryService;
-use App\Domains\Report\Services\InstrumentIdentityEntryService;
-use App\Domains\Report\Services\MediumEntryService;
-use App\Domains\Report\Models\Report;
+use Domain\Report\Services\IncubatorEntryService;
+use Domain\Report\Services\InstrumentIdentityEntryService;
+use Domain\Report\Services\MediumEntryService;
+use Domain\Report\Models\Report;
 use Domain\User\Models\User;
 use App\Services\ReportSectionService;
 use App\Services\SectionInstanceService;

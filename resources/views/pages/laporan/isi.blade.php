@@ -97,6 +97,7 @@
 @include('pages.laporan.partials.bottom-bar')
 <x-modals.report-modal :is-monitoring-phase="$isMonitoringPhase" />
 
+</form>
 @endsection
 
 @push('scripts')

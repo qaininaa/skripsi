@@ -20,6 +20,22 @@ use Domain\AuditLog\Repositories\AuditLogRepository;
 use Domain\AuditLog\Services\AuditLogService;
 use Domain\PasswordPolicy\Interfaces\PasswordSettingRepositoryInterface;
 use Domain\PasswordPolicy\Repositories\PasswordSettingRepository;
+use Domain\Report\Interfaces\FieldLockRepositoryInterface;
+use Domain\Report\Interfaces\IncubatorEntryRepositoryInterface;
+use Domain\Report\Interfaces\InstrumentIdentityEntryRepositoryInterface;
+use Domain\Report\Interfaces\MediumEntryRepositoryInterface;
+use Domain\Report\Interfaces\ReportClaimingRepositoryInterface;
+use Domain\Report\Interfaces\ReportDraftingRepositoryInterface;
+use Domain\Report\Interfaces\ReportEntryRepositoryInterface;
+use Domain\Report\Interfaces\ReportSubmissionRepositoryInterface;
+use Domain\Report\Repositories\FieldLockRepository;
+use Domain\Report\Repositories\IncubatorEntryRepository;
+use Domain\Report\Repositories\InstrumentIdentityEntryRepository;
+use Domain\Report\Repositories\MediumEntryRepository;
+use Domain\Report\Repositories\ReportClaimingRepository;
+use Domain\Report\Repositories\ReportDraftingRepository;
+use Domain\Report\Repositories\ReportEntryRepository;
+use Domain\Report\Repositories\ReportSubmissionRepository;
 use Domain\ReportAssignment\Interfaces\ReportAssignmentRepositoryInterface;
 use Domain\ReportAssignment\Repositories\ReportAssignmentRepository;
 use Domain\User\Interfaces\AuthRepositoryInterface;
@@ -54,6 +70,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ReportSectionRepositoryInterface::class, ReportSectionRepository::class);
         $this->app->bind(SectionLocationRepositoryInterface::class, SectionLocationRepository::class);
         $this->app->bind(ReportAssignmentRepositoryInterface::class, ReportAssignmentRepository::class);
+
+        // Report domain repository bindings
+        $this->app->bind(FieldLockRepositoryInterface::class, FieldLockRepository::class);
+        $this->app->bind(IncubatorEntryRepositoryInterface::class, IncubatorEntryRepository::class);
+        $this->app->bind(InstrumentIdentityEntryRepositoryInterface::class, InstrumentIdentityEntryRepository::class);
+        $this->app->bind(MediumEntryRepositoryInterface::class, MediumEntryRepository::class);
+        $this->app->bind(ReportClaimingRepositoryInterface::class, ReportClaimingRepository::class);
+        $this->app->bind(ReportDraftingRepositoryInterface::class, ReportDraftingRepository::class);
+        $this->app->bind(ReportEntryRepositoryInterface::class, ReportEntryRepository::class);
+        $this->app->bind(ReportSubmissionRepositoryInterface::class, ReportSubmissionRepository::class);
     }
 
     /**

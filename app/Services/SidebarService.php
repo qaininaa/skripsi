@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Domains\Report\Models\Report;
-use App\Domains\Report\Models\ReportApproval;
+use Domain\Report\Models\Report;
+use Domain\Report\Models\ReportApproval;
 use Domain\User\Models\User;
 use Illuminate\Support\Facades\Route;
 
