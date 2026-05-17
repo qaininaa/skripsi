@@ -14,7 +14,7 @@ use App\Domains\ReportPreview\Http\Controllers\ReportPreviewStructureController;
 use App\Domains\ReportType\Http\Controllers\ReportLocationController;
 use App\Domains\ReportType\Http\Controllers\ReportSectionController;
 use App\Domains\ReportType\Http\Controllers\ReportTypeController;
-use App\Domains\Room\Http\Controllers\RoomController;
+use App\Http\Controllers\Room\RoomController;
 use App\Http\Controllers\ManagerReportController;
 use App\Http\Controllers\ReportArchiveController;
 use App\Http\Controllers\SupervisorReportController;

@@ -4,7 +4,7 @@ namespace App\Domains\Location\Services;
 
 use App\Domains\Location\Models\Location;
 use App\Domains\Location\Repositories\LocationRepository;
-use App\Domains\Room\Models\Room;
+use Domain\Room\Models\Room;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 

@@ -6,6 +6,8 @@ use App\Services\ReportSectionService;
 use App\View\Composers\SectionTableComposer;
 use App\View\Composers\SidebarComposer;
 use Domain\AuditLog\Interfaces\AuditLogRepositoryInterface;
+use Domain\Room\Interfaces\RoomRepositoryInterface;
+use Domain\Room\Repositories\RoomRepository;
 use Domain\AuditLog\Repositories\AuditLogRepository;
 use Domain\AuditLog\Services\AuditLogService;
 use Domain\PasswordPolicy\Interfaces\PasswordSettingRepositoryInterface;
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PasswordRepositoryInterface::class, PasswordRepository::class);
         $this->app->bind(PasswordSettingRepositoryInterface::class, PasswordSettingRepository::class);
         $this->app->bind(AuditLogRepositoryInterface::class, AuditLogRepository::class);
+        $this->app->bind(RoomRepositoryInterface::class, RoomRepository::class);
     }
 
     /**

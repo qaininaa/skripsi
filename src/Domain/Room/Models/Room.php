@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Domains\Room\Models;
+namespace Domain\Room\Models;
 
 use App\Domains\Location\Models\Location;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Room model representing a master room record.
+ */
 class Room extends Model
 {
     use HasUuids;

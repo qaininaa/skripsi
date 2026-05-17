@@ -1,14 +1,20 @@
 <?php
 
-namespace App\Domains\Room\Repositories;
+namespace Domain\Room\Repositories;
 
-use App\Domains\Room\Models\Room;
+use Domain\Room\Dtos\CreateRoomDto;
+use Domain\Room\Dtos\UpdateRoomDto;
+use Domain\Room\Interfaces\RoomRepositoryInterface;
+use Domain\Room\Models\Room;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class RoomRepository
+/**
+ * Eloquent implementation of RoomRepositoryInterface.
+ */
+class RoomRepository implements RoomRepositoryInterface
 {
     /**
-     * Get paginated room list with optional search and class filter.
+     * Retrieve paginated rooms with optional search and class filters.
      *
      * @return LengthAwarePaginator<int, Room>
      */
@@ -30,12 +36,10 @@ class RoomRepository
 
     /**
      * Find duplicate room by room name (case-insensitive).
-     *
-     * @param  array<string, mixed>  $validated
      */
-    public function findDuplicate(array $validated, ?string $ignoreRoomId = null): ?Room
+    public function findDuplicateByName(string $roomName, ?string $ignoreRoomId = null): ?Room
     {
-        $normalizedName = mb_strtolower(trim((string) $validated['room_name']));
+        $normalizedName = mb_strtolower(trim($roomName));
 
         return Room::query()
             ->when($ignoreRoomId, fn ($q) => $q->whereKeyNot($ignoreRoomId))
@@ -44,23 +48,19 @@ class RoomRepository
     }
 
     /**
-     * Create a room record.
-     *
-     * @param  array<string, mixed>  $validated
+     * Persist a new room record.
      */
-    public function create(array $validated): Room
+    public function create(CreateRoomDto $dto): Room
     {
-        return Room::create($validated);
+        return Room::create($dto->toArray());
     }
 
     /**
-     * Update a room record.
-     *
-     * @param  array<string, mixed>  $validated
+     * Update an existing room record.
      */
-    public function update(Room $room, array $validated): Room
+    public function update(Room $room, UpdateRoomDto $dto): Room
     {
-        $room->update($validated);
+        $room->update($dto->toArray());
 
         return $room;
     }
