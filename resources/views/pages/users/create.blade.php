@@ -51,10 +51,10 @@
                         <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih role</option>
                         <option value="super" {{ old('role') === 'super' ? 'selected' : '' }}>Super Admin</option>
                         <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin QC</option>
-                        <option value="analis" {{ old('role') === 'analis' ? 'selected' : '' }}>Analis</option>
+                        <option value="analyst" {{ old('role') === 'analyst' ? 'selected' : '' }}>Analis</option>
                         <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="manajer" {{ old('role') === 'manajer' ? 'selected' : '' }} {{ \Domain\User\Models\User::where('role', 'manajer')->exists() ? 'disabled' : '' }}>
-                            Manajer{{ \Domain\User\Models\User::where('role', 'manajer')->exists() ? ' (sudah ada)' : '' }}
+                        <option value="manager" {{ old('role') === 'manager' ? 'selected' : '' }} {{ \Domain\User\Models\User::where('role', 'manager')->exists() ? 'disabled' : '' }}>
+                            Manajer{{ \Domain\User\Models\User::where('role', 'manager')->exists() ? ' (sudah ada)' : '' }}
                         </option>
                     </select>
                 </div>

@@ -53,7 +53,7 @@ class IncubatorEntryService
         }
 
         $user = Auth::user();
-        $isAnalyst = ($user?->role ?? null) === 'analis';
+        $isAnalyst = ($user?->role ?? null) === 'analyst';
         $currentUserId = (string) ($user?->id ?? '');
 
         $report->loadMissing('reportType.incubatorTypes');
@@ -224,7 +224,7 @@ class IncubatorEntryService
     private function persistIncubatorWithLocks($incubator, array $incoming): void
     {
         $user = Auth::user();
-        if (($user?->role ?? null) !== 'analis') {
+        if (($user?->role ?? null) !== 'analyst') {
             $this->repository->updateIncubatorFields($incubator, $incoming);
 
             return;
@@ -275,7 +275,7 @@ class IncubatorEntryService
     private function persistIncubatorEntryWithLocks($entry, array $incoming): void
     {
         $user = Auth::user();
-        if (($user?->role ?? null) !== 'analis') {
+        if (($user?->role ?? null) !== 'analyst') {
             $this->repository->updateIncubatorEntryFields($entry, $incoming);
 
             return;

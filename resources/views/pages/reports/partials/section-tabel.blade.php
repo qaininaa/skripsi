@@ -48,7 +48,7 @@
         <table class="w-full text-xs border-collapse"
                style="min-width: {{ 480 + ($hasMachineSetup ? 130 : 0) + ($maxCols * ($isSwabTime ? 220 : ($isDualAB ? 130 : ($isPerLocation ? 220 : 160)))) }}px">
 
-            @include('pages.laporan.partials.section-tabel.thead')
+            @include('pages.reports.partials.section-tabel.thead')
 
             <tbody class="divide-y divide-gray-50">
                 @php $_rowNum = 0; @endphp
@@ -66,7 +66,7 @@
                 {{-- Location rows --}}
                 @foreach ($locsByFreq[$_freqName] as $loc)
                 @php $_rowNum++; @endphp
-                @include('pages.laporan.partials.section-tabel.tbody-row')
+                @include('pages.reports.partials.section-tabel.tbody-row')
                 @endforeach
 
                 @endforeach
@@ -85,6 +85,6 @@
     </div>
 
     {{-- ── Catatan, Kesimpulan & Tanda Tangan ──────────────────────────────── --}}
-    @include('pages.laporan.partials.section-tabel.section-footer')
+    @include('pages.reports.partials.section-tabel.section-footer')
 
 </div>

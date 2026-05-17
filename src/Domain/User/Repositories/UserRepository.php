@@ -67,7 +67,7 @@ class UserRepository implements UserRepositoryInterface
      */
     public function isManagerTaken(?string $excludeUserId = null): bool
     {
-        return User::where('role', 'manajer')
+        return User::where('role', 'manager')
             ->when($excludeUserId, fn ($q) => $q->where('id', '!=', $excludeUserId))
             ->exists();
     }

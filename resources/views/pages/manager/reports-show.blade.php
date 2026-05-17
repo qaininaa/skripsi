@@ -13,7 +13,7 @@
     {{-- Back link + Header --}}
     <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3">
-        <a href="{{ route('supervisor.laporan-masuk') }}"
+        <a href="{{ route('manager.incoming-reports') }}"
            class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -31,7 +31,7 @@
             </p>
         </div>
         </div>
-        <a href="{{ route('supervisor.laporan.cetak', $report->id) }}" target="_blank"
+        <a href="{{ route('manager.reports.print', $report->id) }}" target="_blank"
            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm flex-shrink-0">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -53,7 +53,7 @@
                 <span class="text-xs text-gray-400">pada {{ $approval->signed_at->isoFormat('D MMM Y, HH:mm') }}</span>
             @endif
         @elseif ($approval->isReturned())
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Dikembalikan</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Dikembalikan ke Supervisor</span>
         @else
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Ditolak</span>
         @endif
@@ -104,16 +104,6 @@
     </div>
 
     {{-- ── 2. Identitas Instrumen — Air Sampler ──────────── --}}
-    @php $isSupervisorEditable = $approval->isPending(); @endphp
-    @if (session('success'))
-    <div class="px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
-        {{ session('success') }}
-    </div>
-    @endif
-    @if ($isSupervisorEditable)
-    <form method="POST" action="{{ route('supervisor.laporan.save', $report) }}" class="space-y-4">
-    @csrf
-    @endif
     @if ($needsAirSampler)
     @php $as = $report->instrumentEntries->firstWhere('tool_name', 'Air Sampler'); @endphp
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
@@ -127,30 +117,15 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Air Sampler</label>
-                @if ($isSupervisorEditable)
-                <input type="text" name="air_sampler[no_id]" value="{{ $as?->no_id ?? '' }}"
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->no_id ?? '—' }}</div>
-                @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Air Sampler</label>
-                @if ($isSupervisorEditable)
-                <input type="date" name="air_sampler[calibration_date]" value="{{ $as?->calibration_date?->format('Y-m-d') ?? '' }}"
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->calibration_date ? $as->calibration_date->format('d/m/Y') : '—' }}</div>
-                @endif
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Air Sampler</label>
-                @if ($isSupervisorEditable)
-                <input type="date" name="air_sampler[due_date]" value="{{ $as?->due_date?->format('Y-m-d') ?? '' }}"
-                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                @else
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $as?->due_date ? $as->due_date->format('d/m/Y') : '—' }}</div>
-                @endif
             </div>
         </div>
     </div>
@@ -178,34 +153,17 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor Batch Medium</label>
-                        @if ($isSupervisorEditable)
-                        <input type="text" name="medium[{{ $medName }}][batch_number]" value="{{ $med?->batch_number ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->batch_number ?? '—' }}</div>
-                        @endif
                     </div>
                     @if (! $isSwab)
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Nomor GPT Medium</label>
-                        @if ($isSupervisorEditable)
-                        <input type="text" name="medium[{{ $medName }}][gpt_number]" value="{{ $med?->gpt_number ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->gpt_number ?? '—' }}</div>
-                        @endif
                     </div>
                     @endif
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal ED {{ $isSwab ? 'Swab Kit' : 'Medium' }}</label>
-                        @if ($isSupervisorEditable)
-                        <input type="date" name="medium[{{ $medName }}][expiration_date]" value="{{ $med?->expiration_date?->format('Y-m-d') ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
-                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                            {{ $med?->expiration_date ? $med->expiration_date->format('d/m/Y') : '—' }}
-                        </div>
-                        @endif
+                        <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $med?->expiration_date ? $med->expiration_date->format('d/m/Y') : '—' }}</div>
                     </div>
                 </div>
             </div>
@@ -239,81 +197,46 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">No. ID Inkubator</label>
-                    @if ($isSupervisorEditable)
-                    <input type="text" name="incubator[{{ $inkRti->id }}][no_id]" value="{{ $inkRecord?->no_id ?? '' }}"
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                    @else
                     <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkRecord?->no_id ?? '—' }}</div>
-                    @endif
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Kalibrasi Inkubator</label>
-                    @if ($isSupervisorEditable)
-                    <input type="date" name="incubator[{{ $inkRti->id }}][calibration_date]" value="{{ $inkRecord?->calibration_date?->format('Y-m-d') ?? '' }}"
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                    @else
                     <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkRecord?->calibration_date ? $inkRecord->calibration_date->format('d/m/Y') : '—' }}</div>
-                    @endif
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Tgl Due Date Kalibrasi Inkubator</label>
-                    @if ($isSupervisorEditable)
-                    <input type="date" name="incubator[{{ $inkRti->id }}][due_date_calibration]" value="{{ $inkRecord?->due_date_calibration?->format('Y-m-d') ?? '' }}"
-                           class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                    @else
                     <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkRecord?->due_date_calibration ? $inkRecord->due_date_calibration->format('d/m/Y') : '—' }}</div>
-                    @endif
                 </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-50">
                 <div class="space-y-3">
-                    <p class="text-xs font-semibold text-emerald-600">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</p>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Inkubasi Medium (min {{ $inkMin }} hari)</label>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkEntry?->incubatedBy?->name ?? '—' }}</div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Masuk Inkubator</label>
-                        @if ($isSupervisorEditable)
-                        <input type="date" name="incubator[{{ $inkRti->id }}][date_in]" value="{{ $inkEntry?->date_in?->format('Y-m-d') ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkEntry?->date_in ? $inkEntry->date_in->format('d/m/Y') : '—' }}</div>
-                        @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Masuk</label>
-                        @if ($isSupervisorEditable)
-                        <input type="time" name="incubator[{{ $inkRti->id }}][time_in]" value="{{ $inkEntry?->time_in ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkEntry?->time_in ?? '—' }}</div>
-                        @endif
                     </div>
                 </div>
                 <div class="space-y-3">
-                    <p class="text-xs font-semibold text-emerald-600">&nbsp;</p>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">&nbsp;</label>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkEntry?->removedBy?->name ?? '—' }}</div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Tanggal Keluar Inkubator</label>
-                        @if ($isSupervisorEditable)
-                        <input type="date" name="incubator[{{ $inkRti->id }}][date_out]" value="{{ $inkEntry?->date_out?->format('Y-m-d') ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkEntry?->date_out ? $inkEntry->date_out->format('d/m/Y') : '—' }}</div>
-                        @endif
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-1">Jam Keluar</label>
-                        @if ($isSupervisorEditable)
-                        <input type="time" name="incubator[{{ $inkRti->id }}][time_out]" value="{{ $inkEntry?->time_out ?? '' }}"
-                               class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                        @else
                         <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">{{ $inkEntry?->time_out ?? '—' }}</div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -322,7 +245,7 @@
     </div>
     @endif
 
-    {{-- ── Tabel Pengukuran per section ────────────────────── --}}
+    {{-- ── Tabel Pengukuran per Section ────────────────────── --}}
     @foreach ($report->reportType->sections as $section)
     @php
         // CFU helpers (values are varchar: '<1', 'TNTC', or integer string)
@@ -345,7 +268,6 @@
         };
     @endphp
     @php
-        // Config-driven flags (matching analis view)
         $hasMachineSetup  = (bool) $section->has_machine_setup;
         $hasJam         = $section->time_slot_type === 'single';
         $isPerLocation  = $section->time_slot_type === 'per_location';
@@ -374,8 +296,6 @@
             'notes' => $secNoteRow?->notes,
             'conclusion' => $secNoteRow?->conclusion,
         ];
-
-        // Sub-columns per exposure: B + F + T = 3, +1 JAM if per_location
         $subColsPerExp = $isPerLocation ? 4 : 3;
 
         // Build time lookup from report_environmental_entries (normalized source).
@@ -417,7 +337,6 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs border-collapse">
                 <thead>
-                    {{-- Row 1: group headers --}}
                     <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" rowspan="3">No.</th>
                         <th class="px-3 py-2 text-left font-semibold border-r border-emerald-100" rowspan="3">Nama Ruangan</th>
@@ -432,7 +351,6 @@
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100 whitespace-nowrap" colspan="2" rowspan="2">Batas<br>Tindakan</th>
                         <th class="px-2 py-2 text-center font-semibold whitespace-nowrap" rowspan="3">Kesimpulan</th>
                     </tr>
-                    {{-- Row 2: period/shift labels --}}
                     <tr class="bg-emerald-50 text-gray-600 border-b border-emerald-100">
                         @if ($hasMachineSetup)
                         @php
@@ -448,25 +366,9 @@
                         @endphp
                         <th class="px-2 py-2 text-center font-semibold border-r border-emerald-100" colspan="3">
                             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
-                            @if ($isSupervisorEditable)
-                            @php
-                                $msHdMulai   = $secTimesFromEntries[0]['start_time'] ?? $msJamMulai;
-                                $msHdSelesai = $secTimesFromEntries[0]['end_time'] ?? $msJamSelesai;
-                            @endphp
-                            <div class="flex justify-center items-center gap-1">
-                                <input type="time" name="exposure_times[{{ $section->id }}][0][start_time]"
-                                       value="{{ $msHdMulai }}"
-                                       class="rounded border border-emerald-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                                <span class="text-gray-400 text-[10px] font-normal">–</span>
-                                <input type="time" name="exposure_times[{{ $section->id }}][0][end_time]"
-                                       value="{{ $msHdSelesai }}"
-                                       class="rounded border border-emerald-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                            </div>
-                            @else
                             <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
                                 {{ $msJamMulai ? $msJamMulai . ' – ' . ($msJamSelesai ?? '—') : '—' }}
                             </div>
-                            @endif
                         </th>
                         @endif
                         @for ($col = 1; $col <= $maxCols; $col++)
@@ -482,31 +384,11 @@
                                 $colHeaderTitle = trim((($colLabel ?? '') !== '' ? ($colLabel . ' ') : '') . $colPeriod);
                             @endphp
                             {{ $colHeaderTitle }}
-
                             <div class="text-[10px] text-gray-500 mt-1">
                                 {{ $isSettlePlate ? 'SP' : 'Shift' }}: {{ $colName ?: '—' }}
                             </div>
-
-                            {{-- Swab time slots --}}
                             @if ($isSwabTime)
                             @php $swabColTimes = $secTimesFromEntries[$col]['swab'] ?? []; @endphp
-                            @if ($isSupervisorEditable)
-                            <div class="space-y-0.5 mt-1">
-                                @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
-                                @php $st = $swabColTimes[$swabKey] ?? []; @endphp
-                                <div class="flex items-center justify-center gap-0.5">
-                                    <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
-                                    <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][mulai]"
-                                           value="{{ $st['mulai'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                                    <span class="text-gray-400 text-[10px]">–</span>
-                                    <input type="time" name="swab_times[{{ $section->id }}][{{ $col }}][{{ $swabKey }}][selesai]"
-                                           value="{{ $st['selesai'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                                </div>
-                                @endforeach
-                            </div>
-                            @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                                 @php $st = $swabColTimes[$swabKey] ?? []; @endphp
@@ -514,27 +396,7 @@
                                 @endforeach
                             </div>
                             @endif
-                            @endif
-
-                            {{-- Dual A/B settle times --}}
                             @if ($isDualAB)
-                            @if ($isSupervisorEditable)
-                            <div class="space-y-0.5 mt-1">
-                                @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                                @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
-                                <div class="flex items-center justify-center gap-0.5">
-                                    <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
-                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][start_time]"
-                                           value="{{ $stAB['start_time'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                                    <span class="text-gray-400 text-[10px]">–</span>
-                                    <input type="time" name="settle_times[{{ $section->id }}][{{ $col }}][{{ $ab }}][end_time]"
-                                           value="{{ $stAB['end_time'] ?? '' }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                                </div>
-                                @endforeach
-                            </div>
-                            @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
                                 @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
@@ -542,40 +404,19 @@
                                 @endforeach
                             </div>
                             @endif
-                            @endif
-
-                            {{-- Single time slot (Mulai/Selesai in header) --}}
                             @if ($hasJam)
                             @php
                                 $expJamMulai   = $secTimesFromEntries[$col]['start_time'] ?? null;
                                 $expJamSelesai = $secTimesFromEntries[$col]['end_time'] ?? null;
                             @endphp
-                            @if ($isSupervisorEditable)
-                            <div class="space-y-0.5 mt-1">
-                                <div class="flex items-center justify-center gap-0.5">
-                                    <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
-                                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][start_time]"
-                                           value="{{ $expJamMulai }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                                </div>
-                                <div class="flex items-center justify-center gap-0.5">
-                                    <span class="text-[9px] text-gray-500 w-10 shrink-0">Selesai:</span>
-                                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $col }}][end_time]"
-                                           value="{{ $expJamSelesai }}"
-                                           class="rounded border border-emerald-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 focus:outline-none">
-                                </div>
-                            </div>
-                            @else
                             <div class="text-[10px] text-gray-500 space-y-0.5 mt-1">
                                 <div>Mulai: {{ $expJamMulai ?: '—' }}</div>
                                 <div>Selesai: {{ $expJamSelesai ?: '—' }}</div>
                             </div>
                             @endif
-                            @endif
                         </th>
                         @endfor
                     </tr>
-                    {{-- Row 3: sub-column headers --}}
                     <tr class="bg-emerald-50/60 text-gray-500 border-b border-gray-200">
                         @if ($hasMachineSetup)
                             <th class="px-2 py-1.5 text-center font-medium border-r border-emerald-100">B</th>
@@ -597,28 +438,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @php
-                        $_freqOrder2   = ['operational', 'daily', 'weekly', 'monthly', 'semi_annual'];
-                        $_locsByFreq2  = $section->locations->groupBy(fn($loc) => $loc->frequency ?? '__');
-                        $_freqKeys2    = collect($_freqOrder2)
-                                            ->filter(fn($f) => $_locsByFreq2->has($f))
-                                            ->merge($_locsByFreq2->keys()->filter(fn($k) => !in_array($k, $_freqOrder2) && $k !== '__'))
-                                            ->values();
-                        if ($_locsByFreq2->has('__')) $_freqKeys2->push('__');
-                        $_showFHdr2    = $_freqKeys2->count() > 1 || ($_freqKeys2->count() === 1 && $_freqKeys2->first() !== '__');
-                        $_totalCols2   = 5 + ($hasMachineSetup ? 3 : 0) + ($maxCols * $subColsPerExp) + 5;
-                        $_rowNum2      = 0;
-                    @endphp
-                    @foreach ($_freqKeys2 as $_freqName2)
-                    @if ($_showFHdr2)
-                    <tr class="bg-emerald-50 border-t border-emerald-200">
-                        <td colspan="{{ $_totalCols2 }}" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-emerald-700 uppercase">
-                            FREKUENSI : {{ $_freqName2 === '__' ? 'Tidak Ditentukan' : strtoupper(\Domain\Location\Models\Location::frequencyLabel($_freqName2)) }}
-                        </td>
-                    </tr>
-                    @endif
-                    @foreach ($_locsByFreq2[$_freqName2] as $loc)
-                    @php $_rowNum2++; @endphp
+                    @foreach ($section->locations as $loc)
                     @php
                         $locEntries = collect();
                         for ($p = 1; $p <= $section->max_column; $p++) {
@@ -636,7 +456,7 @@
                                     ($loc->alert_limit_total && $maxT >= $loc->alert_limit_total)
                                  || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                         $hasCfuEntries = $locEntries->contains(fn($e) => $e->cfu_bacteria !== null || $e->cfu_fungi !== null);
-                        $konklusi = $hasCfuEntries ? ($hasTMS ? 'TMS' : 'MS') : null;
+                        $konklusi = $hasCfuEntries ? ($hasTMS ? 'TMS' : ($hasAlt ? 'Alert' : 'MS')) : null;
 
                         $classBadge = match($loc->room->class) {
                             'A' => 'bg-purple-100 text-purple-700',
@@ -646,7 +466,7 @@
                         };
                     @endphp
                     <tr class="hover:bg-emerald-50/20 transition-colors">
-                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $_rowNum2 }}</td>
+                        <td class="px-2 py-2.5 text-center text-gray-400 border-r border-gray-100">{{ $loop->iteration }}</td>
                         <td class="px-3 py-2.5 text-gray-700 font-medium border-r border-gray-100 whitespace-nowrap">{{ $loc->room->room_name }}</td>
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="inline-flex items-center justify-center h-5 w-5 rounded text-[11px] font-bold {{ $classBadge }}">{{ $loc->room->class }}</span>
@@ -660,7 +480,6 @@
                             @endif
                         </td>
 
-                        {{-- Machine Set-up (hasMachineSetup) --}}
                         @if ($hasMachineSetup)
                         @php
                             $msEntry = $entryMap[$loc->id][0][1] ?? $entryMap[$loc->id][0][2] ?? null;
@@ -683,7 +502,6 @@
                         </td>
                         @endif
 
-                        {{-- Data columns per exposure --}}
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
@@ -716,7 +534,6 @@
                         </td>
                         @endfor
 
-                        {{-- Alert Limit --}}
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="text-[11px] font-medium {{ $loc->alert_limit_total !== null ? 'text-amber-700' : 'text-gray-300' }}">
                                 {{ $loc->alert_limit_total ?? '—' }}
@@ -727,7 +544,6 @@
                                 {{ $loc->alert_limit_fungi ?? '—' }}
                             </span>
                         </td>
-                        {{-- Action Limit --}}
                         <td class="px-2 py-2.5 text-center border-r border-gray-100">
                             <span class="text-[11px] font-medium {{ $loc->alert_action_total !== null ? 'text-red-600' : 'text-gray-300' }}">
                                 {{ $loc->alert_action_total !== null ? ($loc->alert_action_total == 1 ? '<1' : $loc->alert_action_total) : '—' }}
@@ -738,10 +554,11 @@
                                 {{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : '—' }}
                             </span>
                         </td>
-                        {{-- Kesimpulan --}}
                         <td class="px-2 py-2.5 text-center">
                             @if ($konklusi === 'TMS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
+                            @elseif ($konklusi === 'Alert')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-100 text-yellow-700">Alert</span>
                             @elseif ($konklusi === 'MS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">MS</span>
                             @else
@@ -749,8 +566,7 @@
                             @endif
                         </td>
                     </tr>
-                    @endforeach {{-- locations in frequency group --}}
-                    @endforeach {{-- frequency groups --}}
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -764,7 +580,6 @@
             MS: Memenuhi Spesifikasi &nbsp;·&nbsp; TMS: Tidak Memenuhi Spesifikasi
         </div>
 
-        {{-- Catatan & Kesimpulan per section --}}
         <div class="px-5 py-4 border-t border-gray-100 space-y-3">
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1">Catatan</label>
@@ -774,30 +589,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-500 mb-1.5">Kesimpulan</label>
-                @php
-                    $sk = $secNote['conclusion'] ?? '';
-                    // Auto-compute from entries if stored value is empty
-                    if ($sk === '') {
-                        $_sHasTMS   = false;
-                        $_sAllEmpty = true;
-                        foreach ($section->locations as $_loc) {
-                            foreach ($entryMap[$_loc->id] ?? [] as $_period => $_shifts) {
-                                foreach ($_shifts as $_shift => $_e) {
-                                    $_sAllEmpty = false;
-                                    $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
-                                    $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
-                                    if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
-                                        || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
-                                        $_sHasTMS = true;
-                                    }
-                                }
-                            }
-                        }
-                        if (!$_sAllEmpty) {
-                            $sk = $_sHasTMS ? 'TMS' : 'MS';
-                        }
-                    }
-                @endphp
+                @php $sk = $secNote['conclusion'] ?? ''; @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
                         <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
@@ -944,20 +736,6 @@
     </div>
     @endforeach
 
-    {{-- Save button + close form (after all sections) --}}
-    @if ($isSupervisorEditable)
-    <div class="flex justify-end">
-        <button type="submit"
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl shadow hover:bg-emerald-700 transition-colors">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            Simpan Perubahan
-        </button>
-    </div>
-    </form>
-    @endif
-
     {{-- ── Aksi: Setujui / Kembalikan ──────────────────────────── --}}
     @if ($approval->isPending())
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -981,7 +759,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-emerald-800">Setujui Laporan</p>
-                        <p class="text-xs text-emerald-600">Laporan akan ditandai sebagai disetujui</p>
+                        <p class="text-xs text-emerald-600">Laporan akan ditandai sebagai disetujui (final)</p>
                     </div>
                 </div>
                 <button type="button" onclick="openConfirmModal('approve')"
@@ -993,7 +771,8 @@
                 </button>
             </div>
 
-            {{-- Return --}}
+            {{-- Return to Supervisor / Analyst --}}
+            @if ($supervisor || $monitoringUsers->isNotEmpty())
             <div class="rounded-xl border-2 border-orange-200 bg-orange-50 p-4 flex flex-col gap-3">
                 <div class="flex items-center gap-3">
                     <div class="h-9 w-9 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
@@ -1003,19 +782,18 @@
                     </div>
                     <div>
                         <p class="text-sm font-semibold text-orange-800">Kembalikan Laporan</p>
-                        <p class="text-xs text-orange-600">Kirim kembali ke analis untuk diperbaiki</p>
+                        <p class="text-xs text-orange-600">Kirim kembali ke Supervisor atau Analis untuk diperbaiki</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <select id="return-analis-select"
+                    <select id="return-target-select"
                         class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
-                        <option value="">-- Pilih Analis Tujuan --</option>
-                        @php
-                            $allReturnableIds = array_unique(array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []));
-                            $returnableUsers = \Domain\User\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
-                        @endphp
-                        @foreach ($returnableUsers as $analyst)
-                        <option value="{{ $analyst->id }}">{{ $analyst->name }}</option>
+                        <option value="">-- Pilih Supervisor/Analis --</option>
+                        @if ($supervisor)
+                        <option value="supervisor:{{ $supervisor->id }}">{{ $supervisor->name }} (Supervisor)</option>
+                        @endif
+                        @foreach ($monitoringUsers as $analyst)
+                        <option value="analyst:{{ $analyst->id }}">{{ $analyst->name }} (Analis)</option>
                         @endforeach
                     </select>
                     <textarea id="return-notes-input" placeholder="Catatan / alasan pengembalian (opsional)"
@@ -1030,6 +808,7 @@
                     </button>
                 </div>
             </div>
+            @endif
 
         </div>
     </div>
@@ -1039,12 +818,9 @@
 
 {{-- ── Modal Konfirmasi Kredensial ──────────────────────────────── --}}
 <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-    {{-- Backdrop --}}
     <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
 
-    {{-- Panel --}}
-    <div class="relative bg-white rounded-2xl shadow-2xl shadow-black ring-1 ring-black/10 w-full max-w-md p-6">
-        {{-- Icon + Title --}}
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
         <div id="modal-icon-approve" class="hidden flex items-center gap-3 mb-5">
             <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1052,7 +828,7 @@
                 </svg>
             </div>
             <div>
-                <p class="text-base font-semibold text-gray-800">Konfirmasi Persetujuan</p>
+                <p class="text-base font-semibold text-gray-800">Konfirmasi Persetujuan Final</p>
                 <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk menyetujui laporan ini</p>
             </div>
         </div>
@@ -1064,14 +840,13 @@
             </div>
             <div>
                 <p class="text-base font-semibold text-gray-800">Konfirmasi Pengembalian</p>
-                <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk mengembalikan laporan ini</p>
+                <p id="modal-return-subtitle" class="text-xs text-gray-500">Masukkan kredensial Anda untuk mengembalikan laporan</p>
             </div>
         </div>
 
-        {{-- Form --}}
         <form id="confirm-form" method="POST" action="">
             @csrf
-            <input type="hidden" name="returned_to_user_id" id="modal-returned-to-user-id" value="">
+            <input type="hidden" name="returned_to_user_id" id="modal-returned-to-user-id" value="{{ $supervisor?->id }}">
             <input type="hidden" name="notes" id="modal-notes" value="">
 
             <div class="space-y-4">
@@ -1111,29 +886,30 @@ function openConfirmModal(action) {
     const iconReturn  = document.getElementById('modal-icon-return');
     const submitBtn   = document.getElementById('modal-submit-btn');
 
-    // Reset fields
     document.getElementById('modal-username').value = '';
     document.getElementById('modal-password').value = '';
 
     if (action === 'approve') {
-        form.action = '{{ route('supervisor.laporan.approve', $report->id) }}';
+        form.action = '{{ route('manager.reports.approve', $report->id) }}';
         iconApprove.classList.remove('hidden');
         iconReturn.classList.add('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700';
-        document.getElementById('modal-returned-to-user-id').value = '';
         document.getElementById('modal-notes').value = '';
-    } else {
-        const analisVal = document.getElementById('return-analis-select').value;
-        if (!analisVal) {
-            alert('Silakan pilih analis tujuan terlebih dahulu.');
+    } else if (action === 'return') {
+        const select = document.getElementById('return-target-select');
+        if (!select.value) {
+            alert('Pilih tujuan pengembalian terlebih dahulu.');
             return;
         }
-        form.action = '{{ route('supervisor.laporan.return', $report->id) }}';
+        const [type, id] = select.value.split(':');
+        const label = type === 'analyst' ? 'Analis' : 'Supervisor';
+        form.action = '{{ route('manager.reports.return', $report->id) }}';
         iconApprove.classList.add('hidden');
         iconReturn.classList.remove('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700';
-        document.getElementById('modal-returned-to-user-id').value = analisVal;
-        document.getElementById('modal-notes').value = document.getElementById('return-notes-input').value;
+        document.getElementById('modal-returned-to-user-id').value = id;
+        document.getElementById('modal-return-subtitle').textContent = 'Masukkan kredensial Anda untuk mengembalikan laporan ke ' + label;
+        document.getElementById('modal-notes').value = document.getElementById('return-notes-input')?.value ?? '';
     }
 
     modal.classList.remove('hidden');

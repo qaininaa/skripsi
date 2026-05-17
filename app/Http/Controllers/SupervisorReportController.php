@@ -43,7 +43,7 @@ class SupervisorReportController extends Controller
         ));
     }
 
-    public function laporanMasuk(Request $request)
+    public function incomingReports(Request $request)
     {
         $userId = Auth::id();
         $tab = $request->query('tab', 'pending');
@@ -71,10 +71,10 @@ class SupervisorReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.supervisor.laporan-masuk', compact('reports', 'counts', 'tab'));
+        return view('pages.supervisor.incoming-reports', compact('reports', 'counts', 'tab'));
     }
 
-    public function laporanSedangDikerjakan(Request $request)
+    public function ongoingReports(Request $request)
     {
         $status = $request->query('status', 'all');
         $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
@@ -99,7 +99,7 @@ class SupervisorReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.supervisor.laporan-sedang-dikerjakan', compact('reports', 'counts', 'status'));
+        return view('pages.supervisor.ongoing-reports', compact('reports', 'counts', 'status'));
     }
 
     public function show(Report $report)
@@ -135,7 +135,7 @@ class SupervisorReportController extends Controller
         $reviewRole = 'supervisor';
         $returnSupervisor = null;
 
-        return view('pages.review.laporan-show', compact(
+        return view('pages.review.reports-show', compact(
             'report', 'approval', 'entryMap',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'reviewRole', 'returnSupervisor'
@@ -199,13 +199,13 @@ class SupervisorReportController extends Controller
             }
         }
 
-        // Create or reset step 3 approval for manajer
-        $manager = User::where('role', 'manajer')->first();
+        // Create or reset step 3 approval for manager
+        $manager = User::where('role', 'manager')->first();
         if ($manager) {
             ReportApproval::updateOrCreate(
                 ['report_id' => $report->id, 'step' => 3],
                 [
-                    'role' => 'manajer',
+                    'role' => 'manager',
                     'user_id' => $manager->id,
                     'status' => 'pending',
                     'signed_at' => null,
@@ -218,7 +218,7 @@ class SupervisorReportController extends Controller
             $report->update(['status' => 'approved']);
         }
 
-        return redirect()->route('supervisor.laporan-masuk')
+        return redirect()->route('supervisor.incoming-reports')
             ->with('success', 'Laporan berhasil disetujui dan dikirim ke Manajer.');
     }
 
@@ -268,7 +268,7 @@ class SupervisorReportController extends Controller
 
         $report->update(['status' => 'returned', 'locked_by' => null]);
 
-        return redirect()->route('supervisor.laporan-masuk')
+        return redirect()->route('supervisor.incoming-reports')
             ->with('success', 'Laporan telah dikembalikan ke analis.');
     }
 
@@ -309,7 +309,7 @@ class SupervisorReportController extends Controller
         return back()->with('success', 'Data berhasil disimpan.');
     }
 
-    public function cetak(Report $report)
+    public function print(Report $report)
     {
         $userId = Auth::id();
         ReportApproval::where('report_id', $report->id)
@@ -355,7 +355,7 @@ class SupervisorReportController extends Controller
         $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('pages.supervisor.laporan-cetak', compact(
+        return view('pages.supervisor.reports-print', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }

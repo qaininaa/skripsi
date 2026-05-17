@@ -22,9 +22,9 @@ class DashboardService
     private const ROLE_VIEW_MAP = [
         'super' => 'dashboard.super-admin',
         'admin' => 'dashboard.admin-qc',
-        'analis' => 'dashboard.analyst',
+        'analyst' => 'dashboard.analyst',
         'supervisor' => 'dashboard.supervisor',
-        'manajer' => 'dashboard.manager',
+        'manager' => 'dashboard.manager',
     ];
 
     /**
@@ -57,9 +57,9 @@ class DashboardService
         }
 
         return match ($user->role) {
-            'analis' => array_merge($base, $this->analystData()),
+            'analyst' => array_merge($base, $this->analystData()),
             'supervisor' => array_merge($base, $this->approverData($user, 2)),
-            'manajer' => array_merge($base, $this->approverData($user, 3)),
+            'manager' => array_merge($base, $this->approverData($user, 3)),
             default => $base,
         };
     }

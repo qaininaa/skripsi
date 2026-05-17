@@ -49,7 +49,7 @@ class InstrumentIdentityEntryService
         ];
 
         $user = Auth::user();
-        if (($user?->role ?? null) !== 'analis') {
+        if (($user?->role ?? null) !== 'analyst') {
             $this->repository->updateFields($entry, $incoming);
 
             return;

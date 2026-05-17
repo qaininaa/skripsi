@@ -34,7 +34,7 @@
             @endif
 
             @php
-                $managerExistsForOther = \Domain\User\Models\User::where('role', 'manajer')
+                $managerExistsForOther = \Domain\User\Models\User::where('role', 'manager')
                     ->where('id', '!=', $user->id)
                     ->exists();
             @endphp
@@ -63,9 +63,9 @@
                         @php $currentRole = old('role', $user->role); @endphp
                         <option value="super"      {{ $currentRole === 'super'      ? 'selected' : '' }}>Super Admin</option>
                         <option value="admin"      {{ $currentRole === 'admin'      ? 'selected' : '' }}>Admin QC</option>
-                        <option value="analis"     {{ $currentRole === 'analis'     ? 'selected' : '' }}>Analis</option>
+                        <option value="analyst"     {{ $currentRole === 'analyst'     ? 'selected' : '' }}>Analis</option>
                         <option value="supervisor" {{ $currentRole === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="manajer"    {{ $currentRole === 'manajer'    ? 'selected' : '' }} {{ $managerExistsForOther ? 'disabled' : '' }}>
+                        <option value="manager"    {{ $currentRole === 'manager'    ? 'selected' : '' }} {{ $managerExistsForOther ? 'disabled' : '' }}>
                             Manajer{{ $managerExistsForOther ? ' (sudah ada)' : '' }}
                         </option>
                     </select>

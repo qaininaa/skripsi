@@ -39,7 +39,7 @@
                 <span class="ml-1 text-xs font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{{ $counts['pending'] ?? 0 }}</span>
                 @endif
             </div>
-            <a href="{{ route('laporan.index', ['status' => 'pending']) }}" class="text-xs text-sky-600 hover:text-sky-800 font-medium">Lihat semua →</a>
+            <a href="{{ route('reports.index', ['status' => 'pending']) }}" class="text-xs text-sky-600 hover:text-sky-800 font-medium">Lihat semua →</a>
         </div>
         <div class="divide-y divide-gray-50">
             @forelse ($pendingReports as $item)
@@ -49,7 +49,7 @@
                     <p class="text-xs text-gray-400 mt-0.5">{{ $item->batch_number }} · {{ $item->created_at->isoFormat('D MMM') }}</p>
                 </div>
                 <div class="ml-3 flex-shrink-0 flex items-center gap-1.5">
-                    <a href="{{ route('laporan.lihat', $item) }}"
+                    <a href="{{ route('reports.preview', $item) }}"
                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -57,7 +57,7 @@
                         Lihat
                     </a>
                     <button type="button"
-                            onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}')"
+                            onclick="confirmMulai('{{ route('reports.fill', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}')"
                             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -88,7 +88,7 @@
                 <span class="ml-1 text-xs font-semibold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full">{{ $counts['monitoring'] ?? 0 }}</span>
                 @endif
             </div>
-            <a href="{{ route('laporan.index', ['status' => 'monitoring']) }}" class="text-xs text-sky-600 hover:text-sky-800 font-medium">Lihat semua →</a>
+            <a href="{{ route('reports.index', ['status' => 'monitoring']) }}" class="text-xs text-sky-600 hover:text-sky-800 font-medium">Lihat semua →</a>
         </div>
         <div class="divide-y divide-gray-50">
             @forelse ($monitoringReports as $item)
@@ -108,7 +108,7 @@
                     </p>
                 </div>
                 @if ($isMine)
-                <a href="{{ route('laporan.isi', $item) }}"
+                <a href="{{ route('reports.fill', $item) }}"
                    class="ml-3 flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -117,7 +117,7 @@
                 </a>
                 @elseif ($unclaimed)
                 <div class="ml-3 flex-shrink-0 flex items-center gap-1.5">
-                    <a href="{{ route('laporan.lihat', $item) }}"
+                    <a href="{{ route('reports.preview', $item) }}"
                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -125,7 +125,7 @@
                         Lihat
                     </a>
                     <button type="button"
-                            onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', 'resume_monitoring')"
+                            onclick="confirmMulai('{{ route('reports.fill', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', 'resume_monitoring')"
                             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-500 text-white text-xs font-medium hover:bg-sky-600 transition-colors">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -134,7 +134,7 @@
                     </button>
                 </div>
                 @else
-                <a href="{{ route('laporan.lihat', $item) }}"
+                <a href="{{ route('reports.preview', $item) }}"
                    class="ml-3 flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -165,7 +165,7 @@
                 <span class="ml-1 text-xs font-semibold bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full">{{ $counts['reading'] ?? 0 }}</span>
                 @endif
             </div>
-            <a href="{{ route('laporan.index', ['status' => 'reading']) }}" class="text-xs text-sky-600 hover:text-sky-800 font-medium">Lihat semua →</a>
+            <a href="{{ route('reports.index', ['status' => 'reading']) }}" class="text-xs text-sky-600 hover:text-sky-800 font-medium">Lihat semua →</a>
         </div>
         <div class="divide-y divide-gray-50">
             @forelse ($readingReports as $item)
@@ -186,7 +186,7 @@
                 </div>
                 @php $unclaimed = $item->locked_by === null; @endphp
                 @if ($isMine)
-                <a href="{{ route('laporan.isi', $item) }}"
+                <a href="{{ route('reports.fill', $item) }}"
                    class="ml-3 flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-500 text-white text-xs font-medium hover:bg-indigo-600 transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -195,7 +195,7 @@
                 </a>
                 @elseif ($unclaimed)
                 <div class="ml-3 flex-shrink-0 flex items-center gap-1.5">
-                    <a href="{{ route('laporan.lihat', $item) }}"
+                    <a href="{{ route('reports.preview', $item) }}"
                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -203,7 +203,7 @@
                         Lihat
                     </a>
                     <button type="button"
-                            onclick="confirmMulai('{{ route('laporan.isi', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', 'reading')"
+                            onclick="confirmMulai('{{ route('reports.fill', $item) }}', '{{ addslashes($item->product_name) }}', '{{ addslashes($item->batch_number) }}', 'reading')"
                             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-500 text-white text-xs font-medium hover:bg-indigo-600 transition-colors">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -212,7 +212,7 @@
                     </button>
                 </div>
                 @else
-                <a href="{{ route('laporan.lihat', $item) }}"
+                <a href="{{ route('reports.preview', $item) }}"
                    class="ml-3 flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

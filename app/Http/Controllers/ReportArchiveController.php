@@ -111,7 +111,7 @@ class ReportArchiveController extends Controller
             $reports->each(fn ($r) => $r->applyReportTypeSnapshot());
         }
 
-        return view('pages.arsip.index', [
+        return view('pages.archive.index', [
             'folders' => $folders,
             'activeFolder' => $activeFolder ? array_merge($activeFolder, ['key' => $folderKey]) : null,
             'reports' => $reports,
@@ -162,9 +162,9 @@ class ReportArchiveController extends Controller
         $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $folderKey = $request->query('folder');
-        $backUrl = route('arsip-laporan.index', $folderKey ? ['folder' => $folderKey] : []);
+        $backUrl = route('report-archive.index', $folderKey ? ['folder' => $folderKey] : []);
 
-        return view('pages.supervisor.laporan-cetak', compact(
+        return view('pages.supervisor.reports-print', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium', 'backUrl'
         ) + [
             'showPrint' => true,

@@ -22,10 +22,10 @@ class ManagerReportController extends Controller
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
         $returned = $this->baseQuery($userId)->whereIn('report_approvals.status', ['returned', 'rejected'])->count();
 
-        return view('pages.manajer.index', compact('pending', 'approved', 'returned'));
+        return view('pages.manager.index', compact('pending', 'approved', 'returned'));
     }
 
-    public function laporanMasuk(Request $request)
+    public function incomingReports(Request $request)
     {
         $userId = Auth::id();
         $tab = $request->query('tab', 'pending');
@@ -53,10 +53,10 @@ class ManagerReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.manajer.laporan-masuk', compact('reports', 'counts', 'tab'));
+        return view('pages.manager.incoming-reports', compact('reports', 'counts', 'tab'));
     }
 
-    public function laporanSedangDikerjakan(Request $request)
+    public function ongoingReports(Request $request)
     {
         $status = $request->query('status', 'all');
         $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
@@ -81,7 +81,7 @@ class ManagerReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.manajer.laporan-sedang-dikerjakan', compact('reports', 'counts', 'status'));
+        return view('pages.manager.ongoing-reports', compact('reports', 'counts', 'status'));
     }
 
     public function show(Report $report)
@@ -118,9 +118,9 @@ class ManagerReportController extends Controller
         $needsInkubator = $sectionNeeds['needsInkubator'];
         $needsMedium = $sectionNeeds['needsMedium'];
 
-        $reviewRole = 'manajer';
+        $reviewRole = 'manager';
 
-        return view('pages.review.laporan-show', compact(
+        return view('pages.review.reports-show', compact(
             'report', 'approval', 'entryMap', 'returnSupervisor',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'reviewRole'
@@ -198,7 +198,7 @@ class ManagerReportController extends Controller
 
         $report->update(['status' => 'approved']);
 
-        return redirect()->route('manajer.laporan-masuk')
+        return redirect()->route('manager.incoming-reports')
             ->with('success', 'Laporan berhasil disetujui.');
     }
 
@@ -263,7 +263,7 @@ class ManagerReportController extends Controller
 
             $report->update(['status' => 'returned', 'locked_by' => null]);
 
-            return redirect()->route('manajer.laporan-masuk')
+            return redirect()->route('manager.incoming-reports')
                 ->with('success', 'Laporan telah dikembalikan ke Analis.');
         }
 
@@ -271,7 +271,7 @@ class ManagerReportController extends Controller
         $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
         $report->update(['status' => 'returned_to_supervisor']);
 
-        return redirect()->route('manajer.laporan-masuk')
+        return redirect()->route('manager.incoming-reports')
             ->with('success', 'Laporan telah dikembalikan ke Supervisor.');
     }
 
@@ -312,7 +312,7 @@ class ManagerReportController extends Controller
         return back()->with('success', 'Data berhasil disimpan.');
     }
 
-    public function cetak(Report $report)
+    public function print(Report $report)
     {
         $userId = Auth::id();
         ReportApproval::where('report_id', $report->id)
@@ -355,7 +355,7 @@ class ManagerReportController extends Controller
         $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('pages.supervisor.laporan-cetak', compact(
+        return view('pages.supervisor.reports-print', compact(
             'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }

@@ -14,7 +14,7 @@
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($folders as $folder)
-                    <a href="{{ route('arsip-laporan.index', ['folder' => $folder['key']]) }}"
+                    <a href="{{ route('report-archive.index', ['folder' => $folder['key']]) }}"
                         class="group rounded-xl border p-4 transition-colors border-gray-200 hover:border-green-200 hover:bg-green-50/60">
                         <div class="flex items-start justify-between gap-3">
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700">
@@ -40,7 +40,7 @@
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
             <div class="px-5 py-4 border-b border-gray-100">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-start gap-3">
-                    <a href="{{ route('arsip-laporan.index') }}"
+                    <a href="{{ route('report-archive.index') }}"
                         class="inline-flex items-center justify-center px-3 py-2 rounded-lg text-sm text-gray-500 border border-gray-300 hover:text-gray-700 hover:bg-gray-50 transition-colors">
                         Kembali ke folder
                     </a>
@@ -50,7 +50,7 @@
                     </div>
                 </div>
 
-                <form method="GET" action="{{ route('arsip-laporan.index') }}" class="flex items-center gap-3 mt-4">
+                <form method="GET" action="{{ route('report-archive.index') }}" class="flex items-center gap-3 mt-4">
                     <input type="hidden" name="folder" value="{{ $activeFolder['key'] }}">
                     <div class="relative flex-1 max-w-sm">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,7 +62,7 @@
                     <button type="submit" class="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors">
                         Cari
                     </button>
-                    <a href="{{ route('arsip-laporan.index', ['folder' => $activeFolder['key']]) }}"
+                    <a href="{{ route('report-archive.index', ['folder' => $activeFolder['key']]) }}"
                         class="px-3 py-2 rounded-lg text-sm text-gray-500 border border-gray-300 hover:text-gray-700 hover:bg-gray-50 transition-colors">
                         Reset
                     </a>
@@ -128,7 +128,7 @@
                                         @endif
                                     </td>
                                     <td class="px-5 py-3.5">
-                                        <a href="{{ route('arsip-laporan.show', ['report' => $report->id, 'folder' => $activeFolder['key']]) }}"
+                                        <a href="{{ route('report-archive.show', ['report' => $report->id, 'folder' => $activeFolder['key']]) }}"
                                             target="_blank" rel="noopener noreferrer"
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-medium hover:bg-green-100 transition-colors">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

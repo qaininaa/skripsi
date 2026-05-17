@@ -136,8 +136,8 @@ class ReportViewService
         $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
         $readingAnalysts = $report->analysts->where('type', 'reading');
 
-        $analis = User::where('role', 'analis')->orderBy('name')->get();
-        $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
+        $analysts = User::where('role', 'analyst')->orderBy('name')->get();
+        $otherAnalysts = $analysts->where('id', '!=', auth()->id())->values();
 
         // Approval untuk supervisor & manager (sama dengan env section).
         $supApproval = $report->approvals->firstWhere('step', 2);
@@ -146,8 +146,8 @@ class ReportViewService
         return [
             'monitoringAnalysts' => $monitoringAnalysts,
             'readingAnalysts' => $readingAnalysts,
-            'analis' => $analis,
-            'otherAnalis' => $otherAnalis,
+            'analysts' => $analysts,
+            'otherAnalysts' => $otherAnalysts,
             'supApproval' => $supApproval,
             'mngrApproval' => $mngrApproval,
         ];

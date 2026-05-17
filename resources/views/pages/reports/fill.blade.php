@@ -4,10 +4,10 @@
 @section('page-title', 'Isi Laporan')
 @section('avatar-color', 'bg-green-600')
 @section('content')
-<form method="POST" action="{{ route('laporan.save', $report) }}" id="laporan-form">
+<form method="POST" action="{{ route('reports.save', $report) }}" id="report-form">
 @csrf
 
-@include('pages.laporan.partials.action-bar')
+@include('pages.reports.partials.action-bar')
 
 @if (session('success'))
 <div class="mb-5 px-4 py-3 bg-green-50 border border-green-100 rounded-xl text-sm text-green-700 flex items-center gap-2">
@@ -62,20 +62,20 @@
 @endif
 
 {{-- ── 1. Pemantauan Ruang ─────────────────────────────── --}}
-@include('pages.laporan.partials.section-info')
+@include('pages.reports.partials.section-info')
 
 @php $hd = $report->header_data ?? []; @endphp
 
 @if ($needsAirSampler)
-@include('pages.laporan.partials.section-alat', ['isEditable' => $isEditable && $isMonitoringPhase])
+@include('pages.reports.partials.section-alat', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
 @if ($needsMedium && ($report->reportType->mediumTypes->isNotEmpty() ?? false))
-@include('pages.laporan.partials.section-medium', ['isEditable' => $isEditable && $isMonitoringPhase])
+@include('pages.reports.partials.section-medium', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
 @if ($needsInkubator)
-@include('pages.laporan.partials.section-inkubator', ['isEditable' => $isEditable && $isMonitoringPhase])
+@include('pages.reports.partials.section-inkubator', ['isEditable' => $isEditable && $isMonitoringPhase])
 @endif
 
 @php
@@ -91,15 +91,15 @@
     $totalInstances = $sectionInstance['totalInstances'];
     $secNum         = $sectionInstance['secNum'];
 @endphp
-@include('pages.laporan.partials.section-tabel', ['instance' => $instance, 'instanceId' => $instanceId, 'totalInstances' => $totalInstances, 'secNum' => $secNum])
+@include('pages.reports.partials.section-tabel', ['instance' => $instance, 'instanceId' => $instanceId, 'totalInstances' => $totalInstances, 'secNum' => $secNum])
 @endforeach
 
-@include('pages.laporan.partials.bottom-bar')
+@include('pages.reports.partials.bottom-bar')
 <x-modals.report-modal :is-monitoring-phase="$isMonitoringPhase" />
 
 </form>
 @endsection
 
 @push('scripts')
-@include('pages.laporan.partials.scripts')
+@include('pages.reports.partials.scripts')
 @endpush

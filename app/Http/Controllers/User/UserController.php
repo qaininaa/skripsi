@@ -30,7 +30,7 @@ class UserController extends Controller
 
     public function store(UserStoreRequest $request): RedirectResponse
     {
-        if ($request->input('role') === 'manajer' && $this->userService->isManagerTaken()) {
+        if ($request->input('role') === 'manager' && $this->userService->isManagerTaken()) {
             return back()->withInput()->withErrors([
                 'role' => 'Sudah ada pengguna dengan role Manajer. Hanya boleh ada 1 Manajer.',
             ]);
@@ -50,7 +50,7 @@ class UserController extends Controller
 
     public function update(UserUpdateRequest $request, User $user): RedirectResponse
     {
-        if ($request->input('role') === 'manajer' && $this->userService->isManagerTaken($user->id)) {
+        if ($request->input('role') === 'manager' && $this->userService->isManagerTaken($user->id)) {
             return back()->withInput()->withErrors([
                 'role' => 'Sudah ada pengguna dengan role Manajer. Hanya boleh ada 1 Manajer.',
             ]);

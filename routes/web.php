@@ -61,48 +61,48 @@ Route::middleware(['auth', 'password.check'])->group(function () {
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('report-assignment')
             ->parameters(['report-assignments' => 'report']);
-        Route::get('/report-assignments/{report}/preview', [ReportPreviewController::class, 'show'])->name('admin.laporan.preview');
+        Route::get('/report-assignments/{report}/preview', [ReportPreviewController::class, 'show'])->name('admin.reports.preview');
         Route::post('/report-assignments/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'duplicateSection'])->name('report-assignment.sections.duplicate');
         Route::delete('/report-assignments/{report}/sections/{sectionId}/duplicate', [ReportPreviewStructureController::class, 'removeSection'])->name('report-assignment.sections.remove');
     });
 
     // Analyst
-    Route::middleware('role:analis')->group(function () {
-        Route::get('/reports', [ReportClaimingController::class, 'index'])->name('laporan.index');
-        Route::get('/reports/{report}/fill', [ReportClaimingController::class, 'isi'])->name('laporan.isi');
-        Route::get('/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('laporan.lihat');
-        Route::post('/reports/{report}/save', [ReportDraftingController::class, 'save'])->name('laporan.save');
-        Route::post('/reports/verify-password', [ReportDraftingController::class, 'verifyPassword'])->name('laporan.verify-password');
+    Route::middleware('role:analyst')->group(function () {
+        Route::get('/reports', [ReportClaimingController::class, 'index'])->name('reports.index');
+        Route::get('/reports/{report}/fill', [ReportClaimingController::class, 'fill'])->name('reports.fill');
+        Route::get('/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('reports.preview');
+        Route::post('/reports/{report}/save', [ReportDraftingController::class, 'save'])->name('reports.save');
+        Route::post('/reports/verify-password', [ReportDraftingController::class, 'verifyPassword'])->name('reports.verify-password');
     });
 
     // Supervisor
     Route::middleware('role:supervisor')->prefix('supervisor')->name('supervisor.')->group(function () {
-        Route::get('/incoming-reports', [SupervisorReportController::class, 'laporanMasuk'])->name('laporan-masuk');
-        Route::get('/ongoing-reports', [SupervisorReportController::class, 'laporanSedangDikerjakan'])->name('laporan-sedang-dikerjakan');
-        Route::get('/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('laporan.preview');
-        Route::get('/reports/{report}', [SupervisorReportController::class, 'show'])->name('laporan.show');
-        Route::get('/reports/{report}/print', [SupervisorReportController::class, 'cetak'])->name('laporan.cetak');
-        Route::post('/reports/{report}/save', [SupervisorReportController::class, 'save'])->name('laporan.save');
-        Route::post('/reports/{report}/approve', [SupervisorReportController::class, 'approve'])->name('laporan.approve');
-        Route::post('/reports/{report}/return', [SupervisorReportController::class, 'returnReport'])->name('laporan.return');
+        Route::get('/incoming-reports', [SupervisorReportController::class, 'incomingReports'])->name('incoming-reports');
+        Route::get('/ongoing-reports', [SupervisorReportController::class, 'ongoingReports'])->name('ongoing-reports');
+        Route::get('/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('reports.preview');
+        Route::get('/reports/{report}', [SupervisorReportController::class, 'show'])->name('reports.show');
+        Route::get('/reports/{report}/print', [SupervisorReportController::class, 'print'])->name('reports.print');
+        Route::post('/reports/{report}/save', [SupervisorReportController::class, 'save'])->name('reports.save');
+        Route::post('/reports/{report}/approve', [SupervisorReportController::class, 'approve'])->name('reports.approve');
+        Route::post('/reports/{report}/return', [SupervisorReportController::class, 'returnReport'])->name('reports.return');
     });
 
     // Manager
-    Route::middleware('role:manajer')->prefix('manajer')->name('manajer.')->group(function () {
-        Route::get('/incoming-reports', [ManagerReportController::class, 'laporanMasuk'])->name('laporan-masuk');
-        Route::get('/ongoing-reports', [ManagerReportController::class, 'laporanSedangDikerjakan'])->name('laporan-sedang-dikerjakan');
-        Route::get('/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('laporan.preview');
-        Route::get('/reports/{report}', [ManagerReportController::class, 'show'])->name('laporan.show');
-        Route::get('/reports/{report}/print', [ManagerReportController::class, 'cetak'])->name('laporan.cetak');
-        Route::post('/reports/{report}/save', [ManagerReportController::class, 'save'])->name('laporan.save');
-        Route::post('/reports/{report}/approve', [ManagerReportController::class, 'approve'])->name('laporan.approve');
-        Route::post('/reports/{report}/return', [ManagerReportController::class, 'returnReport'])->name('laporan.return');
+    Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(function () {
+        Route::get('/incoming-reports', [ManagerReportController::class, 'incomingReports'])->name('incoming-reports');
+        Route::get('/ongoing-reports', [ManagerReportController::class, 'ongoingReports'])->name('ongoing-reports');
+        Route::get('/reports/{report}/preview', [ReportPreviewController::class, 'show'])->name('reports.preview');
+        Route::get('/reports/{report}', [ManagerReportController::class, 'show'])->name('reports.show');
+        Route::get('/reports/{report}/print', [ManagerReportController::class, 'print'])->name('reports.print');
+        Route::post('/reports/{report}/save', [ManagerReportController::class, 'save'])->name('reports.save');
+        Route::post('/reports/{report}/approve', [ManagerReportController::class, 'approve'])->name('reports.approve');
+        Route::post('/reports/{report}/return', [ManagerReportController::class, 'returnReport'])->name('reports.return');
     });
 
     // Report archive (analyst, admin, supervisor, manager)
-    Route::middleware('role:analis,admin,supervisor,manajer')
+    Route::middleware('role:analyst,admin,supervisor,manager')
         ->prefix('archive')
-        ->name('arsip-laporan.')
+        ->name('report-archive.')
         ->group(function () {
             Route::get('/', [ReportArchiveController::class, 'index'])->name('index');
             Route::get('/{report}', [ReportArchiveController::class, 'show'])->name('show');

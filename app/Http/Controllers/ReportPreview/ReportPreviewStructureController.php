@@ -7,6 +7,7 @@ use App\Services\ReportPreview\ReportPreviewService;
 use Domain\Report\Models\Report;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /**
  * Controller for report structure actions from admin preview context.
@@ -18,21 +19,21 @@ class ReportPreviewStructureController extends Controller
     /**
      * Duplicate section instance from admin preview page.
      */
-    public function duplicateSection(Report $report, string $sectionId): JsonResponse|RedirectResponse
+    public function duplicateSection(Request $request, Report $report, string $sectionId): JsonResponse|RedirectResponse
     {
         $this->ensureAdminAccess();
 
-        return $this->respond($this->previewService->duplicateSection($report, $sectionId));
+        return $this->respond($request, $this->previewService->duplicateSection($report, $sectionId));
     }
 
     /**
      * Remove duplicated section instance from admin preview page.
      */
-    public function removeSection(Report $report, string $sectionId): JsonResponse|RedirectResponse
+    public function removeSection(Request $request, Report $report, string $sectionId): JsonResponse|RedirectResponse
     {
         $this->ensureAdminAccess();
 
-        return $this->respond($this->previewService->removeSection($report, $sectionId));
+        return $this->respond($request, $this->previewService->removeSection($report, $sectionId));
     }
 
     private function ensureAdminAccess(): void
@@ -43,11 +44,11 @@ class ReportPreviewStructureController extends Controller
     /**
      * @param  array{ok: bool, message: string}  $result
      */
-    private function respond(array $result): JsonResponse|RedirectResponse
+    private function respond(Request $request, array $result): JsonResponse|RedirectResponse
     {
         $status = $result['ok'] ? 200 : 422;
 
-        if (request()->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json($result, $status);
         }
 

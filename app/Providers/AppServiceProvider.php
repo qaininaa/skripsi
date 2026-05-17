@@ -88,7 +88,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer(
-            'pages.laporan.partials.section-tabel',
+            'pages.reports.partials.section-tabel',
             SectionTableComposer::class
         );
 

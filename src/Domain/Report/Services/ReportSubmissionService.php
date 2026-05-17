@@ -54,7 +54,7 @@ class ReportSubmissionService
 
             $this->workflowService->submit($report, (string) $dto->supervisorId);
 
-            return redirect()->route('laporan.index')
+            return redirect()->route('reports.index')
                 ->with('success', 'Laporan berhasil dikirim ke supervisor.');
         }
 
@@ -62,7 +62,7 @@ class ReportSubmissionService
             abort_unless($report->status === 'monitoring', 403);
             $this->workflowService->finishMonitoring($report);
 
-            return redirect()->route('laporan.index')
+            return redirect()->route('reports.index')
                 ->with('success', 'Monitoring selesai. Laporan masuk ke tahap pembacaan.');
         }
 
@@ -70,14 +70,14 @@ class ReportSubmissionService
             abort_unless($report->status === 'monitoring', 403);
             $this->workflowService->submitRevision($report);
 
-            return redirect()->route('laporan.index')
+            return redirect()->route('reports.index')
                 ->with('success', 'Revisi berhasil dikirim ke supervisor.');
         }
 
         if ($dto->action === 'handover') {
             $this->workflowService->handover($report);
 
-            return redirect()->route('laporan.index')
+            return redirect()->route('reports.index')
                 ->with('success', 'Draft tersimpan. Laporan bisa dilanjutkan oleh analis lain.');
         }
 

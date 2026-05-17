@@ -2,6 +2,8 @@
     $sectionNotesBySectionInstance = $report->sectionNotes
         ->keyBy(fn ($row) => (string) $row->section_id . '|' . (int) ($row->instance_number ?? 1));
     $printPreviewOnly = $printPreviewOnly ?? false;
+    $printBgColor = $printPreviewOnly ? '#fff' : '#d1d5db';
+    $printOuterPadBottom = $printPreviewOnly ? '0' : '32px';
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -11,7 +13,7 @@
 <title>{{ $report->reportType->annex_number }} — {{ $report->created_at->format('Y-m-d') }}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:{{ $printPreviewOnly ? '#fff' : '#d1d5db' }};overflow-x:hidden}
+body{font-family:Verdana,Geneva,sans-serif;font-size:10pt;color:#000;background:var(--print-bg);overflow-x:hidden}
 
 /* ── Pages ─────────────────────────────── */
 .doc-page{background:#fff;margin:1rem auto 2rem;box-shadow:0 2px 14px rgba(0,0,0,.2);position:relative;padding-bottom:18mm}
@@ -172,7 +174,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 #zoom-outer{
     width:100%;
     overflow-x:auto;         /* horizontal scroll when zoomed in */
-    padding-bottom:{{ $printPreviewOnly ? '0' : '32px' }};     /* bottom padding only; horizontal centering done by JS */
+    padding-bottom:var(--print-outer-pad-bottom);     /* bottom padding only; horizontal centering done by JS */
 }
 #zoom-wrap{
     transform-origin:top left;
@@ -205,13 +207,13 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 @page landscape{size:A4 landscape;margin:12.7mm 2.5mm 12.7mm 2.5mm}
 </style>
 </head>
-<body>
+<body style="--print-bg: {{ $printBgColor }}; --print-outer-pad-bottom: {{ $printOuterPadBottom }};">
 
 {{-- ── Print Toolbar (screen only) ──────────────────── --}}
 @unless($printPreviewOnly)
 <div class="no-print toolbar">
     <div class="toolbar-title">
-        <a href="{{ $backUrl ?? route('supervisor.laporan.show', $report) }}">
+        <a href="{{ $backUrl ?? route('supervisor.reports.show', $report) }}">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
             Kembali
         </a>
@@ -227,7 +229,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     </div>
 
     <div class="toolbar-actions">
-        @if(($showPrint ?? false) || auth()->user()->role === 'manajer')
+        @if(($showPrint ?? false) || auth()->user()->role === 'manager')
         <button class="toolbar-print" onclick="window.print()">Cetak / Download PDF</button>
         @endif
     </div>
@@ -543,8 +545,10 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                     @php
                         $stA = $secTimesFromEntries[$col]['a'] ?? [];
                         $stB = $secTimesFromEntries[$col]['b'] ?? [];
+                        $dualAbStyle = 'font-weight:400;margin-top:2px;' . ($isSettlePlate ? 'margin-left:-2px;margin-right:-2px;border-top:1px solid #000;padding-top:2px;' : '');
+                        $dualAbAttr = 'style="' . $dualAbStyle . '"';
                     @endphp
-                    <div style="font-weight:400;margin-top:2px;{{ $isSettlePlate ? 'margin-left:-2px;margin-right:-2px;border-top:1px solid #000;padding-top:2px;' : '' }}">
+                    <div {!! $dualAbAttr !!}>
                         JAM<br>Mulai Sebar Petri:<br>
                         A: {{ ($stA['start_time'] ?? '') ?: 'N/A:N/A' }}<br>
                         B: {{ ($stB['start_time'] ?? '') ?: 'N/A:N/A' }}<br><br>
@@ -635,7 +639,11 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 <td class="tl">{{ $loc->room->room_name }}</td>
                 <td class="tc">{{ $loc->room->class }}</td>
                 <td class="tc" style="font-family:monospace;font-size:7.5pt">{{ $loc->room->room_number }}</td>
-                <td class="tc" style="font-family:monospace;font-size:7.5pt;{{ str_starts_with($loc->location_number, '*)') ? 'font-style:italic;' : '' }}">{{ $loc->location_number }}</td>
+                @php
+                    $locNumStyle = 'font-family:monospace;font-size:7.5pt;' . (str_starts_with($loc->location_number, '*)') ? 'font-style:italic;' : '');
+                    $locNumAttr = 'style="' . $locNumStyle . '"';
+                @endphp
+                <td class="tc" {!! $locNumAttr !!}>{{ $loc->location_number }}</td>
 
                 {{-- Machine set-up --}}
                 @if ($hasMachineSetup)
@@ -791,7 +799,17 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 </div>{{-- /zoom-wrap --}}
 </div>{{-- /zoom-outer --}}
 
+<script type="application/json" id="print-config">
+@php
+    echo json_encode([
+        'minLeft' => $printPreviewOnly ? 0 : 16,
+        'outerPadding' => $printPreviewOnly ? 0 : 32,
+        'autoPrint' => (bool) ($autoPrint ?? false),
+    ], JSON_UNESCAPED_SLASHES);
+@endphp
+</script>
 <script>
+var PRINT_CONFIG = JSON.parse(document.getElementById('print-config').textContent);
 var pageZoom = 1.0;
 var userManualZoom = false;
 
@@ -817,7 +835,7 @@ function applyZoom() {
     // Center content horizontally with small breathing room (or none for preview-only mode)
     var vw      = window.innerWidth || document.documentElement.clientWidth;
     var scaledW = naturalW * pageZoom;
-    var minLeft = {{ $printPreviewOnly ? '0' : '16' }};
+    var minLeft = PRINT_CONFIG.minLeft;
     wrap.style.marginLeft = Math.max(minLeft, (vw - scaledW) / 2) + 'px';
 
     if (lv) lv.textContent = Math.round(pageZoom * 100) + '%';
@@ -834,7 +852,7 @@ function autoFit() {
     // 1mm ≈ 3.7795px at 96dpi
     var maxPagePx    = maxPageMM * 3.7795;
     // Account for #zoom-outer horizontal padding
-    var outerPadding = {{ $printPreviewOnly ? '0' : '32' }};
+    var outerPadding = PRINT_CONFIG.outerPadding;
     var totalWidth   = maxPagePx + outerPadding;
     var vw = window.innerWidth || document.documentElement.clientWidth;
 
@@ -848,9 +866,9 @@ function autoFit() {
 
 document.addEventListener('DOMContentLoaded', function(){
     autoFit();
-    @if($autoPrint ?? false)
-    window.print();
-    @endif
+    if (PRINT_CONFIG.autoPrint) {
+        window.print();
+    }
 });
 
 var resizeTimer;

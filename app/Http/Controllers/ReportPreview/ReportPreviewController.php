@@ -25,7 +25,7 @@ class ReportPreviewController extends Controller
 
         $isAdminPreview = auth()->user()?->role === 'admin';
 
-        return view('pages.laporan.isi', array_merge(
+        return view('pages.reports.fill', array_merge(
             compact('report', 'isAdminPreview'),
             $viewData
         ));

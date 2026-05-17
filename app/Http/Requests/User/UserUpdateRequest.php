@@ -26,7 +26,7 @@ class UserUpdateRequest extends FormRequest
                 'required', 'string', 'max:255',
                 Rule::unique('users', 'username')->ignore($userId),
             ],
-            'role' => ['required', Rule::in(['super', 'admin', 'analis', 'supervisor', 'manajer'])],
+            'role' => ['required', Rule::in(['super', 'admin', 'analyst', 'supervisor', 'manager'])],
             'password' => ['nullable', 'string', 'min:1', 'confirmed'],
         ];
     }

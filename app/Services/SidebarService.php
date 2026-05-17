@@ -62,9 +62,9 @@ class SidebarService
         return match ($role) {
             'super' => 'Super Admin',
             'admin' => 'Admin Quality Control',
-            'analis' => 'Analis Lab. Mikrobiologi',
+            'analyst' => 'Analis Lab. Mikrobiologi',
             'supervisor' => 'Supervisor Mikrobiologi',
-            'manajer' => 'Manajer',
+            'manager' => 'Manajer',
             default => 'Pengguna',
         };
     }
@@ -117,11 +117,11 @@ class SidebarService
             ];
         }
 
-        if ($role === 'analis') {
+        if ($role === 'analyst') {
             $sections[] = [
                 'label' => 'Laporan',
                 'items' => [
-                    $this->item('Laporan', 'laporan.index', 'laporan.*', 'icons/sidebar/reports.svg'),
+                    $this->item('Laporan', 'reports.index', 'reports.*', 'icons/sidebar/reports.svg'),
                 ],
             ];
         }
@@ -132,16 +132,16 @@ class SidebarService
                 'items' => [
                     $this->item(
                         'Laporan Masuk',
-                        'supervisor.laporan-masuk',
-                        'supervisor.laporan-masuk',
+                        'supervisor.incoming-reports',
+                        'supervisor.incoming-reports',
                         'icons/sidebar/inbox.svg',
                         $incomingCount,
                         'red',
                     ),
                     $this->item(
                         'Sedang Dikerjakan',
-                        'supervisor.laporan-sedang-dikerjakan',
-                        'supervisor.laporan-sedang-dikerjakan',
+                        'supervisor.ongoing-reports',
+                        'supervisor.ongoing-reports',
                         'icons/sidebar/reports.svg',
                         $ongoingCount,
                         'emerald',
@@ -150,22 +150,22 @@ class SidebarService
             ];
         }
 
-        if ($role === 'manajer') {
+        if ($role === 'manager') {
             $sections[] = [
                 'label' => 'Laporan',
                 'items' => [
                     $this->item(
                         'Laporan Masuk',
-                        'manajer.laporan-masuk',
-                        'manajer.laporan-masuk',
+                        'manager.incoming-reports',
+                        'manager.incoming-reports',
                         'icons/sidebar/inbox.svg',
                         $incomingCount,
                         'red',
                     ),
                     $this->item(
                         'Sedang Dikerjakan',
-                        'manajer.laporan-sedang-dikerjakan',
-                        'manajer.laporan-sedang-dikerjakan',
+                        'manager.ongoing-reports',
+                        'manager.ongoing-reports',
                         'icons/sidebar/reports.svg',
                         $ongoingCount,
                         'emerald',
@@ -178,7 +178,7 @@ class SidebarService
             $sections[] = [
                 'label' => 'Arsip',
                 'items' => [
-                    $this->item('Arsip Laporan', 'arsip-laporan.index', 'arsip-laporan.*', 'icons/sidebar/archive.svg'),
+                    $this->item('Arsip Laporan', 'report-archive.index', 'report-archive.*', 'icons/sidebar/archive.svg'),
                 ],
             ];
         }
@@ -218,7 +218,7 @@ class SidebarService
      */
     protected function resolveReportBadgeCounts(User $user, string $role): array
     {
-        if (! in_array($role, ['supervisor', 'manajer'], true)) {
+        if (! in_array($role, ['supervisor', 'manager'], true)) {
             return [0, 0];
         }
 

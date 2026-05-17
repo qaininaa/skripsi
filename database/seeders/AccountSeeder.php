@@ -32,50 +32,50 @@ class AccountSeeder extends Seeder
         ]);
         User::create([
             'name' => 'Karina Ghaisani',
-            'username' => 'analis1',
-            'role' => 'analis',
+            'username' => 'analyst1',
+            'role' => 'analyst',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
         User::create([
             'name' => 'Farhanah Basri',
-            'username' => 'analis2',
-            'role' => 'analis',
+            'username' => 'analyst2',
+            'role' => 'analyst',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
         User::create([
             'name' => 'Sandiva Amalia',
-            'username' => 'analis3',
-            'role' => 'analis',
+            'username' => 'analyst3',
+            'role' => 'analyst',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
         User::create([
             'name' => 'Rafly Aziz',
-            'username' => 'analis4',
-            'role' => 'analis',
+            'username' => 'analyst4',
+            'role' => 'analyst',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
         User::create([
             'name' => 'Ananda Sadewa',
-            'username' => 'analis5',
-            'role' => 'analis',
+            'username' => 'analyst5',
+            'role' => 'analyst',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
         User::create([
             'name' => 'Saputra',
-            'username' => 'analis6',
-            'role' => 'analis',
+            'username' => 'analyst6',
+            'role' => 'analyst',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);
         User::create([
             'name' => 'Dewi Ikha',
-            'username' => 'manajer',
-            'role' => 'manajer',
+            'username' => 'manager',
+            'role' => 'manager',
             'password' => Hash::make('admin123'),
             'last_password_changed_at' => $now,
         ]);

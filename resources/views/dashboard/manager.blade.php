@@ -55,7 +55,7 @@
         </svg>
         <p class="text-sm font-medium text-amber-800">Ada <span class="font-bold">{{ $pending }}</span> laporan menunggu tinjauan Anda.</p>
     </div>
-    <a href="{{ route('manajer.laporan-masuk') }}"
+    <a href="{{ route('manager.incoming-reports') }}"
        class="flex-shrink-0 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors">
         Tinjau Sekarang
     </a>

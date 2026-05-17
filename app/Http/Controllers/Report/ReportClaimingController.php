@@ -24,7 +24,7 @@ class ReportClaimingController extends Controller
     {
         $data = $this->claimingService->listingData((string) Auth::id(), $request->toDTO());
 
-        return view('pages.laporan.index', [
+        return view('pages.reports.index', [
             'items' => $data['items'],
             'status' => $data['status'],
             'counts' => $data['counts'],
@@ -34,18 +34,18 @@ class ReportClaimingController extends Controller
     /**
      * Show report edit form and claim ownership when allowed.
      */
-    public function isi(AnalystReport $report): View|RedirectResponse
+    public function fill(AnalystReport $report): View|RedirectResponse
     {
         $data = $this->claimingService->editViewData($report, (string) Auth::id());
 
         if (($data['forbidden'] ?? false) === true) {
             return redirect()
-                ->route('laporan.index')
+                ->route('reports.index')
                 ->with('error', (string) ($data['message'] ?? 'Akses ditolak.'));
         }
 
         unset($data['forbidden']);
 
-        return view('pages.laporan.isi', $data);
+        return view('pages.reports.fill', $data);
     }
 }

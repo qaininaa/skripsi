@@ -1,17 +1,17 @@
-<script type="application/json" id="laporan-config">
+<script type="application/json" id="report-config">
 @php
     echo json_encode([
-        'verifyPasswordUrl' => route('laporan.verify-password'),
+        'verifyPasswordUrl' => route('reports.verify-password'),
         'myShift' => $myShift ?? 1,
         'focusInput' => session('focus_input'),
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 </script>
 <script>
-const LAPORAN_CONFIG       = JSON.parse(document.getElementById('laporan-config').textContent);
-const VERIFY_PASSWORD_URL  = LAPORAN_CONFIG.verifyPasswordUrl;
-const MY_SHIFT             = LAPORAN_CONFIG.myShift;
-const FOCUS_INPUT          = LAPORAN_CONFIG.focusInput;
+const REPORT_CONFIG        = JSON.parse(document.getElementById('report-config').textContent);
+const VERIFY_PASSWORD_URL  = REPORT_CONFIG.verifyPasswordUrl;
+const MY_SHIFT             = REPORT_CONFIG.myShift;
+const FOCUS_INPUT          = REPORT_CONFIG.focusInput;
 
 // ── Admin: duplikat / hapus section via fetch (avoid nested form) ───────
 function adminSectionAction(method, url) {
@@ -118,7 +118,7 @@ async function confirmHandover() {
             closeHandoverModal();
             document.getElementById('save-action-input').value = action;
             formDirty = false;
-            document.getElementById('laporan-form').submit();
+            document.getElementById('report-form').submit();
         } else {
             errEl.textContent = data.message ?? 'Username atau password salah.';
             errEl.classList.remove('hidden');
@@ -270,7 +270,7 @@ async function confirmSave() {
                     document.getElementById('save-modal-supervisor').value;
             }
             formDirty = false;
-            document.getElementById('laporan-form').submit();
+            document.getElementById('report-form').submit();
         } else {
             errEl.textContent = data.message ?? 'Username atau password salah.';
             errEl.classList.remove('hidden');
@@ -478,8 +478,8 @@ function recalcSectionKonklusi(sectionInstance) {
     if (hiddenInput) hiddenInput.value = newVal;
 }
 
-// Deselectable analis radio (click same button again to clear)
-function toggleAnalis(inkKey, field, value, btn) {
+// Deselectable analyst radio (click same button again to clear)
+function toggleAnalyst(inkKey, field, value, btn) {
     const hidden = document.getElementById(`radio-val-${inkKey}-${field}`);
     if (!hidden) return;
     const isSelected = hidden.value === value;
@@ -586,8 +586,8 @@ function validateAction(action) {
 
 // Warn before navigating away if form has been changed
 let formDirty = false;
-document.getElementById('laporan-form')?.addEventListener('change', () => { formDirty = true; });
-document.getElementById('laporan-form')?.addEventListener('submit', () => { formDirty = false; });
+document.getElementById('report-form')?.addEventListener('change', () => { formDirty = true; });
+document.getElementById('report-form')?.addEventListener('submit', () => { formDirty = false; });
 window.addEventListener('beforeunload', (e) => {
     if (formDirty) {
         e.preventDefault();

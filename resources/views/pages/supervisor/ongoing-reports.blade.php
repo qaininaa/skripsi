@@ -8,9 +8,9 @@
     'reports' => $reports,
     'counts' => $counts,
     'status' => $status,
-    'tabRouteName' => 'manajer.laporan-sedang-dikerjakan',
-    'previewRouteName' => 'manajer.laporan.preview',
-    'accent' => 'blue',
+    'tabRouteName' => 'supervisor.ongoing-reports',
+    'previewRouteName' => 'supervisor.reports.preview',
+    'accent' => 'emerald',
     'description' => 'Pantau laporan yang sedang dikerjakan analis pada tahap monitoring maupun pembacaan.',
 ])
 
