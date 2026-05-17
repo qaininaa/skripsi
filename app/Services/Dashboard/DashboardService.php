@@ -3,10 +3,7 @@
 namespace App\Services\Dashboard;
 
 use App\Domains\Report\Models\Report;
-use App\Domains\Report\Models\ReportApproval;
 use Domain\User\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
