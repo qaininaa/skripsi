@@ -2,11 +2,11 @@
 
 namespace App\Services\Reports;
 
-use App\Domains\Report\Services\IncubatorEntryService;
-use App\Domains\Report\Services\InstrumentIdentityEntryService;
-use App\Domains\Report\Services\MediumEntryService;
-use App\Domains\Report\Models\Report;
-use App\Domains\User\Models\User;
+use Domain\Report\Services\IncubatorEntryService;
+use Domain\Report\Services\InstrumentIdentityEntryService;
+use Domain\Report\Services\MediumEntryService;
+use Domain\Report\Models\Report;
+use Domain\User\Models\User;
 use App\Services\ReportSectionService;
 use App\Services\SectionInstanceService;
 
@@ -136,8 +136,8 @@ class ReportViewService
         $monitoringAnalysts = $report->analysts->where('type', 'monitoring');
         $readingAnalysts = $report->analysts->where('type', 'reading');
 
-        $analis = User::where('role', 'analis')->orderBy('name')->get();
-        $otherAnalis = $analis->where('id', '!=', auth()->id())->values();
+        $analysts = User::where('role', 'analyst')->orderBy('name')->get();
+        $otherAnalysts = $analysts->where('id', '!=', auth()->id())->values();
 
         // Approval untuk supervisor & manager (sama dengan env section).
         $supApproval = $report->approvals->firstWhere('step', 2);
@@ -146,8 +146,8 @@ class ReportViewService
         return [
             'monitoringAnalysts' => $monitoringAnalysts,
             'readingAnalysts' => $readingAnalysts,
-            'analis' => $analis,
-            'otherAnalis' => $otherAnalis,
+            'analysts' => $analysts,
+            'otherAnalysts' => $otherAnalysts,
             'supApproval' => $supApproval,
             'mngrApproval' => $mngrApproval,
         ];

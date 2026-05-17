@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Domains\ReportType\Models\ReportType;
+use Domain\ReportType\Models\ReportType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

@@ -8,7 +8,7 @@
     <div class="flex items-center justify-between">
         <x-buttons.back-to-list :href="route('report-types.index')" />
         <div class="flex items-center gap-2">
-            <x-buttons.edit-button onclick="window.location.href='{{ route('report-types.edit', $reportType) }}'" size="md"/>
+            <x-buttons.edit-button :href="route('report-types.edit', $reportType)" size="md"/>
             <x-buttons.delete-button :action="route('report-types.destroy', $reportType)" :name="$reportType->name" size="md" />
         </div>
     </div>

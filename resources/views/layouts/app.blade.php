@@ -28,12 +28,14 @@
         ></div>
 
         {{-- Sidebar --}}
-        <div
+        <aside
+            id="app-sidebar"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 z-30 w-64 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:flex-shrink-0"
+            class="fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:translate-x-0 lg:flex-shrink-0 h-screen"
+            :aria-hidden="sidebarOpen ? 'false' : 'true'"
         >
-            @include('layouts.sidebar')
-        </div>
+            @include('components.sidebar.sidebar')
+        </aside>
 
         {{-- Main Content --}}
         <div class="flex flex-col flex-1 overflow-hidden min-w-0">

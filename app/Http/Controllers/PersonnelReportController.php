@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Domains\Location\Models\Location;
-use App\Domains\Room\Models\Room;
+use Domain\Location\Models\Location;
+use Domain\Room\Models\Room;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;

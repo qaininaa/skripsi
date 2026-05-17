@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Domains\Report\Services\IncubatorEntryService;
-use App\Domains\Report\Services\InstrumentIdentityEntryService;
-use App\Domains\Report\Services\MediumEntryService;
-use App\Domains\Report\Models\Report;
-use App\Domains\Report\Models\ReportApproval;
-use App\Domains\Report\Models\SectionSignature;
+use Domain\Report\Services\IncubatorEntryService;
+use Domain\Report\Services\InstrumentIdentityEntryService;
+use Domain\Report\Services\MediumEntryService;
+use Domain\Report\Models\Report;
+use Domain\Report\Models\ReportApproval;
+use Domain\Report\Models\SectionSignature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,10 +22,10 @@ class ManagerReportController extends Controller
         $approved = $this->baseQuery($userId)->where('report_approvals.status', 'approved')->count();
         $returned = $this->baseQuery($userId)->whereIn('report_approvals.status', ['returned', 'rejected'])->count();
 
-        return view('pages.manajer.index', compact('pending', 'approved', 'returned'));
+        return view('pages.manager.index', compact('pending', 'approved', 'returned'));
     }
 
-    public function laporanMasuk(Request $request)
+    public function incomingReports(Request $request)
     {
         $userId = Auth::id();
         $tab = $request->query('tab', 'pending');
@@ -53,10 +53,10 @@ class ManagerReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.manajer.laporan-masuk', compact('reports', 'counts', 'tab'));
+        return view('pages.manager.incoming-reports', compact('reports', 'counts', 'tab'));
     }
 
-    public function laporanSedangDikerjakan(Request $request)
+    public function ongoingReports(Request $request)
     {
         $status = $request->query('status', 'all');
         $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
@@ -81,7 +81,7 @@ class ManagerReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.manajer.laporan-sedang-dikerjakan', compact('reports', 'counts', 'status'));
+        return view('pages.manager.ongoing-reports', compact('reports', 'counts', 'status'));
     }
 
     public function show(Report $report)
@@ -112,16 +112,17 @@ class ManagerReportController extends Controller
 
         $sectionService = app(\App\Services\ReportSectionService::class);
         $entryMap = $sectionService->buildEntryMap($report);
+        $sectionInstances = $sectionService->buildSectionInstances($report);
         $sectionNeeds = $sectionService->computeSectionNeeds($report);
 
         $needsAirSampler = $sectionNeeds['needsAirSampler'];
         $needsInkubator = $sectionNeeds['needsInkubator'];
         $needsMedium = $sectionNeeds['needsMedium'];
 
-        $reviewRole = 'manajer';
+        $reviewRole = 'manager';
 
-        return view('pages.review.laporan-show', compact(
-            'report', 'approval', 'entryMap', 'returnSupervisor',
+        return view('pages.review.reports-show', compact(
+            'report', 'approval', 'entryMap', 'sectionInstances', 'returnSupervisor',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'reviewRole'
         ));
@@ -198,7 +199,7 @@ class ManagerReportController extends Controller
 
         $report->update(['status' => 'approved']);
 
-        return redirect()->route('manajer.laporan-masuk')
+        return redirect()->route('manager.incoming-reports')
             ->with('success', 'Laporan berhasil disetujui.');
     }
 
@@ -229,10 +230,12 @@ class ManagerReportController extends Controller
             ->where('step', 2)
             ->first();
 
-        $allowedAnalysts = array_merge(
-            $report->analyst_monitoring ?? [],
-            $report->analyst_reading ?? []
-        );
+        $allowedAnalysts = $report->analysts
+            ->pluck('user_id')
+            ->map(fn ($id) => (string) $id)
+            ->unique()
+            ->values()
+            ->all();
 
         $isToSupervisor = $supervisorApproval && $supervisorApproval->user_id === $returnedToUserId;
         $isToAnalyst = in_array($returnedToUserId, $allowedAnalysts);
@@ -263,7 +266,7 @@ class ManagerReportController extends Controller
 
             $report->update(['status' => 'returned', 'locked_by' => null]);
 
-            return redirect()->route('manajer.laporan-masuk')
+            return redirect()->route('manager.incoming-reports')
                 ->with('success', 'Laporan telah dikembalikan ke Analis.');
         }
 
@@ -271,7 +274,7 @@ class ManagerReportController extends Controller
         $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
         $report->update(['status' => 'returned_to_supervisor']);
 
-        return redirect()->route('manajer.laporan-masuk')
+        return redirect()->route('manager.incoming-reports')
             ->with('success', 'Laporan telah dikembalikan ke Supervisor.');
     }
 
@@ -287,7 +290,7 @@ class ManagerReportController extends Controller
         $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
         $incubatorEntryService = app(IncubatorEntryService::class);
         $mediumEntryService = app(MediumEntryService::class);
-        $entryService = app(\App\Domains\Report\Services\ReportEntryService::class);
+        $entryService = app(\Domain\Report\Services\ReportEntryService::class);
 
         // Identitas instrumen (Air Sampler) → instrument_entries
         $instrumentIdentityEntryService->saveFromRequest($request, $report);
@@ -312,7 +315,7 @@ class ManagerReportController extends Controller
         return back()->with('success', 'Data berhasil disimpan.');
     }
 
-    public function cetak(Report $report)
+    public function print(Report $report)
     {
         $userId = Auth::id();
         ReportApproval::where('report_id', $report->id)
@@ -331,6 +334,7 @@ class ManagerReportController extends Controller
             'reportType.incubatorTypes',
             'environmentalEntries.envSectionInstance',
             'approvals.user',
+            'analysts.user',
             'sectionColumnNames',
             'sectionNotes',
             'instrumentEntries',
@@ -339,14 +343,11 @@ class ManagerReportController extends Controller
             'incubators.entries.removedBy',
         ]);
         $report->applyReportTypeSnapshot();
-        $entryMap = [];
-        foreach ($report->environmentalEntries as $entry) {
-            $locationId = optional($entry->envSectionInstance)->location_id;
-            if (! $locationId) {
-                continue;
-            }
-            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
-        }
+
+        $sectionService = app(\App\Services\ReportSectionService::class);
+        // entryMap[location_id][instance][period_number][shift] = entry
+        $entryMap = $sectionService->buildEntryMap($report);
+        $sectionInstances = $sectionService->buildSectionInstances($report);
 
         $sectionTypes = $report->reportType->sections
             ->map(fn ($section) => $section->measurement_key)
@@ -355,8 +356,9 @@ class ManagerReportController extends Controller
         $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
-        return view('pages.supervisor.laporan-cetak', compact(
-            'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'
+        return view('pages.supervisor.reports-print', compact(
+            'report', 'entryMap', 'sectionInstances',
+            'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Domains\Report\Models\Report;
+use Domain\Report\Models\Report;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -111,7 +111,7 @@ class ReportArchiveController extends Controller
             $reports->each(fn ($r) => $r->applyReportTypeSnapshot());
         }
 
-        return view('pages.arsip.index', [
+        return view('pages.archive.index', [
             'folders' => $folders,
             'activeFolder' => $activeFolder ? array_merge($activeFolder, ['key' => $folderKey]) : null,
             'reports' => $reports,
@@ -143,17 +143,13 @@ class ReportArchiveController extends Controller
             'incubators.entries.incubatedBy',
             'incubators.entries.removedBy',
             'approvals.user',
+            'analysts.user',
         ]);
         $report->applyReportTypeSnapshot();
 
-        $entryMap = [];
-        foreach ($report->environmentalEntries as $entry) {
-            $locationId = optional($entry->envSectionInstance)->location_id;
-            if (! $locationId) {
-                continue;
-            }
-            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
-        }
+        $sectionService = app(\App\Services\ReportSectionService::class);
+        $entryMap = $sectionService->buildEntryMap($report);
+        $sectionInstances = $sectionService->buildSectionInstances($report);
 
         $sectionTypes = $report->reportType->sections
             ->map(fn ($section) => $section->measurement_key)
@@ -162,14 +158,15 @@ class ReportArchiveController extends Controller
         $needsInkubator = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
         $folderKey = $request->query('folder');
-        $backUrl = route('arsip-laporan.index', $folderKey ? ['folder' => $folderKey] : []);
+        $backUrl = route('report-archive.index', $folderKey ? ['folder' => $folderKey] : []);
 
-        return view('pages.supervisor.laporan-cetak', compact(
-            'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium', 'backUrl'
+        return view('pages.supervisor.reports-print', compact(
+            'report', 'entryMap', 'sectionInstances',
+            'needsAirSampler', 'needsInkubator', 'needsMedium', 'backUrl'
         ) + [
             'showPrint' => true,
-            'autoPrint' => true,
-            'printPreviewOnly' => true,
+            'autoPrint' => false,
+            'printPreviewOnly' => false,
         ]);
     }
 

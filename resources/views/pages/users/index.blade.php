@@ -59,9 +59,9 @@
             <option value="">Semua Role</option>
             <option value="super"      {{ request('role') === 'super'      ? 'selected' : '' }}>Super</option>
             <option value="admin"      {{ request('role') === 'admin'      ? 'selected' : '' }}>Admin</option>
-            <option value="analis"     {{ request('role') === 'analis'     ? 'selected' : '' }}>Analis</option>
+            <option value="analyst"     {{ request('role') === 'analyst'     ? 'selected' : '' }}>Analis</option>
             <option value="supervisor" {{ request('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-            <option value="manajer"    {{ request('role') === 'manajer'    ? 'selected' : '' }}>Manajer</option>
+            <option value="manager"    {{ request('role') === 'manager'    ? 'selected' : '' }}>Manajer</option>
         </select>
         <button type="submit"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm transition-colors">
@@ -95,7 +95,7 @@
                                             'super' => 'bg-indigo-500',
                                             'admin' => 'bg-emerald-500',
                                             'supervisor' => 'bg-orange-500',
-                                            'manajer' => 'bg-blue-500',
+                                            'manager' => 'bg-blue-500',
                                             default => 'bg-gray-400',
                                         };
                                     @endphp
@@ -112,7 +112,7 @@
                                         'super' => 'bg-indigo-100 text-indigo-700',
                                         'admin' => 'bg-emerald-100 text-emerald-700',
                                         'supervisor' => 'bg-orange-100 text-orange-700',
-                                        'manajer' => 'bg-blue-100 text-blue-700',
+                                        'manager' => 'bg-blue-100 text-blue-700',
                                         default => 'bg-gray-100 text-gray-600',
                                     };
                                 @endphp
@@ -123,12 +123,9 @@
                             <td class="px-6 py-3.5 text-sm text-gray-400">{{ $user->created_at?->format('d M Y') ?? '—' }}</td>
                             <td class="px-6 py-3.5">
                                 <div class="flex justify-end items-center gap-2">
-                                    <form action="{{ route('users.reset-password', $user) }}" method="POST" onsubmit="return confirm('Reset password pengguna ini ke default?');">
-                                        @csrf
-                                        <button type="submit" class="btn-action-edit">
-                                            Reset Password
-                                        </button>
-                                    </form>
+                                    <a href="{{ route('users.edit', $user) }}" class="btn-action-edit">
+                                        Edit
+                                    </a>
                                     <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?');">
                                         @csrf
                                         @method('DELETE')

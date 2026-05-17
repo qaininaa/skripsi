@@ -2,10 +2,10 @@
 
 namespace App\Services\Reports;
 
-use App\Domains\Report\Models\Analyst;
-use App\Domains\Report\Models\Report;
-use App\Domains\Report\Models\ReportApproval;
-use App\Domains\Report\Models\SectionSignature;
+use Domain\Report\Models\Analyst;
+use Domain\Report\Models\Report;
+use Domain\Report\Models\ReportApproval;
+use Domain\Report\Models\SectionSignature;
 use Illuminate\Support\Facades\Auth;
 
 /**

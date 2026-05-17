@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('username')->unique();
-            $table->enum('role', ['super', 'admin', 'analis', 'supervisor', 'manajer']);
+            $table->enum('role', ['super', 'admin', 'analyst', 'supervisor', 'manager']);
             $table->string('password');
             $table->timestamp('last_password_changed_at')->nullable();
             $table->timestamps();

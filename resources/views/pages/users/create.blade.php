@@ -33,12 +33,16 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input type="text" name="name" value="{{ old('name') }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <input type="text" name="name" value="{{ old('name') }}"
+                           class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           required>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                    <input type="text" name="username" value="{{ old('username') }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <input type="text" name="username" value="{{ old('username') }}"
+                           class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           required>
                 </div>
 
                 <div>
@@ -47,16 +51,30 @@
                         <option value="" disabled {{ old('role') ? '' : 'selected' }}>Pilih role</option>
                         <option value="super" {{ old('role') === 'super' ? 'selected' : '' }}>Super Admin</option>
                         <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin QC</option>
-                        <option value="analis" {{ old('role') === 'analis' ? 'selected' : '' }}>Analis</option>
+                        <option value="analyst" {{ old('role') === 'analyst' ? 'selected' : '' }}>Analis</option>
                         <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="manajer" {{ old('role') === 'manajer' ? 'selected' : '' }} {{ \App\Domains\User\Models\User::where('role', 'manajer')->exists() ? 'disabled' : '' }}>
-                            Manajer{{ \App\Domains\User\Models\User::where('role', 'manajer')->exists() ? ' (sudah ada)' : '' }}
+                        <option value="manager" {{ old('role') === 'manager' ? 'selected' : '' }} {{ \Domain\User\Models\User::where('role', 'manager')->exists() ? 'disabled' : '' }}>
+                            Manajer{{ \Domain\User\Models\User::where('role', 'manager')->exists() ? ' (sudah ada)' : '' }}
                         </option>
                     </select>
                 </div>
 
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" name="password" autocomplete="new-password"
+                           class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
+                    <input type="password" name="password_confirmation" autocomplete="new-password"
+                           class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           required>
+                </div>
+
                 <div class="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
-                    <strong>Password Default:</strong> Akun baru otomatis dibuat dengan password <span class="font-semibold">default</span>. Jika perlu, gunakan tombol Reset Password di daftar pengguna untuk mengembalikan ke default.
+                    Pengguna akan diminta mengganti password sendiri saat login pertama kali.
                 </div>
 
                 <div class="pt-2 flex justify-end gap-3">
