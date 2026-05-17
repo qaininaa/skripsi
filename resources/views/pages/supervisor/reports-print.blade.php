@@ -229,7 +229,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     </div>
 
     <div class="toolbar-actions">
-        @if(($showPrint ?? false) || auth()->user()->role === 'manager')
+        @if(($showPrint ?? false) && auth()->user()->role === 'admin')
         <button class="toolbar-print" onclick="window.print()">Cetak / Download PDF</button>
         @endif
     </div>

@@ -165,8 +165,8 @@ class ReportArchiveController extends Controller
             'needsAirSampler', 'needsInkubator', 'needsMedium', 'backUrl'
         ) + [
             'showPrint' => true,
-            'autoPrint' => true,
-            'printPreviewOnly' => true,
+            'autoPrint' => false,
+            'printPreviewOnly' => false,
         ]);
     }
 

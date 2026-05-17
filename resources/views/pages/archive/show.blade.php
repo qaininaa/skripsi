@@ -6,5 +6,5 @@
     'needsMedium' => $needsMedium,
     'backUrl' => $backUrl ?? route('report-archive.index'),
     'showPrint' => true,
-    'autoPrint' => true,
+    'autoPrint' => false,
 ])
