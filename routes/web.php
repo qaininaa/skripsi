@@ -1,6 +1,8 @@
 <?php
 
-use App\Domains\User\Http\Controllers\UserController;
+use App\Http\Controllers\AuditLog\AuditLogController;
+use App\Http\Controllers\PasswordPolicy\PasswordPolicyController;
+use App\Http\Controllers\User\UserController;
 use App\Domains\Room\Http\Controllers\RoomController;
 use App\Domains\Location\Http\Controllers\LocationController;
 use App\Domains\ReportType\Http\Controllers\ReportTypeController;
@@ -11,9 +13,7 @@ use App\Domains\Report\Http\Controllers\ReportClaimingController;
 use App\Domains\Report\Http\Controllers\ReportDraftingController;
 use App\Domains\ReportPreview\Http\Controllers\ReportPreviewController;
 use App\Domains\ReportPreview\Http\Controllers\ReportPreviewStructureController;
-use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ManagerReportController;
-use App\Http\Controllers\PasswordSettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportArchiveController;
 use App\Http\Controllers\SupervisorReportController;
@@ -61,8 +61,8 @@ Route::middleware(['auth', 'password.check', 'role:super'])
             ->names('users');
         Route::post('super-admin/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::get('super-admin/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-        Route::get('super-admin/settings', [PasswordSettingController::class, 'index'])->name('settings.index');
-        Route::put('super-admin/settings', [PasswordSettingController::class, 'update'])->name('settings.update');
+        Route::get('super-admin/settings', [PasswordPolicyController::class, 'index'])->name('settings.index');
+        Route::put('super-admin/settings', [PasswordPolicyController::class, 'update'])->name('settings.update');
 
         // Jenis Laporan CRUD — dipindah ke admin
 

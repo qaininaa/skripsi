@@ -7,7 +7,7 @@ use App\Domains\Report\Services\EnvironmentalEntryService;
 use App\Domains\Report\Services\ReportEntryService;
 use App\Domains\Report\Models\Report;
 use App\Domains\Report\Models\ReportApproval;
-use App\Domains\User\Models\User;
+use Domain\User\Models\User;
 use App\Services\Reports\ReportViewService;
 use App\Services\Reports\ReportWorkflowService;
 use Illuminate\Http\Request;

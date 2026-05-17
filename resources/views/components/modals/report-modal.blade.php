@@ -25,7 +25,7 @@
         <select id="save-modal-supervisor"
                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none bg-white">
             <option value="">-- Pilih Supervisor --</option>
-            @foreach (\App\Domains\User\Models\User::where('role', 'supervisor')->orderBy('name')->get() as $sup)
+            @foreach (\Domain\User\Models\User::where('role', 'supervisor')->orderBy('name')->get() as $sup)
                 <option value="{{ $sup->id }}">{{ $sup->name }}</option>
             @endforeach
         </select>

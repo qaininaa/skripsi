@@ -8,7 +8,7 @@ use App\Domains\Report\Services\MediumEntryService;
 use App\Domains\Report\Models\Report;
 use App\Domains\Report\Models\ReportApproval;
 use App\Domains\Report\Models\SectionSignature;
-use App\Domains\User\Models\User;
+use Domain\User\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;

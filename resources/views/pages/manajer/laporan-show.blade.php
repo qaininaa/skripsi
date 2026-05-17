@@ -78,7 +78,7 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dimonitoring Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
-                        $monitoringNames = \App\Domains\User\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
+                        $monitoringNames = \Domain\User\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->pluck('name');
                     @endphp
                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : '—' }}
                 </div>
@@ -87,7 +87,7 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Dibaca Oleh</label>
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
                     @php
-                        $readingNames = \App\Domains\User\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
+                        $readingNames = \Domain\User\Models\User::whereIn('id', $report->analyst_reading ?? [])->pluck('name');
                     @endphp
                     {{ $readingNames->isNotEmpty() ? $readingNames->join(', ') : '—' }}
                 </div>
@@ -631,7 +631,7 @@
             $_supApproval  = $report->approvals->firstWhere('step', 2);
             $_mngrApproval = $report->approvals->firstWhere('step', 3);
             $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
-            $_secUserMap   = \App\Domains\User\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
+            $_secUserMap   = \Domain\User\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
             $_sectionHasData = !empty($_secMonIds) || !empty($_secReadIds);
         @endphp
         <div class="px-5 py-4 border-t border-gray-100">

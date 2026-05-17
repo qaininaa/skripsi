@@ -4,7 +4,7 @@ namespace App\Domains\ReportAssignment\Models;
 
 use App\Domains\Report\Models\Report as BaseReport;
 use App\Domains\ReportType\Models\ReportType;
-use App\Domains\User\Models\User;
+use Domain\User\Models\User;
 
 /**
  * Domain model alias for report assignment context.

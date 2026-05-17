@@ -49,8 +49,8 @@
                         <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin QC</option>
                         <option value="analis" {{ old('role') === 'analis' ? 'selected' : '' }}>Analis</option>
                         <option value="supervisor" {{ old('role') === 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="manajer" {{ old('role') === 'manajer' ? 'selected' : '' }} {{ \App\Domains\User\Models\User::where('role', 'manajer')->exists() ? 'disabled' : '' }}>
-                            Manajer{{ \App\Domains\User\Models\User::where('role', 'manajer')->exists() ? ' (sudah ada)' : '' }}
+                        <option value="manajer" {{ old('role') === 'manajer' ? 'selected' : '' }} {{ \Domain\User\Models\User::where('role', 'manajer')->exists() ? 'disabled' : '' }}>
+                            Manajer{{ \Domain\User\Models\User::where('role', 'manajer')->exists() ? ' (sudah ada)' : '' }}
                         </option>
                     </select>
                 </div>

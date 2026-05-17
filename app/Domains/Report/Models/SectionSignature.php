@@ -2,7 +2,7 @@
 
 namespace App\Domains\Report\Models;
 
-use App\Domains\User\Models\User;
+use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 

@@ -25,7 +25,7 @@
                     <input type="hidden" name="analyst_monitoring[]" value="{{ $oid }}">
                     <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-sm text-emerald-700 mb-1.5">
                         <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        {{ \App\Domains\User\Models\User::find($oid)?->name ?? 'N/A' }}
+                        {{ \Domain\User\Models\User::find($oid)?->name ?? 'N/A' }}
                     </div>
                 @endforeach
                 {{-- Current user is always auto-included during monitoring phase --}}
@@ -41,7 +41,7 @@
                     <input type="hidden" name="analyst_monitoring[]" value="{{ $mid }}">
                 @endforeach
                 <div class="px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm text-gray-700">
-                    @php $monitoringNames = \App\Domains\User\Models\User::whereIn('id', $monIds)->pluck('name'); @endphp
+                    @php $monitoringNames = \Domain\User\Models\User::whereIn('id', $monIds)->pluck('name'); @endphp
                     {{ $monitoringNames->isNotEmpty() ? $monitoringNames->join(', ') : 'N/A' }}
                 </div>
             @else
@@ -65,7 +65,7 @@
                     <input type="hidden" name="analyst_reading[]" value="{{ $oid }}">
                     <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-sm text-indigo-700 mb-1.5">
                         <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        {{ \App\Domains\User\Models\User::find($oid)?->name ?? 'N/A' }}
+                        {{ \Domain\User\Models\User::find($oid)?->name ?? 'N/A' }}
                     </div>
                 @endforeach
                 {{-- Current user slot --}}

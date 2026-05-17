@@ -12,8 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Domains\Auth\Http\Middleware\RoleMiddleware::class,
-            'password.check' => \App\Domains\Auth\Http\Middleware\ForcePasswordMiddleware::class,
+            'role' => \App\Http\Middleware\Auth\RoleMiddleware::class,
+            'password.check' => \App\Http\Middleware\Auth\ForcePasswordMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

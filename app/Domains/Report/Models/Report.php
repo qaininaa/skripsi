@@ -3,7 +3,7 @@
 namespace App\Domains\Report\Models;
 
 use App\Domains\ReportType\Models\ReportType;
-use App\Domains\User\Models\User;
+use Domain\User\Models\User;
 use App\Domains\Report\Models\Analyst;
 use App\Domains\Report\Models\SectionSignature;
 use App\Domains\Report\Models\ReportApproval;

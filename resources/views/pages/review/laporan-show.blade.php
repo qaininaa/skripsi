@@ -50,7 +50,7 @@
     $mngrApproval = $latestApprovalByStep(3);
     // Users that can receive the return:
     $allReturnableIds = $report->analysts->pluck('user_id')->unique()->toArray();
-    $returnableAnalysts = \App\Domains\User\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
+    $returnableAnalysts = \Domain\User\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
     // For manajer: also supervisor
     $returnSupervisor = $returnSupervisor ?? null; // passed from controller for manajer only
     // Table-based lookups (no more $hd for these)
@@ -909,7 +909,7 @@
             $_supApproval = $supApproval;
             $_mngrApproval = $mngrApproval;
             $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
-            $_secUserMap = \App\Domains\User\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
+            $_secUserMap = \Domain\User\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
         @endphp
         <div class="px-5 py-4 border-t border-gray-100">
             <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Tanda Tangan & Verifikasi</p>

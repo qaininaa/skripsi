@@ -251,7 +251,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     <table class="dt dt-auto" style="margin-bottom:8px">
         <tr><td colspan="2" class="sec-hdr">1. Pemantauan Ruang</td></tr>
         <tr><td style="width:45%">Tanggal Pemantauan Ruang</td><td>{{ $report->created_at->isoFormat('D MMMM Y') }}</td></tr>
-        @php $names = \App\Domains\User\Models\User::whereIn('id', array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []))->pluck('name'); @endphp
+        @php $names = \Domain\User\Models\User::whereIn('id', array_merge($report->analyst_monitoring ?? [], $report->analyst_reading ?? []))->pluck('name'); @endphp
         <tr><td>Nama Analis</td><td>{{ $names->isNotEmpty() ? $names->join(' , ') : '' }}</td></tr>
         <tr><td>Nama Produk</td><td>{{ $report->product_name }}</td></tr>
         <tr><td>Nomor Batch Produk</td><td>{{ $report->batch_number ?: '' }}</td></tr>
@@ -772,7 +772,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         $_pSupApproval  = $report->approvals->firstWhere('step', 2);
         $_pMngrApproval = $report->approvals->firstWhere('step', 3);
         $_pUniqueIds = array_unique(array_filter(array_merge($_pSecMonIds, $_pSecReadIds)));
-        $_pUserMap   = \App\Domains\User\Models\User::whereIn('id', $_pUniqueIds)->get()->keyBy('id');
+        $_pUserMap   = \Domain\User\Models\User::whereIn('id', $_pUniqueIds)->get()->keyBy('id');
     @endphp
     @include('partials.report-signature-print', [
         'report'       => $report,

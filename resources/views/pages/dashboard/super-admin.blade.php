@@ -18,7 +18,7 @@
             </div>
             <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Aktif</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Domains\User\Models\User::count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \Domain\User\Models\User::count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Total Pengguna</p>
         <p class="text-xs text-gray-400 mt-1">Semua akun terdaftar</p>
     </div>
@@ -33,7 +33,7 @@
             </div>
             <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Bertugas</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Domains\User\Models\User::where('role', 'admin')->count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \Domain\User\Models\User::where('role', 'admin')->count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Admin QC</p>
         <p class="text-xs text-gray-400 mt-1">Petugas Quality Control</p>
     </div>
@@ -48,7 +48,7 @@
             </div>
             <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">Admin</span>
         </div>
-        <p class="text-3xl font-bold text-gray-800">{{ \App\Domains\User\Models\User::where('role', 'super')->count() }}</p>
+        <p class="text-3xl font-bold text-gray-800">{{ \Domain\User\Models\User::where('role', 'super')->count() }}</p>
         <p class="text-sm font-medium text-gray-600 mt-0.5">Super Admin</p>
         <p class="text-xs text-gray-400 mt-1">Administrator sistem</p>
     </div>
@@ -88,7 +88,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @foreach(\App\Domains\User\Models\User::latest()->take(5)->get() as $user)
+                    @foreach(\Domain\User\Models\User::latest()->take(5)->get() as $user)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-3.5">
                             <div class="flex items-center gap-3">
