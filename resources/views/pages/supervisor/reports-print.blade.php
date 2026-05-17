@@ -357,9 +357,14 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
 @endif
 
 {{-- ══════════════════════════════════════════════════════
-     LANDSCAPE PAGES: Measurement sections
+     LANDSCAPE PAGES: Measurement sections (per instance, including duplicates)
      ══════════════════════════════════════════════════════ --}}
-@foreach ($report->reportType->sections as $section)
+@foreach ($sectionInstances as $sectionInstance)
+@php
+    $section        = $sectionInstance['section'];
+    $instance       = $sectionInstance['instance'];
+    $totalInstances = $sectionInstance['totalInstances'];
+@endphp
 @php
     $cfuNum = function(?string $v): ?int {
         if ($v === null || $v === '') return null;
@@ -395,11 +400,11 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     }
     $secColumnNames = $report->sectionColumnNames
         ->where('section_id', $section->id)
-        ->where('instance_number', 1)
+        ->where('instance_number', $instance)
         ->keyBy(fn($r) => (int) $r->period_number)
         ->map(fn($r) => $r->label)
         ->all();
-    $secNoteRow = $sectionNotesBySectionInstance->get((string) $section->id . '|1');
+    $secNoteRow = $sectionNotesBySectionInstance->get((string) $section->id . '|' . $instance);
     $secNote  = [
         'notes' => $secNoteRow?->notes,
         'conclusion' => $secNoteRow?->conclusion,
@@ -419,7 +424,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         $_swK    = $_isS1_3 ? 's1_3' : ($_isS1_2 ? 's1_2' : 's1');
 
         for ($_col = 0; $_col <= $maxCols; $_col++) {
-            $_e = $entryMap[$_pivId][$_col][1] ?? $entryMap[$_pivId][$_col][2] ?? null;
+            $_e = $entryMap[$_pivId][$instance][$_col][1] ?? $entryMap[$_pivId][$instance][$_col][2] ?? null;
             if (! $_e || (! $_e->start_time && ! $_e->end_time)) {
                 continue;
             }
@@ -449,7 +454,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
     {{-- Page header --}}
     <div class="pg-hdr">
         <div class="doc-num">{{ $report->reportType->annex_number }}</div>
-        <div class="doc-title">{{ strtoupper($report->reportType->name) }}</div>
+        <div class="doc-title">{{ strtoupper($report->reportType->name) }}@if ($instance > 1) — DUPLIKAT {{ $instance }}@endif</div>
         <hr class="doc-title-line">
     </div>
 
@@ -464,7 +469,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 <th class="vt" rowspan="3">Room Number</th>
                 <th class="vt" rowspan="3">Location Number</th>
                 <th colspan="{{ ($hasMachineSetup ? 3 : 0) + $maxCols * $subColsPerExp }}">
-                    {{ $section->measurement_unit }}
+                    {{ $section->measurement_unit }}@if ($instance > 1) — Duplikat {{ $instance }}@endif
                 </th>
                 <th colspan="2" rowspan="2">Alert<br>Limit</th>
                 <th colspan="2" rowspan="2">Action<br>Limit</th>
@@ -477,7 +482,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @php
                     $msJamMulai = null; $msJamSelesai = null;
                     foreach ($section->locations as $loc2) {
-                        $e0 = $entryMap[$loc2->id][0][1] ?? $entryMap[$loc2->id][0][2] ?? null;
+                        $e0 = $entryMap[$loc2->id][$instance][0][1] ?? $entryMap[$loc2->id][$instance][0][2] ?? null;
                         if ($e0 && ($e0->start_time || $e0->end_time)) {
                             $msJamMulai = $e0->start_time; $msJamSelesai = $e0->end_time; break;
                         }
@@ -621,7 +626,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 $locEntries = collect();
                 for ($p = 1; $p <= $section->max_column; $p++) {
                     for ($s = 1; $s <= 2; $s++) {
-                        if (isset($entryMap[$loc->id][$p][$s])) $locEntries->push($entryMap[$loc->id][$p][$s]);
+                        if (isset($entryMap[$loc->id][$instance][$p][$s])) $locEntries->push($entryMap[$loc->id][$instance][$p][$s]);
                     }
                 }
                 $maxT   = $locEntries->reduce(fn($carry, $e) => max($carry, ($cfuNum($e->cfu_bacteria) ?? 0) + ($cfuNum($e->cfu_fungi) ?? 0)), 0);
@@ -633,6 +638,8 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                          || ($loc->alert_limit_fungi    && $maxF >= $loc->alert_limit_fungi));
                 $hasCfuEntries = $locEntries->contains(fn($e) => $e->cfu_bacteria !== null || $e->cfu_fungi !== null);
                 $konklusi = $hasCfuEntries ? ($hasTMS ? 'TMS' : 'MS') : null;
+                $kesimpulanColor = $konklusi === 'TMS' ? '#dc2626' : '';
+                $kesimpulanAttr = $kesimpulanColor !== '' ? 'style="color:' . $kesimpulanColor . '"' : '';
             @endphp
             <tr>
                 <td class="tc">{{ $_rowNumP }}</td>
@@ -648,7 +655,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 {{-- Machine set-up --}}
                 @if ($hasMachineSetup)
                 @php
-                    $msEntry = $entryMap[$loc->id][0][1] ?? $entryMap[$loc->id][0][2] ?? null;
+                    $msEntry = $entryMap[$loc->id][$instance][0][1] ?? $entryMap[$loc->id][$instance][0][2] ?? null;
                     $msTVal  = ($msEntry && ($msEntry->cfu_bacteria !== null || $msEntry->cfu_fungi !== null))
                         ? $cfuTot($msEntry->cfu_bacteria, $msEntry->cfu_fungi) : null;
                 @endphp
@@ -661,7 +668,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 @for ($col = 1; $col <= $maxCols; $col++)
                 @php
                     $colAsgn    = $secAssignments[$col] ?? 1;
-                    $existEntry = $entryMap[$loc->id][$col][$colAsgn] ?? null;
+                    $existEntry = $entryMap[$loc->id][$instance][$col][$colAsgn] ?? null;
                     $tVal = ($existEntry && ($existEntry->cfu_bacteria !== null || $existEntry->cfu_fungi !== null))
                         ? $cfuTot($existEntry->cfu_bacteria, $existEntry->cfu_fungi) : null;
                 @endphp
@@ -680,7 +687,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 <td class="tc">{{ $loc->alert_action_total !== null ? ($loc->alert_action_total == 1 ? '<1' : $loc->alert_action_total) : 'NA' }}</td>
                 <td class="tc">{{ $loc->alert_action_fungi !== null ? ($loc->alert_action_fungi == 1 ? '<1' : $loc->alert_action_fungi) : 'NA' }}</td>
                 {{-- Kesimpulan --}}
-                <td class="tc fw">
+                <td class="tc fw" {!! $kesimpulanAttr !!}>
                     @if ($konklusi === 'TMS') TMS
                     @elseif ($konklusi === 'MS') MS
                     @else MS / TMS*
@@ -722,7 +729,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
             $_ckHasTMS   = false;
             $_ckAllEmpty = true;
             foreach ($section->locations as $_loc) {
-                foreach ($entryMap[$_loc->id] ?? [] as $_period => $_shifts) {
+                foreach ($entryMap[$_loc->id][$instance] ?? [] as $_period => $_shifts) {
                     foreach ($_shifts as $_shift => $_e) {
                         $_ckAllEmpty = false;
                         $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
@@ -738,6 +745,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
                 $secKesp = $_ckHasTMS ? 'TMS' : 'MS';
             }
         }
+        $secKespColorAttr = $secKesp === 'TMS' ? 'style="color:#dc2626"' : '';
     @endphp
     <div style="margin-top:8px">
         <span class="fw">KESIMPULAN</span>
@@ -745,7 +753,7 @@ table.dt-compact th,table.dt-compact td{padding:8px 8px;white-space:normal;word-
         @if ($secKesp === 'MS')
             <span class="fw">MEMENUHI SPESIFIKASI</span>
         @elseif ($secKesp === 'TMS')
-            <span class="fw">TIDAK MEMENUHI SPESIFIKASI</span>
+            <span class="fw" {!! $secKespColorAttr !!}>TIDAK MEMENUHI SPESIFIKASI</span>
         @else
             <span>N/A</span>
         @endif

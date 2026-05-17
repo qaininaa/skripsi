@@ -387,8 +387,14 @@
     </div>
     @endif
 
-    {{-- ── Tabel Pengukuran per Section ────────────────────── --}}
-    @foreach ($report->reportType->sections as $section)
+    {{-- ── Tabel Pengukuran per Section (per instance, including duplicates) ────────────────────── --}}
+    @foreach ($sectionInstances as $sectionInstance)
+    @php
+        $section        = $sectionInstance['section'];
+        $instance       = $sectionInstance['instance'];
+        $totalInstances = $sectionInstance['totalInstances'];
+        $secNum         = $sectionInstance['secNum'];
+    @endphp
     @php
         $cfuNum = function(?string $v): ?int {
             if ($v === null || $v === '') return null;
@@ -421,18 +427,17 @@
 
         $maxCols        = $section->max_column;
         $romanNums      = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-        $secNum         = $loop->index + 5;
         $secAssignments = [];
         for ($c = 1; $c <= $maxCols; $c++) {
             $secAssignments[$c] = 1;
         }
         $secColumnNames = $report->sectionColumnNames
             ->where('section_id', $section->id)
-            ->where('instance_number', 1)
+            ->where('instance_number', $instance)
             ->keyBy(fn($r) => (int) $r->period_number)
             ->map(fn($r) => $r->label)
             ->all();
-        $secNoteRow    = $sectionNotesBySectionInstance->get((string) $section->id . '|1');
+        $secNoteRow    = $sectionNotesBySectionInstance->get((string) $section->id . '|' . $instance);
         $secNote       = [
             'notes' => $secNoteRow?->notes,
             'conclusion' => $secNoteRow?->conclusion,
@@ -449,7 +454,7 @@
             $_isS1_2 = stripos($_locNum, 'S1-2') !== false;
             $_swK    = $_isS1_3 ? 's1_3' : ($_isS1_2 ? 's1_2' : 's1');
             for ($_col = 0; $_col <= $maxCols; $_col++) {
-                $_e = $entryMap[$_pivId][1][$_col][1] ?? $entryMap[$_pivId][1][$_col][2] ?? null;
+                $_e = $entryMap[$_pivId][$instance][$_col][1] ?? $entryMap[$_pivId][$instance][$_col][2] ?? null;
                 if (! $_e || (! $_e->start_time && ! $_e->end_time)) { continue; }
                 if ($_class && ! isset($secTimesFromEntries[$_col][$_class])) {
                     $secTimesFromEntries[$_col][$_class] = ['start_time' => $_e->start_time, 'end_time' => $_e->end_time];
@@ -497,7 +502,7 @@
                         @php
                             $msJamMulai = null; $msJamSelesai = null;
                             foreach ($section->locations as $loc2) {
-                                $e0 = $entryMap[$loc2->id][1][0][1] ?? $entryMap[$loc2->id][1][0][2] ?? null;
+                                $e0 = $entryMap[$loc2->id][$instance][0][1] ?? $entryMap[$loc2->id][$instance][0][2] ?? null;
                                 if ($e0 && ($e0->start_time || $e0->end_time)) {
                                     $msJamMulai   = $e0->start_time;
                                     $msJamSelesai = $e0->end_time;
@@ -702,8 +707,8 @@
                         $locEntries = collect();
                         for ($p = 1; $p <= $section->max_column; $p++) {
                             for ($s = 1; $s <= 2; $s++) {
-                                if (isset($entryMap[$loc->id][1][$p][$s])) {
-                                    $locEntries->push($entryMap[$loc->id][1][$p][$s]);
+                                if (isset($entryMap[$loc->id][$instance][$p][$s])) {
+                                    $locEntries->push($entryMap[$loc->id][$instance][$p][$s]);
                                 }
                             }
                         }
@@ -740,7 +745,7 @@
 
                         @if ($hasMachineSetup)
                         @php
-                            $msEntry = $entryMap[$loc->id][1][0][1] ?? $entryMap[$loc->id][1][0][2] ?? null;
+                            $msEntry = $entryMap[$loc->id][$instance][0][1] ?? $entryMap[$loc->id][$instance][0][2] ?? null;
                             $msTVal  = $cfuTot($msEntry?->cfu_bacteria, $msEntry?->cfu_fungi);
                         @endphp
                         <td class="px-1 py-2 border-r border-gray-100 text-center">
@@ -763,7 +768,7 @@
                         @for ($col = 1; $col <= $maxCols; $col++)
                         @php
                             $colAsgn    = $secAssignments[$col] ?? 1;
-                            $existEntry = $entryMap[$loc->id][1][$col][$colAsgn] ?? null;
+                            $existEntry = $entryMap[$loc->id][$instance][$col][$colAsgn] ?? null;
                             $tVal       = $cfuTot($existEntry?->cfu_bacteria, $existEntry?->cfu_fungi);
                         @endphp
                         @if ($isPerLocation)
@@ -850,16 +855,14 @@
                         $_sHasTMS   = false;
                         $_sAllEmpty = true;
                         foreach ($section->locations as $_loc) {
-                            foreach ($entryMap[$_loc->id] ?? [] as $_instMap) {
-                                foreach ($_instMap as $_period => $_shifts) {
-                                    foreach ($_shifts as $_shift => $_e) {
-                                        $_sAllEmpty = false;
-                                        $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
-                                        $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
-                                        if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
-                                            || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
-                                            $_sHasTMS = true;
-                                        }
+                            foreach ($entryMap[$_loc->id][$instance] ?? [] as $_period => $_shifts) {
+                                foreach ($_shifts as $_shift => $_e) {
+                                    $_sAllEmpty = false;
+                                    $_maxT = ($cfuNum($_e->cfu_bacteria) ?? 0) + ($cfuNum($_e->cfu_fungi) ?? 0);
+                                    $_maxF = $cfuNum($_e->cfu_fungi) ?? 0;
+                                    if (($_loc->alert_action_total && $_maxT >= $_loc->alert_action_total)
+                                        || ($_loc->alert_action_fungi && $_maxF >= $_loc->alert_action_fungi)) {
+                                        $_sHasTMS = true;
                                     }
                                 }
                             }

@@ -126,6 +126,7 @@ class SupervisorReportController extends Controller
 
         $sectionService = app(\App\Services\ReportSectionService::class);
         $entryMap = $sectionService->buildEntryMap($report);
+        $sectionInstances = $sectionService->buildSectionInstances($report);
         $sectionNeeds = $sectionService->computeSectionNeeds($report);
 
         $needsAirSampler = $sectionNeeds['needsAirSampler'];
@@ -136,7 +137,7 @@ class SupervisorReportController extends Controller
         $returnSupervisor = null;
 
         return view('pages.review.reports-show', compact(
-            'report', 'approval', 'entryMap',
+            'report', 'approval', 'entryMap', 'sectionInstances',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'reviewRole', 'returnSupervisor'
         ));
@@ -337,16 +338,11 @@ class SupervisorReportController extends Controller
         ]);
         $report->applyReportTypeSnapshot();
 
-        // Build instance ordering: instance_id → {location_id}
-        // entryMap[$location_id][$period_number][$shift] = entry
-        $entryMap = [];
-        foreach ($report->environmentalEntries as $entry) {
-            $locationId = optional($entry->envSectionInstance)->location_id;
-            if (! $locationId) {
-                continue;
-            }
-            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
-        }
+        $sectionService = app(\App\Services\ReportSectionService::class);
+        // entryMap[location_id][instance][period_number][shift] = entry
+        $entryMap = $sectionService->buildEntryMap($report);
+        // sectionInstances: loop expanded with duplicates per section
+        $sectionInstances = $sectionService->buildSectionInstances($report);
 
         $sectionTypes = $report->reportType->sections
             ->map(fn ($section) => $section->measurement_key)
@@ -356,7 +352,8 @@ class SupervisorReportController extends Controller
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         return view('pages.supervisor.reports-print', compact(
-            'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'
+            'report', 'entryMap', 'sectionInstances',
+            'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }
 

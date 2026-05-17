@@ -112,6 +112,7 @@ class ManagerReportController extends Controller
 
         $sectionService = app(\App\Services\ReportSectionService::class);
         $entryMap = $sectionService->buildEntryMap($report);
+        $sectionInstances = $sectionService->buildSectionInstances($report);
         $sectionNeeds = $sectionService->computeSectionNeeds($report);
 
         $needsAirSampler = $sectionNeeds['needsAirSampler'];
@@ -121,7 +122,7 @@ class ManagerReportController extends Controller
         $reviewRole = 'manager';
 
         return view('pages.review.reports-show', compact(
-            'report', 'approval', 'entryMap', 'returnSupervisor',
+            'report', 'approval', 'entryMap', 'sectionInstances', 'returnSupervisor',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'reviewRole'
         ));
@@ -339,14 +340,11 @@ class ManagerReportController extends Controller
             'incubators.entries.removedBy',
         ]);
         $report->applyReportTypeSnapshot();
-        $entryMap = [];
-        foreach ($report->environmentalEntries as $entry) {
-            $locationId = optional($entry->envSectionInstance)->location_id;
-            if (! $locationId) {
-                continue;
-            }
-            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
-        }
+
+        $sectionService = app(\App\Services\ReportSectionService::class);
+        // entryMap[location_id][instance][period_number][shift] = entry
+        $entryMap = $sectionService->buildEntryMap($report);
+        $sectionInstances = $sectionService->buildSectionInstances($report);
 
         $sectionTypes = $report->reportType->sections
             ->map(fn ($section) => $section->measurement_key)
@@ -356,7 +354,8 @@ class ManagerReportController extends Controller
         $needsMedium = $sectionTypes->intersect(['settle_plate', 'contact_plate', 'swab'])->isNotEmpty();
 
         return view('pages.supervisor.reports-print', compact(
-            'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium'
+            'report', 'entryMap', 'sectionInstances',
+            'needsAirSampler', 'needsInkubator', 'needsMedium'
         ));
     }
 

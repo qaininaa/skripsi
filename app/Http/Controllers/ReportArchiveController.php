@@ -146,14 +146,9 @@ class ReportArchiveController extends Controller
         ]);
         $report->applyReportTypeSnapshot();
 
-        $entryMap = [];
-        foreach ($report->environmentalEntries as $entry) {
-            $locationId = optional($entry->envSectionInstance)->location_id;
-            if (! $locationId) {
-                continue;
-            }
-            $entryMap[$locationId][$entry->period_number][$entry->shift] = $entry;
-        }
+        $sectionService = app(\App\Services\ReportSectionService::class);
+        $entryMap = $sectionService->buildEntryMap($report);
+        $sectionInstances = $sectionService->buildSectionInstances($report);
 
         $sectionTypes = $report->reportType->sections
             ->map(fn ($section) => $section->measurement_key)
@@ -165,7 +160,8 @@ class ReportArchiveController extends Controller
         $backUrl = route('report-archive.index', $folderKey ? ['folder' => $folderKey] : []);
 
         return view('pages.supervisor.reports-print', compact(
-            'report', 'entryMap', 'needsAirSampler', 'needsInkubator', 'needsMedium', 'backUrl'
+            'report', 'entryMap', 'sectionInstances',
+            'needsAirSampler', 'needsInkubator', 'needsMedium', 'backUrl'
         ) + [
             'showPrint' => true,
             'autoPrint' => true,
