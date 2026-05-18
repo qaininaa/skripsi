@@ -46,7 +46,7 @@
                            @if(!$isEditable || $batchLockedByOther) readonly @endif
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $batchLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                     @if ($batchLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                        <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
                     @endif
                 </div>
                 @if (!$isSwab)
@@ -56,7 +56,7 @@
                            @if(!$isEditable || $gptLockedByOther) readonly @endif
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $gptLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                     @if ($gptLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                        <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
                     @endif
                 </div>
                 @endif
@@ -66,7 +66,7 @@
                            @if(!$isEditable || $expirationLockedByOther) readonly @endif
                            class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $expirationLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                     @if ($expirationLockedByOther)
-                        <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                        <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
                     @endif
                 </div>
             </div>

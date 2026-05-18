@@ -43,7 +43,7 @@
                    @if(!$isEditable || $noIdLockedByOther) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $noIdLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
             @if ($noIdLockedByOther)
-                <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
             @endif
         </div>
         <div>
@@ -52,7 +52,7 @@
                    @if(!$isEditable || $calibrationDateLockedByOther) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $calibrationDateLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
             @if ($calibrationDateLockedByOther)
-                <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
             @endif
         </div>
         <div>
@@ -61,7 +61,7 @@
                    @if(!$isEditable || $dueDateLockedByOther) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $dueDateLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
             @if ($dueDateLockedByOther)
-                <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
             @endif
         </div>
     </div>

@@ -59,7 +59,7 @@
                       @if($noIdLockedByOther) readonly @endif
                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($noIdLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                   @if ($noIdLockedByOther)
-                  <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                  <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
                   @endif
                 @else
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">{{ $ink?->no_id ?? 'N/A' }}</div>
@@ -72,7 +72,7 @@
                       @if($calibrationLockedByOther) readonly @endif
                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($calibrationLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                   @if ($calibrationLockedByOther)
-                  <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                  <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
                   @endif
                 @else
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
