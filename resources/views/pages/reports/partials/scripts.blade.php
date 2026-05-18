@@ -13,6 +13,25 @@ const VERIFY_PASSWORD_URL  = REPORT_CONFIG.verifyPasswordUrl;
 const MY_SHIFT             = REPORT_CONFIG.myShift;
 const FOCUS_INPUT          = REPORT_CONFIG.focusInput;
 
+function focusAndScrollToInput(input) {
+    if (!input) return;
+    input.focus({ preventScroll: true });
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function blockIfInvalidCfuInputs() {
+    const invalidInputs = document.querySelectorAll('.cfu-input.border-red-400');
+    if (invalidInputs.length === 0) return false;
+
+    showAlertModal(
+        'Format Nilai CFU Tidak Valid',
+        'Terdapat ' + invalidInputs.length + ' field CFU dengan nilai tidak valid.\n\nNilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC.\n\nJika tidak ada koloni, gunakan <1. Nilai desimal, nol, dan negatif tidak diperbolehkan.'
+    );
+    focusAndScrollToInput(invalidInputs[0]);
+
+    return true;
+}
+
 // ── Admin: duplikat / hapus section via fetch (avoid nested form) ───────
 function adminSectionAction(method, url) {
     const token = document.querySelector('meta[name="csrf-token"]')?.content
@@ -52,6 +71,19 @@ function _hmUpdateConfirmBtn() {
 }
 
 function openHandoverModal() {
+    if (blockIfInvalidCfuInputs()) {
+        return;
+    }
+
+    const missing = getMissingCols(1);
+    if (missing.size > 0) {
+        showAlertModal(
+            'Data Belum Lengkap',
+            'Kolom berikut belum diisi lengkap:\n\u2022 ' + [...missing].join('\n\u2022 ') + '\n\nIsi semua data sebelum melanjutkan.'
+        );
+        return;
+    }
+
     // Reset state
     document.querySelectorAll('input[name="hm-action"]').forEach(r => r.checked = false);
     // Pre-select default action (handover)
@@ -173,14 +205,7 @@ const _modalConfig = {
 
 function openSaveModal()    { openConfirmModal('save'); }
 function openConfirmModal(action) {
-    // Block save/handover/submit if any CFU input has an invalid value
-    const invalidInputs = document.querySelectorAll('.cfu-input.border-red-400');
-    if (invalidInputs.length > 0) {
-        showAlertModal(
-            'Format Nilai CFU Tidak Valid',
-            'Terdapat ' + invalidInputs.length + ' field CFU dengan nilai tidak valid.\n\nNilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC.\n\nJika tidak ada koloni, gunakan <1. Nilai desimal, nol, dan negatif tidak diperbolehkan.'
-        );
-        invalidInputs[0].focus();
+    if (blockIfInvalidCfuInputs()) {
         return;
     }
     if (action === 'handover') {

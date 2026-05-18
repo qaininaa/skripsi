@@ -5,6 +5,7 @@ namespace App\View\Composers;
 use App\Helpers\CfuHelper;
 use App\Services\ReportSectionService;
 use Domain\Report\Interfaces\FieldLockRepositoryInterface;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class SectionTableComposer
@@ -74,7 +75,7 @@ class SectionTableComposer
 
         $isMonitoring = $report->status === 'monitoring';
         $isReading    = $report->status === 'reading';
-        $currentUserId = (string) (auth()->id() ?? '');
+        $currentUserId = (string) (Auth::id() ?? '');
 
         $ms0Locked = false;
         $msHasTime = ! empty($secTimesFromEntries[0]['start_time'] ?? null);

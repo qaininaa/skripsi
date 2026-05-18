@@ -36,32 +36,29 @@ class EnvironmentalEntryService
         $cfuPattern = '/^(<1|TNTC|[1-9][0-9]*)$/i';
         $invalidFields = [];
 
-        foreach ($entries as $sectionKey => $instanceMap) {
-            if (! is_array($instanceMap)) {
-                continue;
+        $walk = function (array $node, array $path) use (&$walk, $cfuPattern, &$invalidFields): void {
+            $hasCfuFields = array_key_exists('cfu_bacteria', $node) || array_key_exists('cfu_fungi', $node);
+
+            if ($hasCfuFields) {
+                foreach (['cfu_bacteria', 'cfu_fungi'] as $field) {
+                    $value = trim((string) ($node[$field] ?? ''));
+                    if ($value !== '' && ! preg_match($cfuPattern, $value)) {
+                        $invalidFields[] = implode('.', [...$path, $field]);
+                    }
+                }
+
+                return;
             }
-            foreach ($instanceMap as $instanceKey => $periodMap) {
-                if (! is_array($periodMap)) {
+
+            foreach ($node as $key => $child) {
+                if (! is_array($child)) {
                     continue;
                 }
-                foreach ($periodMap as $periodKey => $shiftMap) {
-                    if (! is_array($shiftMap)) {
-                        continue;
-                    }
-                    foreach ($shiftMap as $shiftKey => $data) {
-                        if (! is_array($data)) {
-                            continue;
-                        }
-                        foreach (['cfu_bacteria', 'cfu_fungi'] as $field) {
-                            $v = trim((string) ($data[$field] ?? ''));
-                            if ($v !== '' && ! preg_match($cfuPattern, $v)) {
-                                $invalidFields[] = "entries.{$sectionKey}.{$instanceKey}.{$periodKey}.{$shiftKey}.{$field}";
-                            }
-                        }
-                    }
-                }
+                $walk($child, [...$path, (string) $key]);
             }
-        }
+        };
+
+        $walk($entries, ['entries']);
 
         return $invalidFields;
     }
