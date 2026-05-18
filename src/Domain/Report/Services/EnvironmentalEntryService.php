@@ -2,6 +2,7 @@
 
 namespace Domain\Report\Services;
 
+use Domain\Report\Interfaces\FieldLockRepositoryInterface;
 use Domain\Report\Interfaces\ReportEntryRepositoryInterface;
 use Domain\Report\Models\EnvSectionInstance;
 use Domain\Report\Models\Report;
@@ -19,7 +20,10 @@ use Illuminate\Support\Facades\Auth;
  */
 class EnvironmentalEntryService
 {
-    public function __construct(private ReportEntryRepositoryInterface $repository) {}
+    public function __construct(
+        private ReportEntryRepositoryInterface $repository,
+        private FieldLockRepositoryInterface $fieldLockRepository,
+    ) {}
 
     /**
      * Validate CFU values from nested entries payload.
@@ -135,6 +139,11 @@ class EnvironmentalEntryService
             return $savedSectionIds;
         }
 
+        $lockedTimeKeys = $this->repository->getLockedTimeEntryKeys(
+            (string) $report->id,
+            (string) Auth::id()
+        );
+
         foreach ($settleTimes as $secId => $instanceData) {
             if (! is_array($instanceData)) {
                 continue;
@@ -161,6 +170,10 @@ class EnvironmentalEntryService
                             }
                             $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
                             if (! $instanceId) {
+                                continue;
+                            }
+                            $entryKey = "{$instanceId}-{$col}-1";
+                            if (in_array($entryKey, $lockedTimeKeys, true)) {
                                 continue;
                             }
                             $this->repository->upsertEnvironmentalEntry(
@@ -201,6 +214,11 @@ class EnvironmentalEntryService
             return $savedSectionIds;
         }
 
+        $lockedTimeKeys = $this->repository->getLockedTimeEntryKeys(
+            (string) $report->id,
+            (string) Auth::id()
+        );
+
         foreach ($swabTimes as $secId => $instanceData) {
             if (! is_array($instanceData)) {
                 continue;
@@ -234,6 +252,10 @@ class EnvironmentalEntryService
                             }
                             $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
                             if (! $instanceId) {
+                                continue;
+                            }
+                            $entryKey = "{$instanceId}-{$col}-1";
+                            if (in_array($entryKey, $lockedTimeKeys, true)) {
                                 continue;
                             }
                             $this->repository->upsertEnvironmentalEntry(
@@ -274,6 +296,11 @@ class EnvironmentalEntryService
             return $savedSectionIds;
         }
 
+        $lockedTimeKeys = $this->repository->getLockedTimeEntryKeys(
+            (string) $report->id,
+            (string) Auth::id()
+        );
+
         foreach ($exposureTimes as $secId => $instanceData) {
             if (! is_array($instanceData)) {
                 continue;
@@ -298,6 +325,10 @@ class EnvironmentalEntryService
                             }
                             $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
                             if (! $instanceId) {
+                                continue;
+                            }
+                            $entryKey = "{$instanceId}-{$col}-1";
+                            if (in_array($entryKey, $lockedTimeKeys, true)) {
                                 continue;
                             }
                             $this->repository->upsertEnvironmentalEntry(

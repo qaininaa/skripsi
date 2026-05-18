@@ -87,7 +87,7 @@
                       @if($dueDateLockedByOther) readonly @endif
                       class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if($dueDateLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
                   @if ($dueDateLockedByOther)
-                  <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                  <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
                   @endif
                 @else
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-sm text-gray-700">
@@ -161,9 +161,6 @@
         <div class="pt-3 border-t border-gray-50 space-y-3" data-incubator-entry-row>
             <p class="text-xs font-semibold text-sky-600">
                 Tanggal Inkubasi {{ $medLabel }} (min {{ $inkMin }} hari)
-                @if ($incubatedByLockedByOther || $dateInLockedByOther || $timeInLockedByOther || $removedByLockedByOther || $dateOutLockedByOther || $timeOutLockedByOther)
-                <span class="ml-1 text-[10px] font-normal text-gray-400 normal-case">sebagian field terkunci analis lain</span>
-                @endif
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {{-- Masuk / Diinkubasi --}}

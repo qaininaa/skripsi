@@ -8,9 +8,20 @@ namespace Domain\Report\Interfaces;
 interface ReportEntryRepositoryInterface
 {
     /**
+     * Return entry keys whose CFU is already filled by another analyst.
+     * Key format: "{env_section_instance_id}-{period_number}-{shift}"
+     *
      * @return array<int, string>
      */
     public function getLockedEnvironmentalEntryKeys(string $reportId, string $currentUserId): array;
+
+    /**
+     * Return entry keys whose start_time or end_time is already filled by another analyst.
+     * Key format: "{env_section_instance_id}-{period_number}-{shift}"
+     *
+     * @return array<int, string>
+     */
+    public function getLockedTimeEntryKeys(string $reportId, string $currentUserId): array;
 
     /**
      * @param  array<string, mixed>  $identity
@@ -22,6 +33,17 @@ interface ReportEntryRepositoryInterface
      * @param  array<string, mixed>  $identity
      */
     public function updateEnvironmentalEntryTimes(array $identity, ?string $startTime, ?string $endTime): void;
+
+    /**
+     * Find a ReportSectionColumn row for the given identity.
+     * Returns null if not found.
+     */
+    public function findSectionColumn(
+        string $reportId,
+        string $sectionId,
+        int $instanceNumber,
+        int $periodNumber
+    ): ?object;
 
     public function upsertSectionColumn(
         string $reportId,

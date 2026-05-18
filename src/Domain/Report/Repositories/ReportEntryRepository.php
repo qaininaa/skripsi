@@ -13,6 +13,9 @@ use Domain\Report\Models\ReportSectionNote;
 class ReportEntryRepository implements ReportEntryRepositoryInterface
 {
     /**
+     * Return entry keys whose CFU is already filled by another analyst.
+     * Key format: "{env_section_instance_id}-{period_number}-{shift}"
+     *
      * @return array<int, string>
      */
     public function getLockedEnvironmentalEntryKeys(string $reportId, string $currentUserId): array
@@ -21,6 +24,23 @@ class ReportEntryRepository implements ReportEntryRepositoryInterface
             ->where('analyst_id', '!=', $currentUserId)
             ->whereNotNull('analyst_id')
             ->where(fn ($q) => $q->whereNotNull('cfu_bacteria')->orWhereNotNull('cfu_fungi'))
+            ->get()
+            ->map(fn ($e) => "{$e->env_section_instance_id}-{$e->period_number}-{$e->shift}")
+            ->toArray();
+    }
+
+    /**
+     * Return entry keys whose start_time/end_time is already filled by another analyst.
+     * Key format: "{env_section_instance_id}-{period_number}-{shift}"
+     *
+     * @return array<int, string>
+     */
+    public function getLockedTimeEntryKeys(string $reportId, string $currentUserId): array
+    {
+        return ReportEnvironmentalEntry::where('report_id', $reportId)
+            ->where('analyst_id', '!=', $currentUserId)
+            ->whereNotNull('analyst_id')
+            ->where(fn ($q) => $q->whereNotNull('start_time')->orWhereNotNull('end_time'))
             ->get()
             ->map(fn ($e) => "{$e->env_section_instance_id}-{$e->period_number}-{$e->shift}")
             ->toArray();
@@ -42,8 +62,22 @@ class ReportEntryRepository implements ReportEntryRepositoryInterface
     {
         ReportEnvironmentalEntry::where($identity)->update([
             'start_time' => $startTime,
-            'end_time' => $endTime,
+            'end_time'   => $endTime,
         ]);
+    }
+
+    public function findSectionColumn(
+        string $reportId,
+        string $sectionId,
+        int $instanceNumber,
+        int $periodNumber
+    ): ?object {
+        return ReportSectionColumn::where([
+            'report_id'       => $reportId,
+            'section_id'      => $sectionId,
+            'instance_number' => $instanceNumber,
+            'period_number'   => $periodNumber,
+        ])->first();
     }
 
     public function upsertSectionColumn(
@@ -55,10 +89,10 @@ class ReportEntryRepository implements ReportEntryRepositoryInterface
     ): void {
         ReportSectionColumn::updateOrCreate(
             [
-                'report_id' => $reportId,
-                'section_id' => $sectionId,
+                'report_id'       => $reportId,
+                'section_id'      => $sectionId,
                 'instance_number' => $instanceNumber,
-                'period_number' => $periodNumber,
+                'period_number'   => $periodNumber,
             ],
             ['label' => $label]
         );
@@ -73,12 +107,12 @@ class ReportEntryRepository implements ReportEntryRepositoryInterface
     ): void {
         ReportSectionNote::updateOrCreate(
             [
-                'report_id' => $reportId,
-                'section_id' => $sectionId,
+                'report_id'       => $reportId,
+                'section_id'      => $sectionId,
                 'instance_number' => $instanceNumber,
             ],
             [
-                'notes' => $notes,
+                'notes'      => $notes,
                 'conclusion' => $conclusion,
             ]
         );

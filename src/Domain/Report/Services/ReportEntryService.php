@@ -2,10 +2,12 @@
 
 namespace Domain\Report\Services;
 
+use Domain\Report\Interfaces\FieldLockRepositoryInterface;
 use Domain\Report\Interfaces\ReportEntryRepositoryInterface;
 use Domain\Report\Models\Analyst;
 use Domain\Report\Models\Report;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Report entry orchestration in Report domain.
@@ -18,6 +20,7 @@ class ReportEntryService
         private MediumEntryService $mediumEntryService,
         private EnvironmentalEntryService $environmentalEntryService,
         private ReportEntryRepositoryInterface $repository,
+        private FieldLockRepositoryInterface $fieldLockRepository,
     ) {}
 
     /**
@@ -162,6 +165,9 @@ class ReportEntryService
             return;
         }
 
+        $userId = (string) Auth::id();
+        $lockTable = 'report_section_columns';
+
         foreach ($columnNames as $sectionId => $instanceData) {
             if (! is_array($instanceData) || empty($instanceData)) {
                 continue;
@@ -187,14 +193,65 @@ class ReportEntryService
                     }
 
                     $value = is_string($label) ? trim($label) : null;
+                    $value = $value !== '' ? $value : null;
+
+                    // Find existing row to check/acquire lock
+                    $existingRow = $this->repository->findSectionColumn(
+                        (string) $report->id,
+                        (string) $sectionId,
+                        $instanceNumber,
+                        $periodNumber
+                    );
+
+                    // If a row already exists, enforce lock before allowing overwrite
+                    if ($existingRow !== null && ! empty($existingRow->label)) {
+                        $canWrite = $this->fieldLockRepository->acquireOrOwned(
+                            $lockTable,
+                            (string) $existingRow->id,
+                            'label',
+                            $userId
+                        );
+
+                        if (! $canWrite) {
+                            // Terkunci oleh analis lain — lewati
+                            continue;
+                        }
+
+                        if ($value === null) {
+                            $this->fieldLockRepository->releaseIfOwned(
+                                $lockTable,
+                                (string) $existingRow->id,
+                                'label',
+                                $userId
+                            );
+                        }
+                    }
 
                     $this->repository->upsertSectionColumn(
                         (string) $report->id,
                         (string) $sectionId,
                         $instanceNumber,
                         $periodNumber,
-                        $value !== '' ? $value : null
+                        $value
                     );
+
+                    // Setelah upsert, acquire lock jika baru diisi
+                    if ($value !== null) {
+                        $savedRow = $this->repository->findSectionColumn(
+                            (string) $report->id,
+                            (string) $sectionId,
+                            $instanceNumber,
+                            $periodNumber
+                        );
+                        if ($savedRow !== null) {
+                            $this->fieldLockRepository->acquireOrOwned(
+                                $lockTable,
+                                (string) $savedRow->id,
+                                'label',
+                                $userId
+                            );
+                        }
+                    }
                 }
             }
         }

@@ -30,14 +30,19 @@
         <th class="px-2 py-2 text-center font-semibold border-r border-sky-100" colspan="3">
             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
             @if ($isEditable && $isMonitoring)
+            @php
+                $msTimeLocked = $ms0TimeLockedByOther ?? false;
+            @endphp
             <div class="flex justify-center items-center gap-1">
                 <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][start_time]"
                        value="{{ $msJamMulai }}"
-                       class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                       @if($msTimeLocked) readonly @endif
+                       class="rounded border {{ $msTimeLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 <span class="text-gray-400 text-[10px] font-normal">–</span>
                 <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][end_time]"
                        value="{{ $msJamSelesai }}"
-                       class="rounded border border-sky-200 bg-white px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                       @if($msTimeLocked) readonly @endif
+                       class="rounded border {{ $msTimeLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
             </div>
             @else
             <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
@@ -56,6 +61,8 @@
                 $hasColLabel = (($colLabel ?? '') !== '');
                 $colPeriod = ($hasColLabel && $maxCols > 1) ? ($romanNums[$col - 1] ?? $col) : '';
                 $colHeaderTitle = trim((($colLabel ?? '') !== '' ? ($colLabel . ' ') : '') . $colPeriod);
+                $colLabelIsLockedByOther = $columnLabelLockedByOther[$col] ?? false;
+                $timeIsLockedByOther = $timeLockedByOther[$col] ?? false;
             @endphp
             {{ $colHeaderTitle }}
 
@@ -68,7 +75,8 @@
                        value="{{ $columnNameVal }}"
                        placeholder="SP"
                        maxlength="100"
-                       class="w-20 rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                       @if($colLabelIsLockedByOther) readonly @endif
+                       class="w-20 rounded border {{ $colLabelIsLockedByOther ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
             </div>
             @else
             <div class="text-[10px] text-gray-500 mt-1">SP: {{ $columnNameVal ?: 'N/A' }}</div>
@@ -82,7 +90,11 @@
                        value="{{ $columnNameVal }}"
                        placeholder="Shift"
                        maxlength="100"
-                       class="w-20 rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                       @if($colLabelIsLockedByOther) readonly @endif
+                       class="w-20 rounded border {{ $colLabelIsLockedByOther ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                @if ($colLabelIsLockedByOther)
+                <span class="text-[9px] text-amber-500" title="Terkunci analis lain">🔒</span>
+                @endif
             </div>
             @else
             <div class="text-[10px] text-gray-500 mt-1">Shift: {{ $columnNameVal ?: 'N/A' }}</div>
@@ -100,11 +112,13 @@
                     <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
                     <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][mulai]"
                            value="{{ $st['mulai'] ?? '' }}"
-                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                           @if($timeIsLockedByOther) readonly @endif
+                           class="rounded border {{ $timeIsLockedByOther ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                     <span class="text-gray-400 text-[10px]">–</span>
                     <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][selesai]"
                            value="{{ $st['selesai'] ?? '' }}"
-                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                           @if($timeIsLockedByOther) readonly @endif
+                           class="rounded border {{ $timeIsLockedByOther ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 </div>
                 @endforeach
             </div>
@@ -123,16 +137,23 @@
             @if ($isEditable && $isMonitoring)
             <div class="space-y-0.5 mt-1">
                 @foreach (['a' => 'A', 'b' => 'B'] as $ab => $abLabel)
-                @php $stAB = $secTimesFromEntries[$col][$ab] ?? []; @endphp
+                @php
+                    $stAB = $secTimesFromEntries[$col][$ab] ?? [];
+                    $abTimeLocked = is_array($timeLockedByOther[$col] ?? null)
+                        ? ($timeLockedByOther[$col][$ab] ?? false)
+                        : ($timeLockedByOther[$col] ?? false);
+                @endphp
                 <div class="flex items-center justify-center gap-0.5">
                     <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
                     <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][start_time]"
                            value="{{ $stAB['start_time'] ?? '' }}"
-                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                           @if($abTimeLocked) readonly @endif
+                           class="rounded border {{ $abTimeLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                     <span class="text-gray-400 text-[10px]">–</span>
                     <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][end_time]"
                            value="{{ $stAB['end_time'] ?? '' }}"
-                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                           @if($abTimeLocked) readonly @endif
+                           class="rounded border {{ $abTimeLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 </div>
                 @endforeach
             </div>
@@ -158,13 +179,15 @@
                     <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
                     <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][start_time]"
                            value="{{ $expJamMulai }}"
-                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                           @if($timeIsLockedByOther) readonly @endif
+                           class="rounded border {{ $timeIsLockedByOther ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 </div>
                 <div class="flex items-center justify-center gap-0.5">
                     <span class="text-[9px] text-gray-500 w-10 shrink-0">Selesai:</span>
                     <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][end_time]"
                            value="{{ $expJamSelesai }}"
-                           class="rounded border border-sky-200 bg-white px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                           @if($timeIsLockedByOther) readonly @endif
+                           class="rounded border {{ $timeIsLockedByOther ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 </div>
             </div>
             @else
