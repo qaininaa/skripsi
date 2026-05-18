@@ -92,9 +92,6 @@
                        maxlength="100"
                        @if($colLabelIsLockedByOther) readonly @endif
                        class="w-20 rounded border {{ $colLabelIsLockedByOther ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
-                @if ($colLabelIsLockedByOther)
-                <span class="text-[9px] text-amber-500" title="Terkunci analis lain">🔒</span>
-                @endif
             </div>
             @else
             <div class="text-[10px] text-gray-500 mt-1">Shift: {{ $columnNameVal ?: 'N/A' }}</div>

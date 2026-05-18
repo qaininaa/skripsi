@@ -5,12 +5,16 @@ namespace Domain\Report\Repositories;
 use Domain\Report\Interfaces\ReportClaimingRepositoryInterface;
 use Domain\Report\Models\Analyst;
 use Domain\Report\Models\AnalystReport;
+use Domain\Report\Models\EnvSectionInstance;
 use Domain\Report\Models\Incubator;
 use Domain\Report\Models\IncubatorEntry;
 use Domain\Report\Models\InstrumentIdentityEntry;
 use Domain\Report\Models\MediumEntry;
 use Domain\Report\Models\Report;
 use Domain\Report\Models\ReportApproval;
+use Domain\Report\Models\ReportEnvironmentalEntry;
+use Domain\Report\Models\ReportSectionColumn;
+use Domain\ReportType\Models\ReportSection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -59,16 +63,34 @@ class ReportClaimingRepository implements ReportClaimingRepositoryInterface
         }
 
         // 2. Identitas Medium — setidaknya satu baris harus ada dan semua kolom wajib terisi
-        $mediumIncomplete = MediumEntry::where('report_id', $reportId)
-            ->where(function (Builder $q): void {
-                $q->whereNull('name')
-                    ->orWhereNull('batch_number')
-                    ->orWhereNull('gpt_number')
-                    ->orWhereNull('expiration_date');
-            })
-            ->exists();
-
+        //    Catatan: medium tipe swab tidak punya gpt_number (field disembunyikan di view)
         $mediumEmpty = ! MediumEntry::where('report_id', $reportId)->exists();
+
+        $mediumIncomplete = false;
+        if (! $mediumEmpty) {
+            // Non-swab: name, batch_number, gpt_number, expiration_date wajib
+            $nonSwabIncomplete = MediumEntry::where('report_id', $reportId)
+                ->whereRaw('LOWER(name) NOT LIKE ?', ['%swab%'])
+                ->where(function (Builder $q): void {
+                    $q->whereNull('name')
+                        ->orWhereNull('batch_number')
+                        ->orWhereNull('gpt_number')
+                        ->orWhereNull('expiration_date');
+                })
+                ->exists();
+
+            // Swab: name, batch_number, expiration_date wajib (gpt_number tidak ada)
+            $swabIncomplete = MediumEntry::where('report_id', $reportId)
+                ->whereRaw('LOWER(name) LIKE ?', ['%swab%'])
+                ->where(function (Builder $q): void {
+                    $q->whereNull('name')
+                        ->orWhereNull('batch_number')
+                        ->orWhereNull('expiration_date');
+                })
+                ->exists();
+
+            $mediumIncomplete = $nonSwabIncomplete || $swabIncomplete;
+        }
 
         if ($mediumEmpty || $mediumIncomplete) {
             $missing[] = 'Identitas Medium';
@@ -230,5 +252,77 @@ class ReportClaimingRepository implements ReportClaimingRepositoryInterface
         }
 
         return $query->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Check whether all required CFU entries are filled before submitting to supervisor.
+     *
+     * Rules:
+     * - For every EnvSectionInstance in this report (original + duplicates):
+     *   - For every non-optional location (location_number does NOT start with '*)'):
+     *     - For every period that has a time entry (start_time not null):
+     *       - cfu_bacteria AND cfu_fungi must both be non-null.
+     *
+     * @return array{ready: bool, missing: string[]}
+     */
+    public function checkSubmitReadiness(string $reportId): array
+    {
+        $missing = [];
+
+        // Load all instances with their location (including section info)
+        $instances = EnvSectionInstance::where('report_id', $reportId)
+            ->with(['location.section', 'location.room'])
+            ->get();
+
+        if ($instances->isEmpty()) {
+            return ['ready' => true, 'missing' => []];
+        }
+
+        foreach ($instances as $instance) {
+            $location = $instance->location;
+            if (! $location) {
+                continue;
+            }
+
+            // Skip optional locations (location_number starts with '*)')
+            if (str_starts_with((string) ($location->location_number ?? ''), '*)')) {
+                continue;
+            }
+
+            $section = $location->section;
+            if (! $section) {
+                continue;
+            }
+
+            $maxColumn = (int) $section->max_column;
+            if ($maxColumn < 1) {
+                continue;
+            }
+
+            for ($period = 1; $period <= $maxColumn; $period++) {
+                // Only check periods that have a time entry (start_time not null)
+                // — periods without time are N/A and don't need CFU
+                $entry = ReportEnvironmentalEntry::where('report_id', $reportId)
+                    ->where('env_section_instance_id', $instance->id)
+                    ->where('period_number', $period)
+                    ->whereNotNull('start_time')
+                    ->first(['cfu_bacteria', 'cfu_fungi']);
+
+                if (! $entry) {
+                    continue; // No time entry → N/A, skip
+                }
+
+                if ($entry->cfu_bacteria === null || $entry->cfu_fungi === null) {
+                    $roomName = $location->room->room_name ?? 'Ruangan tidak diketahui';
+                    $locNum   = $location->location_number ?? '-';
+                    $missing[] = "CFU belum lengkap: {$roomName} (No. Lokasi {$locNum}), Exposure {$period}";
+                }
+            }
+        }
+
+        return [
+            'ready'   => empty($missing),
+            'missing' => $missing,
+        ];
     }
 }

@@ -54,6 +54,18 @@ class ReportSubmissionService
             abort_if(empty($dto->supervisorId), 422, 'Pilih supervisor terlebih dahulu.');
             abort_unless($this->repository->supervisorExists((string) $dto->supervisorId), 422, 'Supervisor tidak valid.');
 
+            // Pastikan semua CFU sudah terisi sebelum kirim ke supervisor
+            $submitReadiness = $this->claimingRepository->checkSubmitReadiness((string) $report->id);
+            if (! $submitReadiness['ready']) {
+                $missingList = implode('; ', array_slice($submitReadiness['missing'], 0, 5));
+                $extraCount  = max(0, count($submitReadiness['missing']) - 5);
+                $msg = 'Semua nilai CFU (B dan F) wajib diisi sebelum mengirim laporan ke supervisor. ' ;
+
+                return back()
+                    ->withInput()
+                    ->withErrors(['cfu_incomplete' => $msg]);
+            }
+
             $this->workflowService->submit($report, (string) $dto->supervisorId);
 
             return redirect()->route('reports.index')

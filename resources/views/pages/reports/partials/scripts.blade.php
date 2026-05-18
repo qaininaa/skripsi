@@ -287,6 +287,12 @@ async function confirmSave() {
 
 // Close modal on Enter key in password field
 document.addEventListener('DOMContentLoaded', () => {
+    // Auto-scroll to error banner if present (validation errors from server)
+    const errorBanner = document.getElementById('readiness-error-banner');
+    if (errorBanner) {
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     const syncIncubatorOwnerInRow = (row) => {
         if (!row) return;
 
