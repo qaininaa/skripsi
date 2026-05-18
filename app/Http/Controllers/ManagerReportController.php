@@ -287,6 +287,10 @@ class ManagerReportController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
+        return back()->withErrors([
+            'save_error' => 'Manager tidak dapat mengubah data monitoring. Perubahan hanya dapat dilakukan oleh Supervisor.',
+        ]);
+
         $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
         $incubatorEntryService = app(IncubatorEntryService::class);
         $mediumEntryService = app(MediumEntryService::class);
