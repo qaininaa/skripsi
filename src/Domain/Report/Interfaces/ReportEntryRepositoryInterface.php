@@ -2,6 +2,8 @@
 
 namespace Domain\Report\Interfaces;
 
+use Domain\Report\Models\ReportEnvironmentalEntry;
+
 /**
  * Contract for ReportEntry persistence operations.
  */
@@ -33,6 +35,28 @@ interface ReportEntryRepositoryInterface
      * @param  array<string, mixed>  $identity
      */
     public function updateEnvironmentalEntryTimes(array $identity, ?string $startTime, ?string $endTime): void;
+
+    /**
+     * Find one environmental entry by identity keys.
+     *
+     * @param  array<string, mixed>  $identity
+     */
+    public function findEnvironmentalEntry(array $identity): ?ReportEnvironmentalEntry;
+
+    /**
+     * Create one environmental entry with identity + payload.
+     *
+     * @param  array<string, mixed>  $identity
+     * @param  array<string, mixed>  $payload
+     */
+    public function createEnvironmentalEntry(array $identity, array $payload): ReportEnvironmentalEntry;
+
+    /**
+     * Update existing environmental entry fields.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    public function updateEnvironmentalEntry(ReportEnvironmentalEntry $entry, array $payload): void;
 
     /**
      * Find a ReportSectionColumn row for the given identity.

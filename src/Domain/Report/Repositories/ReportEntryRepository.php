@@ -66,6 +66,33 @@ class ReportEntryRepository implements ReportEntryRepositoryInterface
         ]);
     }
 
+    /**
+     * @param  array<string, mixed>  $identity
+     */
+    public function findEnvironmentalEntry(array $identity): ?ReportEnvironmentalEntry
+    {
+        return ReportEnvironmentalEntry::query()
+            ->where($identity)
+            ->first();
+    }
+
+    /**
+     * @param  array<string, mixed>  $identity
+     * @param  array<string, mixed>  $payload
+     */
+    public function createEnvironmentalEntry(array $identity, array $payload): ReportEnvironmentalEntry
+    {
+        return ReportEnvironmentalEntry::query()->create(array_merge($identity, $payload));
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function updateEnvironmentalEntry(ReportEnvironmentalEntry $entry, array $payload): void
+    {
+        $entry->update($payload);
+    }
+
     public function findSectionColumn(
         string $reportId,
         string $sectionId,
