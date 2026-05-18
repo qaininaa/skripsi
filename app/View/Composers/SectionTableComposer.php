@@ -4,11 +4,17 @@ namespace App\View\Composers;
 
 use App\Helpers\CfuHelper;
 use App\Services\ReportSectionService;
+use Domain\Report\Interfaces\FieldLockRepositoryInterface;
+use Domain\Report\Interfaces\ReportEntryRepositoryInterface;
 use Illuminate\View\View;
 
 class SectionTableComposer
 {
-    public function __construct(private ReportSectionService $sectionService) {}
+    public function __construct(
+        private ReportSectionService $sectionService,
+        private FieldLockRepositoryInterface $fieldLockRepository,
+        private ReportEntryRepositoryInterface $repository,
+    ) {}
 
     public function compose(View $view): void
     {
@@ -74,6 +80,9 @@ class SectionTableComposer
         $isMonitoring = $report->status === 'monitoring';
         $isReading    = $report->status === 'reading';
 
+        // Current analyst ID — used for lock checks throughout this method
+        $currentUserId = (string) (auth()->id() ?? '');
+
         // ── Machine Set-up ownership ──────────────────────────────────────────
         $ms0Locked = false;
         $msHasTime = ! empty($secTimesFromEntries[0]['start_time'] ?? null);
@@ -95,7 +104,91 @@ class SectionTableComposer
             ->map(fn ($r) => $r->label)
             ->all();
 
-        // ── Total column count for colspan calculations ────────────────────────
+        // ── Column name lock owners (keyed by period_number) ──────────────────
+        // Used in thead to render SP/Shift inputs as readonly if locked by another analyst.
+        // $currentUserId already defined above
+        $columnNameLocks = $columnRows
+            ->where('section_id', $section->id)
+            ->where('instance_number', (int) $instance)
+            ->keyBy(fn ($r) => (int) $r->period_number)
+            ->map(fn ($r) => (string) ($r->lockedBy ?? ''))
+            ->all();
+        // We store lock ownership directly on the row via field_locks table.
+        // Pass the row IDs so thead can check per-period lock status.
+        $columnRowIds = $columnRows
+            ->where('section_id', $section->id)
+            ->where('instance_number', (int) $instance)
+            ->keyBy(fn ($r) => (int) $r->period_number)
+            ->map(fn ($r) => (string) $r->id)
+            ->all();
+
+        // ── Column label lock: per period, is it locked by someone else? ─────
+        // Key: period_number (int) => bool (true = locked by another analyst)
+        $columnLabelLockedByOther = [];
+        foreach ($columnRowIds as $periodNum => $rowId) {
+            if ($rowId === '') {
+                $columnLabelLockedByOther[$periodNum] = false;
+                continue;
+            }
+            $ownerMap = $this->fieldLockRepository->getOwnerMap(
+                'report_section_columns',
+                $rowId,
+                ['label']
+            );
+            $owner = $ownerMap['label'] ?? null;
+            $columnLabelLockedByOther[$periodNum] = $owner !== null && $owner !== $currentUserId;
+        }
+
+        // ── Time-entry lock: per period (and per AB-class for dual_ab), locked by another? ──
+        // For dual_ab sections: keyed by col => ['a' => bool, 'b' => bool]
+        // For other sections:   keyed by col => true|false
+        $lockedTimeKeys = $this->repository->getLockedTimeEntryKeys(
+            (string) $report->id,
+            $currentUserId
+        );
+
+        $timeLockedByOther = [];
+        foreach ($section->locations as $loc) {
+            $locId    = (string) $loc->id;
+            $locClass = strtolower((string) ($loc->room->class ?? ''));
+            if (! isset($data['entryMap'][$locId])) {
+                continue;
+            }
+            foreach ($data['entryMap'][$locId][$instance] ?? [] as $col => $shifts) {
+                foreach ($shifts as $shift => $entry) {
+                    if (! $entry) {
+                        continue;
+                    }
+                    $key = "{$entry->env_section_instance_id}-{$entry->period_number}-{$entry->shift}";
+                    if (! in_array($key, $lockedTimeKeys, true)) {
+                        continue;
+                    }
+                    if ($isDualAB && $locClass !== '') {
+                        // Per-class lock for dual_ab (A and B tracked separately)
+                        $timeLockedByOther[$col][$locClass] = true;
+                    } else {
+                        $timeLockedByOther[$col] = true;
+                    }
+                }
+            }
+        }
+
+        // Machine Set-up (period 0) time lock
+        $ms0TimeLockedByOther = false;
+        foreach ($section->locations as $loc) {
+            $locId  = (string) $loc->id;
+            $entry0 = $data['entryMap'][$locId][$instance][0][1]
+                ?? $data['entryMap'][$locId][$instance][0][2]
+                ?? null;
+            if (! $entry0) {
+                continue;
+            }
+            $key0 = "{$entry0->env_section_instance_id}-0-{$entry0->shift}";
+            if (in_array($key0, $lockedTimeKeys, true)) {
+                $ms0TimeLockedByOther = true;
+                break;
+            }
+        }
         // Fixed: No. | Nama Ruangan | Kelas | No. Ruangan | No. Lokasi = 5
         // Then machine-setup (3 if present) + exposures + AL×2 + AA×2 + Kesimpulan = 5
         $totalCols = 5 + ($hasMachineSetup ? 3 : 0) + ($maxCols * $subColsPerExp) + 5;
@@ -145,6 +238,8 @@ class SectionTableComposer
             'secTimesFromEntries',
             // Columns
             'secAssignments', 'columnNames', 'maxCols', 'romanNums',
+            // Column label locks
+            'columnLabelLockedByOther', 'timeLockedByOther', 'ms0TimeLockedByOther',
             // Layout helpers
             'totalCols',
             // Frequency grouping

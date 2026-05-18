@@ -15,6 +15,24 @@ interface ReportClaimingRepositoryInterface
 {
     public function getReturnedApproval(Report $report): ?ReportApproval;
 
+    /**
+     * Check whether all required pre-reading fields are filled for a report.
+     *
+     * Returns an array with:
+     *   - 'ready'   => bool
+     *   - 'missing' => string[]  (list of human-readable missing section names)
+     */
+    public function checkReadingReadiness(string $reportId): array;
+
+    /**
+     * Check whether all required CFU entries are filled before submitting to supervisor.
+     *
+     * Returns an array with:
+     *   - 'ready'   => bool
+     *   - 'missing' => string[]  (list of human-readable missing items)
+     */
+    public function checkSubmitReadiness(string $reportId): array;
+
     public function claimReport(Report $report, string $userId): void;
 
     /**

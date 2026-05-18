@@ -4,6 +4,7 @@ namespace Domain\Report\Services;
 
 use App\Services\Reports\ReportWorkflowService;
 use Domain\Report\Dtos\ReportDraftingSaveDto;
+use Domain\Report\Interfaces\ReportClaimingRepositoryInterface;
 use Domain\Report\Interfaces\ReportSubmissionRepositoryInterface;
 use Domain\Report\Models\AnalystReport;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +19,7 @@ class ReportSubmissionService
 {
     public function __construct(
         private ReportSubmissionRepositoryInterface $repository,
+        private ReportClaimingRepositoryInterface $claimingRepository,
         private ReportEntryService $entryService,
         private EnvironmentalEntryService $environmentalEntryService,
         private ReportWorkflowService $workflowService,
@@ -52,6 +54,18 @@ class ReportSubmissionService
             abort_if(empty($dto->supervisorId), 422, 'Pilih supervisor terlebih dahulu.');
             abort_unless($this->repository->supervisorExists((string) $dto->supervisorId), 422, 'Supervisor tidak valid.');
 
+            // Pastikan semua CFU sudah terisi sebelum kirim ke supervisor
+            $submitReadiness = $this->claimingRepository->checkSubmitReadiness((string) $report->id);
+            if (! $submitReadiness['ready']) {
+                $missingList = implode('; ', array_slice($submitReadiness['missing'], 0, 5));
+                $extraCount  = max(0, count($submitReadiness['missing']) - 5);
+                $msg = 'Semua nilai CFU (B dan F) wajib diisi sebelum mengirim laporan ke supervisor. ' ;
+
+                return back()
+                    ->withInput()
+                    ->withErrors(['cfu_incomplete' => $msg]);
+            }
+
             $this->workflowService->submit($report, (string) $dto->supervisorId);
 
             return redirect()->route('reports.index')
@@ -60,6 +74,26 @@ class ReportSubmissionService
 
         if ($dto->action === 'finish_monitoring') {
             abort_unless($report->status === 'monitoring', 403);
+
+            // Pastikan semua data wajib sudah terisi sebelum transisi ke tahap reading
+            $readiness = $this->claimingRepository->checkReadingReadiness((string) $report->id);
+            if (! $readiness['ready']) {
+                $errors = [];
+                if (in_array('Identitas Instrumen', $readiness['missing'], true)) {
+                    $errors['instrument_incomplete'] = 'Semua field Identitas Instrumen wajib diisi sebelum melanjutkan ke tahap pembacaan.';
+                }
+                if (in_array('Identitas Medium', $readiness['missing'], true)) {
+                    $errors['medium_incomplete'] = 'Semua field Identitas Medium wajib diisi sebelum melanjutkan ke tahap pembacaan.';
+                }
+                if (in_array('Proses Inkubasi Medium Monitoring', $readiness['missing'], true)) {
+                    $errors['inkubator_incomplete'] = 'Data Proses Inkubasi Medium Monitoring wajib diisi sebelum melanjutkan ke tahap pembacaan.';
+                }
+
+                return back()
+                    ->withInput()
+                    ->withErrors($errors);
+            }
+
             $this->workflowService->finishMonitoring($report);
 
             return redirect()->route('reports.index')

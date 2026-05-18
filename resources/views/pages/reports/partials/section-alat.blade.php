@@ -19,6 +19,14 @@
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-4">
     <div class="px-5 py-3.5 border-b border-gray-100">
         <h3 class="font-semibold text-sm text-gray-700">2. Identitas Instrumen </h3>
+        @error('instrument_incomplete')
+        <p class="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+            {{ $message }}
+        </p>
+        @enderror
     </div>
     <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
@@ -35,7 +43,7 @@
                    @if(!$isEditable || $noIdLockedByOther) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $noIdLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
             @if ($noIdLockedByOther)
-                <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
             @endif
         </div>
         <div>
@@ -44,7 +52,7 @@
                    @if(!$isEditable || $calibrationDateLockedByOther) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $calibrationDateLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
             @if ($calibrationDateLockedByOther)
-                <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
             @endif
         </div>
         <div>
@@ -53,7 +61,7 @@
                    @if(!$isEditable || $dueDateLockedByOther) readonly @endif
                        class="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none @if(!$isEditable || $dueDateLockedByOther) bg-gray-100 opacity-70 cursor-not-allowed @endif">
             @if ($dueDateLockedByOther)
-                <p class="mt-1 text-xs text-amber-600">Terkunci karena sudah diisi analis lain.</p>
+                <p class="mt-1 text-xs text-gray-400 italic">Terkunci karena sudah diisi analis lain.</p>
             @endif
         </div>
     </div>
