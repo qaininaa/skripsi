@@ -16,7 +16,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/qc_system
+            cd /var/www/skripsi
             sudo git pull origin staging
+            sudo composer install --no-dev --optimize-autoloader
             sudo php artisan migrate --force
             sudo php artisan optimize
