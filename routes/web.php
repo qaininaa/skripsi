@@ -38,9 +38,6 @@ Route::middleware(['auth', 'password.check'])->group(function () {
         Route::resource('users', UserController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('users');
-
-        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-
         Route::get('/settings/password', [PasswordPolicyController::class, 'index'])->name('settings.index');
         Route::put('/settings/password', [PasswordPolicyController::class, 'update'])->name('settings.update');
     });
@@ -107,6 +104,9 @@ Route::middleware(['auth', 'password.check'])->group(function () {
             Route::get('/', [ReportArchiveController::class, 'index'])->name('index');
             Route::get('/{report}', [ReportArchiveController::class, 'show'])->name('show');
         });
+        
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
 });
 
 require __DIR__.'/auth.php';

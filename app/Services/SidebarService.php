@@ -93,7 +93,6 @@ class SidebarService
                 'label' => 'Manajemen',
                 'items' => [
                     $this->item('Manajemen Pengguna', 'users.index', 'users.*', 'icons/sidebar/users.svg'),
-                    $this->item('Audit Trail', 'audit-logs.index', 'audit-logs.*', 'icons/sidebar/audit.svg'),
                     $this->item('Pengaturan Password', 'settings.index', 'settings.*', 'icons/sidebar/settings.svg'),
                 ],
             ];
@@ -182,6 +181,13 @@ class SidebarService
                 ],
             ];
         }
+
+        $sections[] = [
+            'label' => 'Logs',
+            'items' => [
+                $this->item('Audit Log', 'audit-logs.index', 'audit-logs.*', 'icons/sidebar/audit.svg'),
+            ],
+        ];
 
         return $this->filterUnavailableRoutes($sections);
     }
