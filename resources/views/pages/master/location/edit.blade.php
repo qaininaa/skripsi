@@ -65,7 +65,7 @@
                     <select name="measurement_type"
                             class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                         <option value="" disabled {{ old('measurement_type', $location->measurement_type) ? '' : 'selected' }}>— Pilih Tipe Pengukuran —</option>
-                        @foreach (['settle_plate' => 'Settle Plate', 'swab' => 'Swab', 'air_sampler' => 'Air Sampler'] as $val => $label)
+                        @foreach (['settle_plate' => 'Settle Plate', 'swab' => 'Swab', 'air_sampler' => 'Air Sampler', 'contact_plate' => 'Contact Plate'] as $val => $label)
                             <option value="{{ $val }}" {{ old('measurement_type', $location->measurement_type) === $val ? 'selected' : '' }}>
                                 {{ $label }}
                             </option>
