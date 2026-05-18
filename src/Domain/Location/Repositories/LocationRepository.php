@@ -73,11 +73,19 @@ class LocationRepository implements LocationRepositoryInterface
     }
 
     /**
+     * Load room relation needed for business descriptions.
+     */
+    public function withRoom(Location $location): Location
+    {
+        return $location->loadMissing('room');
+    }
+
+    /**
      * Persist a new location record.
      */
     public function create(CreateLocationDto $dto): Location
     {
-        return Location::create($dto->toArray());
+        return Location::create($dto->toArray())->load('room');
     }
 
     /**
@@ -87,7 +95,7 @@ class LocationRepository implements LocationRepositoryInterface
     {
         $location->update($dto->toArray());
 
-        return $location;
+        return $location->refresh()->load('room');
     }
 
     /**

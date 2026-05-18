@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Audit Trail')
-@section('page-title', 'Audit Trail')
+@section('title', 'Audit Log')
+@section('page-title', 'Audit Log')
 @section('content')
 
     <div class="mb-4">
-        <h2 class="text-xl font-bold text-gray-800">Audit Trail</h2>
-        <p class="text-sm text-gray-500 mt-0.5">Riwayat aktivitas penting seperti login dan manajemen akun.</p>
+        <h2 class="text-xl font-bold text-gray-800">Audit Log</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Riwayat aktivitas penting seperti login, logout, manajemen akun, ruangan, dan lokasi.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -18,8 +18,8 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Aksi</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Deskripsi</th>
-                        <!-- <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">IP</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User Agent</th> -->
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">IP</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User Agent</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -50,8 +50,8 @@
                             </td>
                             <td class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase">{{ str_replace('_', ' ', $log->action) }}</td>
                             <td class="px-4 py-3 text-sm text-gray-600">{{ $log->description }}</td>
-                            <!-- <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ $log->ip_address ?? '—' }}</td>
-                            <td class="px-4 py-3 text-[11px] text-gray-400 max-w-xs truncate">{{ $log->user_agent ?? '—' }}</td> -->
+                            <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{{ $log->ip_address ?? '—' }}</td>
+                            <td class="px-4 py-3 text-[11px] text-gray-400 max-w-xs truncate">{{ $log->user_agent ?? '—' }}</td>
                         </tr>
                     @empty
                         <tr>

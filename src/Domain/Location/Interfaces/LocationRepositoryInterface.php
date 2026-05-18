@@ -41,6 +41,11 @@ interface LocationRepositoryInterface
     public function findDuplicate(string $roomId, string $locationNumber, ?string $ignoreLocationId = null): ?Location;
 
     /**
+     * Load room relation needed for business descriptions.
+     */
+    public function withRoom(Location $location): Location;
+
+    /**
      * Persist a new location from DTO.
      */
     public function create(CreateLocationDto $dto): Location;
