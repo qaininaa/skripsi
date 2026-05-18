@@ -36,34 +36,139 @@ class EnvironmentalEntryService
         $cfuPattern = '/^(<1|TNTC|[1-9][0-9]*)$/i';
         $invalidFields = [];
 
-        foreach ($entries as $sectionKey => $instanceMap) {
-            if (! is_array($instanceMap)) {
-                continue;
+        $walk = function (array $node, array $path) use (&$walk, $cfuPattern, &$invalidFields): void {
+            $hasCfuFields = array_key_exists('cfu_bacteria', $node) || array_key_exists('cfu_fungi', $node);
+
+            if ($hasCfuFields) {
+                foreach (['cfu_bacteria', 'cfu_fungi'] as $field) {
+                    $value = trim((string) ($node[$field] ?? ''));
+                    if ($value !== '' && ! preg_match($cfuPattern, $value)) {
+                        $invalidFields[] = implode('.', [...$path, $field]);
+                    }
+                }
+
+                return;
             }
-            foreach ($instanceMap as $instanceKey => $periodMap) {
-                if (! is_array($periodMap)) {
+
+            foreach ($node as $key => $child) {
+                if (! is_array($child)) {
                     continue;
                 }
-                foreach ($periodMap as $periodKey => $shiftMap) {
-                    if (! is_array($shiftMap)) {
+                $walk($child, [...$path, (string) $key]);
+            }
+        };
+
+        $walk($entries, ['entries']);
+
+        return $invalidFields;
+    }
+
+    /**
+     * Validate time fields are filled in pairs before entering reading stage.
+     *
+     * Rule:
+     * - if start time is filled, end time must also be filled
+     * - if end time is filled, start time must also be filled
+     *
+     * @return array{0: array<string, string>, 1: ?string}
+     */
+    public function validateMonitoringTimePairs(Request $request): array
+    {
+        $errors = [];
+        $firstMissingKey = null;
+
+        foreach ((array) $request->input('exposure_times', []) as $secId => $instanceData) {
+            if (! is_array($instanceData)) {
+                continue;
+            }
+            foreach ($instanceData as $instNum => $columnData) {
+                if (! is_array($columnData)) {
+                    continue;
+                }
+                foreach ($columnData as $col => $times) {
+                    if (! is_array($times)) {
                         continue;
                     }
-                    foreach ($shiftMap as $shiftKey => $data) {
-                        if (! is_array($data)) {
+
+                    $start = $this->normalizeTimeValue($times['start_time'] ?? null);
+                    $end = $this->normalizeTimeValue($times['end_time'] ?? null);
+
+                    if (($start !== null) xor ($end !== null)) {
+                        $missingField = $start === null ? 'start_time' : 'end_time';
+                        $key = "exposure_times.{$secId}.{$instNum}.{$col}.{$missingField}";
+                        $errors[$key] = 'Jam mulai dan jam selesai harus diisi berpasangan.';
+                        $errors['time_incomplete'] = 'Lengkapi jam mulai dan jam selesai pada tabel pemantauan sebelum melanjutkan ke tahap pembacaan.';
+                        $firstMissingKey ??= $key;
+                    }
+                }
+            }
+        }
+
+        foreach ((array) $request->input('settle_times', []) as $secId => $instanceData) {
+            if (! is_array($instanceData)) {
+                continue;
+            }
+            foreach ($instanceData as $instNum => $columnData) {
+                if (! is_array($columnData)) {
+                    continue;
+                }
+                foreach ($columnData as $col => $abData) {
+                    if (! is_array($abData)) {
+                        continue;
+                    }
+                    foreach ($abData as $ab => $times) {
+                        if (! is_array($times)) {
                             continue;
                         }
-                        foreach (['cfu_bacteria', 'cfu_fungi'] as $field) {
-                            $v = trim((string) ($data[$field] ?? ''));
-                            if ($v !== '' && ! preg_match($cfuPattern, $v)) {
-                                $invalidFields[] = "entries.{$sectionKey}.{$instanceKey}.{$periodKey}.{$shiftKey}.{$field}";
-                            }
+
+                        $start = $this->normalizeTimeValue($times['start_time'] ?? null);
+                        $end = $this->normalizeTimeValue($times['end_time'] ?? null);
+
+                        if (($start !== null) xor ($end !== null)) {
+                            $missingField = $start === null ? 'start_time' : 'end_time';
+                            $key = "settle_times.{$secId}.{$instNum}.{$col}.{$ab}.{$missingField}";
+                            $errors[$key] = 'Jam mulai dan jam selesai harus diisi berpasangan.';
+                            $errors['time_incomplete'] = 'Lengkapi jam mulai dan jam selesai pada tabel pemantauan sebelum melanjutkan ke tahap pembacaan.';
+                            $firstMissingKey ??= $key;
                         }
                     }
                 }
             }
         }
 
-        return $invalidFields;
+        foreach ((array) $request->input('swab_times', []) as $secId => $instanceData) {
+            if (! is_array($instanceData)) {
+                continue;
+            }
+            foreach ($instanceData as $instNum => $columnData) {
+                if (! is_array($columnData)) {
+                    continue;
+                }
+                foreach ($columnData as $col => $slotData) {
+                    if (! is_array($slotData)) {
+                        continue;
+                    }
+                    foreach ($slotData as $slotKey => $times) {
+                        if (! is_array($times)) {
+                            continue;
+                        }
+
+                        $start = $this->normalizeTimeValue($times['mulai'] ?? null);
+                        $end = $this->normalizeTimeValue($times['selesai'] ?? null);
+
+                        if (($start !== null) xor ($end !== null)) {
+                            $missingField = $start === null ? 'mulai' : 'selesai';
+                            $key = "swab_times.{$secId}.{$instNum}.{$col}.{$slotKey}.{$missingField}";
+                            $errors[$key] = 'Jam mulai dan jam selesai harus diisi berpasangan.';
+                            $errors['time_incomplete'] = 'Lengkapi jam mulai dan jam selesai pada tabel pemantauan sebelum melanjutkan ke tahap pembacaan.';
+                            $firstMissingKey ??= $key;
+                        }
+                    }
+                }
+            }
+        }
+
+        return [$errors, $firstMissingKey];
     }
 
     /**
@@ -139,11 +244,6 @@ class EnvironmentalEntryService
             return $savedSectionIds;
         }
 
-        $lockedTimeKeys = $this->repository->getLockedTimeEntryKeys(
-            (string) $report->id,
-            (string) Auth::id()
-        );
-
         foreach ($settleTimes as $secId => $instanceData) {
             if (! is_array($instanceData)) {
                 continue;
@@ -172,18 +272,13 @@ class EnvironmentalEntryService
                             if (! $instanceId) {
                                 continue;
                             }
-                            $entryKey = "{$instanceId}-{$col}-1";
-                            if (in_array($entryKey, $lockedTimeKeys, true)) {
-                                continue;
-                            }
-                            $this->repository->upsertEnvironmentalEntry(
-                                [
-                                    'report_id' => $report->id,
-                                    'env_section_instance_id' => $instanceId,
-                                    'period_number' => (int) $col,
-                                    'shift' => 1,
-                                ],
-                                ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
+                            $this->persistTimeEntryWithFieldLocks(
+                                reportId: (string) $report->id,
+                                instanceId: (string) $instanceId,
+                                periodNumber: (int) $col,
+                                shift: 1,
+                                startTime: $startTime,
+                                endTime: $endTime
                             );
                         }
                     }
@@ -213,11 +308,6 @@ class EnvironmentalEntryService
         if (empty($swabTimes)) {
             return $savedSectionIds;
         }
-
-        $lockedTimeKeys = $this->repository->getLockedTimeEntryKeys(
-            (string) $report->id,
-            (string) Auth::id()
-        );
 
         foreach ($swabTimes as $secId => $instanceData) {
             if (! is_array($instanceData)) {
@@ -254,18 +344,13 @@ class EnvironmentalEntryService
                             if (! $instanceId) {
                                 continue;
                             }
-                            $entryKey = "{$instanceId}-{$col}-1";
-                            if (in_array($entryKey, $lockedTimeKeys, true)) {
-                                continue;
-                            }
-                            $this->repository->upsertEnvironmentalEntry(
-                                [
-                                    'report_id' => $report->id,
-                                    'env_section_instance_id' => $instanceId,
-                                    'period_number' => (int) $col,
-                                    'shift' => 1,
-                                ],
-                                ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
+                            $this->persistTimeEntryWithFieldLocks(
+                                reportId: (string) $report->id,
+                                instanceId: (string) $instanceId,
+                                periodNumber: (int) $col,
+                                shift: 1,
+                                startTime: $startTime,
+                                endTime: $endTime
                             );
                         }
                     }
@@ -296,11 +381,6 @@ class EnvironmentalEntryService
             return $savedSectionIds;
         }
 
-        $lockedTimeKeys = $this->repository->getLockedTimeEntryKeys(
-            (string) $report->id,
-            (string) Auth::id()
-        );
-
         foreach ($exposureTimes as $secId => $instanceData) {
             if (! is_array($instanceData)) {
                 continue;
@@ -327,18 +407,13 @@ class EnvironmentalEntryService
                             if (! $instanceId) {
                                 continue;
                             }
-                            $entryKey = "{$instanceId}-{$col}-1";
-                            if (in_array($entryKey, $lockedTimeKeys, true)) {
-                                continue;
-                            }
-                            $this->repository->upsertEnvironmentalEntry(
-                                [
-                                    'report_id' => $report->id,
-                                    'env_section_instance_id' => $instanceId,
-                                    'period_number' => (int) $col,
-                                    'shift' => 1,
-                                ],
-                                ['analyst_id' => Auth::id(), 'start_time' => $startTime, 'end_time' => $endTime]
+                            $this->persistTimeEntryWithFieldLocks(
+                                reportId: (string) $report->id,
+                                instanceId: (string) $instanceId,
+                                periodNumber: (int) $col,
+                                shift: 1,
+                                startTime: $startTime,
+                                endTime: $endTime
                             );
                         }
                     }
@@ -598,5 +673,124 @@ class EnvironmentalEntryService
         }
 
         return null;
+    }
+
+    private function persistTimeEntryWithFieldLocks(
+        string $reportId,
+        string $instanceId,
+        int $periodNumber,
+        int $shift,
+        ?string $startTime,
+        ?string $endTime
+    ): void {
+        if ($startTime === null && $endTime === null) {
+            return;
+        }
+
+        $identity = [
+            'report_id' => $reportId,
+            'env_section_instance_id' => $instanceId,
+            'period_number' => $periodNumber,
+            'shift' => $shift,
+        ];
+
+        $userId = (string) Auth::id();
+        $entry = $this->repository->findEnvironmentalEntry($identity);
+
+        if (! $entry) {
+            $payload = [];
+            if ($startTime !== null) {
+                $payload['start_time'] = $startTime;
+            }
+            if ($endTime !== null) {
+                $payload['end_time'] = $endTime;
+            }
+            $payload['analyst_id'] = $userId;
+
+            if ($payload === []) {
+                return;
+            }
+
+            $entry = $this->repository->createEnvironmentalEntry($identity, $payload);
+
+            if ($startTime !== null) {
+                $this->fieldLockRepository->acquireOrOwned(
+                    'report_environmental_entries',
+                    (string) $entry->id,
+                    'start_time',
+                    $userId
+                );
+            }
+            if ($endTime !== null) {
+                $this->fieldLockRepository->acquireOrOwned(
+                    'report_environmental_entries',
+                    (string) $entry->id,
+                    'end_time',
+                    $userId
+                );
+            }
+
+            return;
+        }
+
+        $updates = [];
+        $currentStart = $this->normalizeTimeValue($entry->start_time);
+        $currentEnd = $this->normalizeTimeValue($entry->end_time);
+
+        if ($startTime !== $currentStart) {
+            $canWriteStart = $this->fieldLockRepository->acquireOrOwned(
+                'report_environmental_entries',
+                (string) $entry->id,
+                'start_time',
+                $userId
+            );
+
+            if ($canWriteStart) {
+                $updates['start_time'] = $startTime;
+                if ($startTime === null) {
+                    $this->fieldLockRepository->releaseIfOwned(
+                        'report_environmental_entries',
+                        (string) $entry->id,
+                        'start_time',
+                        $userId
+                    );
+                }
+            }
+        }
+
+        if ($endTime !== $currentEnd) {
+            $canWriteEnd = $this->fieldLockRepository->acquireOrOwned(
+                'report_environmental_entries',
+                (string) $entry->id,
+                'end_time',
+                $userId
+            );
+
+            if ($canWriteEnd) {
+                $updates['end_time'] = $endTime;
+                if ($endTime === null) {
+                    $this->fieldLockRepository->releaseIfOwned(
+                        'report_environmental_entries',
+                        (string) $entry->id,
+                        'end_time',
+                        $userId
+                    );
+                }
+            }
+        }
+
+        if ($updates !== []) {
+            if (! $entry->analyst_id) {
+                $updates['analyst_id'] = $userId;
+            }
+            $this->repository->updateEnvironmentalEntry($entry, $updates);
+        }
+    }
+
+    private function normalizeTimeValue(mixed $raw): ?string
+    {
+        $value = trim((string) ($raw ?? ''));
+
+        return $value !== '' ? $value : null;
     }
 }

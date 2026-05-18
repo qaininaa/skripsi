@@ -41,7 +41,17 @@ class ReportSubmissionService
         if (! empty($invalidFields)) {
             return back()
                 ->withInput()
+                ->with('focus_input', $invalidFields[0])
                 ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC. Nilai nol, desimal, dan negatif tidak diperbolehkan.']);
+        }
+
+        if ($dto->action === 'finish_monitoring') {
+            [$timeErrors] = $this->environmentalEntryService->validateMonitoringTimePairs($request);
+            if (! empty($timeErrors)) {
+                return back()
+                    ->withInput()
+                    ->withErrors($timeErrors);
+            }
         }
 
         [$savedSectionIds] = $this->entryService->process($request, $report);

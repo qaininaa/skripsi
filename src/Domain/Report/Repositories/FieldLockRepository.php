@@ -30,6 +30,33 @@ class FieldLockRepository implements FieldLockRepositoryInterface
             ->all();
     }
 
+    /**
+     * @param  array<int, string>  $rowIds
+     * @param  array<int, string>  $fieldNames
+     * @return array<string, array<string, string>>
+     */
+    public function getOwnerMapByRows(string $tableName, array $rowIds, array $fieldNames): array
+    {
+        if ($rowIds === [] || $fieldNames === []) {
+            return [];
+        }
+
+        $rows = FieldLock::query()
+            ->where('table_name', $tableName)
+            ->whereIn('row_id', $rowIds)
+            ->whereIn('field_name', $fieldNames)
+            ->get(['row_id', 'field_name', 'filled_by']);
+
+        $ownerMap = [];
+        foreach ($rows as $row) {
+            $rowId = (string) $row->row_id;
+            $ownerMap[$rowId] ??= [];
+            $ownerMap[$rowId][(string) $row->field_name] = (string) $row->filled_by;
+        }
+
+        return $ownerMap;
+    }
+
     public function acquireOrOwned(string $tableName, string $rowId, string $fieldName, string $userId): bool
     {
         $existing = $this->findOne($tableName, $rowId, $fieldName);
