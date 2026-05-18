@@ -45,6 +45,7 @@ use Domain\User\Repositories\AuthRepository;
 use Domain\User\Repositories\PasswordRepository;
 use Domain\User\Repositories\UserRepository;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -100,6 +101,24 @@ class AppServiceProvider extends ServiceProvider
             app(AuditLogService::class)->log(
                 'login',
                 'User login: ' . $user->name . ' (' . $user->username . ')',
+                [
+                    'user_id' => $user->id,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ],
+            );
+        });
+
+        Event::listen(Logout::class, function (Logout $event): void {
+            $user = $event->user;
+
+            if (! $user) {
+                return;
+            }
+
+            app(AuditLogService::class)->log(
+                'logout',
+                'User logout: ' . $user->name . ' (' . $user->username . ')',
                 [
                     'user_id' => $user->id,
                     'ip_address' => request()->ip(),

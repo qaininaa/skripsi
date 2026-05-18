@@ -58,7 +58,7 @@ class LocationController extends Controller
                 ->with('info', 'Lokasi sudah ada. Anda dapat mengubah data lokasi tersebut di sini.');
         }
 
-        $this->locationService->createLocation($dto);
+        $this->locationService->createLocation($dto, $this->meta($request));
 
         return redirect()
             ->route('master.location.index')
@@ -90,7 +90,7 @@ class LocationController extends Controller
                 ->withInput();
         }
 
-        $this->locationService->updateLocation($location, $dto);
+        $this->locationService->updateLocation($location, $dto, $this->meta($request));
 
         return redirect()
             ->route('master.location.index')
@@ -100,12 +100,25 @@ class LocationController extends Controller
     /**
      * Delete a location record.
      */
-    public function destroy(Location $location): RedirectResponse
+    public function destroy(Request $request, Location $location): RedirectResponse
     {
-        $this->locationService->deleteLocation($location);
+        $this->locationService->deleteLocation($location, $this->meta($request));
 
         return redirect()
             ->route('master.location.index')
             ->with('success', 'Lokasi berhasil dihapus.');
+    }
+
+    /**
+     * @return array{user_id: string|null, ip_address: string|null, user_agent: string|null, actor_username: string|null}
+     */
+    private function meta(Request $request): array
+    {
+        return [
+            'user_id' => $request->user()?->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'actor_username' => $request->user()?->username,
+        ];
     }
 }

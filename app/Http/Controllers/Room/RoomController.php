@@ -54,7 +54,7 @@ class RoomController extends Controller
                 ->with('info', 'Nama ruangan sudah ada. Anda dapat mengubah data ruangan tersebut di sini.');
         }
 
-        $this->roomService->createRoom($dto);
+        $this->roomService->createRoom($dto, $this->meta($request));
 
         return redirect()
             ->route('master.room.index')
@@ -86,7 +86,7 @@ class RoomController extends Controller
                 ->withInput();
         }
 
-        $this->roomService->updateRoom($room, $dto);
+        $this->roomService->updateRoom($room, $dto, $this->meta($request));
 
         return redirect()
             ->route('master.room.index')
@@ -96,16 +96,29 @@ class RoomController extends Controller
     /**
      * Delete a room when no locations are linked.
      */
-    public function destroy(Room $room): RedirectResponse
+    public function destroy(Request $request, Room $room): RedirectResponse
     {
         if ($this->roomService->hasLocations($room)) {
             return back()->with('error', 'Ruangan tidak dapat dihapus karena masih memiliki data lokasi.');
         }
 
-        $this->roomService->deleteRoom($room);
+        $this->roomService->deleteRoom($room, $this->meta($request));
 
         return redirect()
             ->route('master.room.index')
             ->with('success', 'Ruangan berhasil dihapus.');
+    }
+
+    /**
+     * @return array{user_id: string|null, ip_address: string|null, user_agent: string|null, actor_username: string|null}
+     */
+    private function meta(Request $request): array
+    {
+        return [
+            'user_id' => $request->user()?->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'actor_username' => $request->user()?->username,
+        ];
     }
 }
