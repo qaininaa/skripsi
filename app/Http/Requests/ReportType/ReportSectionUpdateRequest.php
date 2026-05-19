@@ -26,7 +26,7 @@ class ReportSectionUpdateRequest extends FormRequest
             'measurement_unit' => ['required', 'string', 'max:50'],
             'measurement_type' => ['required', 'string', 'max:50'],
             'max_column' => ['required', 'integer', 'min:1', 'max:20'],
-            'column_label' => ['required', 'string', 'max:50'],
+            'column_label' => ['nullable', 'string', 'max:50'],
             'time_slot_type' => ['required', 'string', 'in:none,single,per_location,dual_ab,swab'],
             'has_machine_setup' => ['boolean'],
             'order' => ['required', 'integer', 'min:0'],

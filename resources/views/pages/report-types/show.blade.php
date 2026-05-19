@@ -110,8 +110,8 @@
                         <input type="number" name="max_column" value="1" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom <span class="text-red-500">*</span></label>
-                        <input type="text" name="column_label" value="Exposure" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
+                        <input type="text" name="column_label" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom <span class="text-red-500">*</span></label>
@@ -127,7 +127,7 @@
                     <div class="flex items-end gap-4 md:col-span-2 lg:col-span-2">
                         <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
                             <input type="checkbox" name="has_machine_setup" value="1" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
-                            <span>Machine Set-up (waktu bersama)</span>
+                            <span>Machine Set-up</span>
                         </label>
                     </div>
                 </div>
@@ -188,8 +188,8 @@
                                 <input type="number" name="max_column" value="{{ $section->max_column }}" min="1" max="20" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom <span class="text-red-500">*</span></label>
-                                <input type="text" name="column_label" value="{{ $section->column_label }}" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500" required>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Label Kolom</label>
+                                <input type="text" name="column_label" value="{{ $section->column_label ?? '' }}" placeholder="Exposure / Shift / custom" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Input Waktu per Kolom <span class="text-red-500">*</span></label>
