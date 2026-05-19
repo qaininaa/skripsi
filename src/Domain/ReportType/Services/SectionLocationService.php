@@ -22,6 +22,15 @@ class SectionLocationService
     public function attach(ReportSection $section, AssignSectionLocationDto $dto): array
     {
         $location = $this->repository->findLocationOrFail($dto->locationId);
+        $sectionMeasurementKey = $section->measurement_key;
+        $locationMeasurementKey = ReportSection::normalizeMeasurementType($location->measurement_type);
+
+        if ($locationMeasurementKey !== $sectionMeasurementKey) {
+            return [
+                'success' => false,
+                'message' => 'Tipe pengukuran lokasi tidak sesuai dengan tipe pengukuran section.',
+            ];
+        }
 
         if ($location->section_id && (string) $location->section_id !== (string) $section->id) {
             return [

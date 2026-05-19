@@ -69,4 +69,9 @@ class Location extends Model
             default => ucfirst(str_replace('_', ' ', $this->measurement_type ?? '-')),
         };
     }
+
+    public function getMeasurementKeyAttribute(): string
+    {
+        return ReportSection::normalizeMeasurementType($this->measurement_type);
+    }
 }
