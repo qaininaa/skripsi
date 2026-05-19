@@ -115,7 +115,7 @@ class ReportSubmissionService
             $this->workflowService->switchToReadingKeepingLock($report, (string) Auth::id());
 
             return redirect()->route('reports.fill', $report)
-                ->with('success', 'Mode pembacaan aktif. Anda dapat melanjutkan pengisian pembacaan.');
+                ->with('success', 'Anda dapat melanjutkan perbaikan pengisian pembacaan.');
         }
 
         if ($dto->action === 'submit_revision') {
