@@ -44,6 +44,7 @@
                 'user'      => $u,
                 'signed_at' => $monTimestamps[(string) $u->id] ?? null,
             ]),
+            'status_label' => 'Tersimpan',
         ],
         [
             'label'   => 'Dibaca oleh:',
@@ -52,6 +53,7 @@
                 'user'      => $u,
                 'signed_at' => $readTimestamps[(string) $u->id] ?? null,
             ]),
+            'status_label' => 'Tersimpan',
         ],
         [
             'label'   => 'Direview oleh:',
@@ -61,6 +63,7 @@
                 'signed_at' => $supervisorApproval->signed_at
                     ? \Illuminate\Support\Carbon::parse($supervisorApproval->signed_at) : null,
             ]] : []),
+            'status_label' => 'Disetujui',
         ],
         [
             'label'   => 'Disetujui oleh:',
@@ -70,6 +73,7 @@
                 'signed_at' => $managerApproval->signed_at
                     ? \Illuminate\Support\Carbon::parse($managerApproval->signed_at) : null,
             ]] : []),
+            'status_label' => 'Disetujui',
         ],
     ];
 
@@ -98,14 +102,16 @@
             <div class="flex-1 flex flex-col gap-3 justify-center">
                 @forelse ($card['entries'] as $entry)
                 <div class="text-center">
-                    <p class="text-sm font-semibold text-gray-700">{{ $entry['user']->name }}</p>
                     @if ($entry['signed_at'])
-                        <div class="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                        <div class="mb-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            Tersimpan
+                            {{ $card['status_label'] }}
                         </div>
+                    @endif
+                    <p class="text-sm font-semibold text-gray-700">{{ $entry['user']->name }}</p>
+                    @if ($entry['signed_at'])
                         <p class="mt-1 text-[11px] text-gray-500">{{ $entry['signed_at']->isoFormat('D MMM Y, HH:mm') }}</p>
                     @endif
                 </div>

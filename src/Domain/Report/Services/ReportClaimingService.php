@@ -88,16 +88,18 @@ class ReportClaimingService
         $isEditable = in_array($report->status, ['monitoring', 'reading'], true)
             && (string) $report->locked_by === (string) $userId;
 
-        $supervisorReturnedApproval = ReportApproval::where('report_id', $report->id)
-            ->where('step', 2)
+        $reviewerReturnedApproval = ReportApproval::where('report_id', $report->id)
+            ->whereIn('step', [2, 3])
             ->where('status', 'returned')
             ->where(function ($query) use ($userId): void {
                 $query->whereNull('returned_to_user_id')
                     ->orWhere('returned_to_user_id', $userId);
             })
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
             ->first();
 
-        $isRevision = $supervisorReturnedApproval !== null;
+        $isRevision = $reviewerReturnedApproval !== null;
 
         $myTypes = $report->analysts
             ->where('user_id', $userId)
@@ -110,9 +112,8 @@ class ReportClaimingService
         $hasReadingRole = $myTypes->contains('reading');
 
         $revisionActionMode = 'default';
-        $isSupervisorReturn = $supervisorReturnedApproval !== null;
 
-        if ($isSupervisorReturn && $isRevision && $isEditable) {
+        if ($isRevision && $isEditable) {
             if ($report->status === 'monitoring' && $hasMonitoringRole && $hasReadingRole) {
                 $revisionActionMode = 'switch_to_reading';
             } elseif (($hasMonitoringRole xor $hasReadingRole) || $report->status === 'reading') {
