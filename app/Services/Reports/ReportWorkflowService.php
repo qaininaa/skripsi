@@ -101,6 +101,18 @@ class ReportWorkflowService
     }
 
     /**
+     * Pindahkan laporan ke tahap reading tanpa melepas lock analis saat ini.
+     * Dipakai pada flow revisi ketika user yang sama perlu lanjut mengisi pembacaan.
+     */
+    public function switchToReadingKeepingLock(Report $report, string $userId): void
+    {
+        Report::where('id', $report->id)->update([
+            'status' => 'reading',
+            'locked_by' => $userId,
+        ]);
+    }
+
+    /**
      * Submit laporan ke supervisor untuk review.
      * Laporan harus berada di tahap 'reading'.
      *

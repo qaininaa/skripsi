@@ -110,8 +110,16 @@ class ReportSubmissionService
                 ->with('success', 'Monitoring selesai. Laporan masuk ke tahap pembacaan.');
         }
 
-        if ($dto->action === 'submit_revision') {
+        if ($dto->action === 'switch_to_reading') {
             abort_unless($report->status === 'monitoring', 403);
+            $this->workflowService->switchToReadingKeepingLock($report, (string) Auth::id());
+
+            return redirect()->route('reports.fill', $report)
+                ->with('success', 'Mode pembacaan aktif. Anda dapat melanjutkan pengisian pembacaan.');
+        }
+
+        if ($dto->action === 'submit_revision') {
+            abort_unless(in_array($report->status, ['monitoring', 'reading'], true), 403);
             $this->workflowService->submitRevision($report);
 
             return redirect()->route('reports.index')

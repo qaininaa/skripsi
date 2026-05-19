@@ -201,9 +201,16 @@ const _modalConfig = {
         btnText: 'Kirim ke Supervisor',
         btnClass: 'bg-sky-500 hover:bg-sky-600',
     },
+    switch_to_reading: {
+        title: 'Konfirmasi Ke Pembacaan',
+        desc:  'Status laporan akan diubah ke tahap pembacaan dan tetap dikunci oleh Anda. Masukkan username dan password Anda untuk melanjutkan.',
+        btnText: 'Ke Pembacaan',
+        btnClass: 'bg-indigo-500 hover:bg-indigo-600',
+    },
 };
 
 function openSaveModal()    { openConfirmModal('save'); }
+function openSwitchToReadingFlow() { openConfirmModal('switch_to_reading'); }
 function openConfirmModal(action) {
     if (blockIfInvalidCfuInputs()) {
         return;

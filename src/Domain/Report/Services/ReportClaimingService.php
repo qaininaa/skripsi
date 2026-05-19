@@ -71,19 +71,16 @@ class ReportClaimingService
      */
     public function editViewData(AnalystReport $report, string $userId): array
     {
-        $returnedApproval = null;
+        $returnedApproval = $this->repository->getReturnedApproval($report);
 
-        if ($report->status === 'returned') {
-            $returnedApproval = $this->repository->getReturnedApproval($report);
-
-            if ($returnedApproval
-                && $returnedApproval->returned_to_user_id !== null
-                && $returnedApproval->returned_to_user_id !== $userId) {
-                return [
-                    'forbidden' => true,
-                    'message' => 'Laporan ini dikembalikan ke analis lain dan tidak dapat Anda akses.',
-                ];
-            }
+        if ($report->status === 'returned'
+            && $returnedApproval
+            && $returnedApproval->returned_to_user_id !== null
+            && $returnedApproval->returned_to_user_id !== $userId) {
+            return [
+                'forbidden' => true,
+                'message' => 'Laporan ini dikembalikan ke analis lain dan tidak dapat Anda akses.',
+            ];
         }
 
         $this->repository->claimReport($report, $userId);
@@ -94,9 +91,37 @@ class ReportClaimingService
         $isEditable = in_array($report->status, ['monitoring', 'reading'], true)
             && (string) $report->locked_by === (string) $userId;
 
-        $isRevision = ReportApproval::where('report_id', $report->id)
+        $supervisorReturnedApproval = ReportApproval::where('report_id', $report->id)
             ->where('step', 2)
-            ->exists();
+            ->where('status', 'returned')
+            ->where(function ($query) use ($userId): void {
+                $query->whereNull('returned_to_user_id')
+                    ->orWhere('returned_to_user_id', $userId);
+            })
+            ->first();
+
+        $isRevision = $supervisorReturnedApproval !== null;
+
+        $myTypes = $report->analysts
+            ->where('user_id', $userId)
+            ->pluck('type')
+            ->map(fn ($type) => strtolower((string) $type))
+            ->unique()
+            ->values();
+
+        $hasMonitoringRole = $myTypes->contains('monitoring');
+        $hasReadingRole = $myTypes->contains('reading');
+
+        $revisionActionMode = 'default';
+        $isSupervisorReturn = $supervisorReturnedApproval !== null;
+
+        if ($isSupervisorReturn && $isRevision && $isEditable) {
+            if ($report->status === 'monitoring' && $hasMonitoringRole && $hasReadingRole) {
+                $revisionActionMode = 'switch_to_reading';
+            } elseif (($hasMonitoringRole xor $hasReadingRole) || $report->status === 'reading') {
+                $revisionActionMode = 'submit_revision_only';
+            }
+        }
 
         $viewData = $this->viewService->buildViewData($report, $isEditable);
 
@@ -106,6 +131,7 @@ class ReportClaimingService
                 'report' => $report,
                 'returnedApproval' => $returnedApproval,
                 'isRevision' => $isRevision,
+                'revisionActionMode' => $revisionActionMode,
             ],
             $viewData
         );

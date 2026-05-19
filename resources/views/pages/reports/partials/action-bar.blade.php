@@ -24,6 +24,23 @@
 
     @if ($isEditable)
     <div class="flex items-center gap-2">
+        @if (($revisionActionMode ?? 'default') === 'switch_to_reading')
+        <button type="button" onclick="openSwitchToReadingFlow()"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-indigo-200 bg-indigo-50 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Ke Pembacaan
+        </button>
+        @elseif (($revisionActionMode ?? 'default') === 'submit_revision_only')
+        <button type="button" onclick="openRevisionSubmitFlow()"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+            Kirim ke Supervisor
+        </button>
+        @else
         {{-- Simpan Draft (all phases) --}}
         <button type="button" onclick="openSaveModal()"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
@@ -60,6 +77,7 @@
             </svg>
             Kirim ke Supervisor
         </button>
+        @endif
         @endif
     </div>
     @else

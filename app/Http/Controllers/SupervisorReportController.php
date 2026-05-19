@@ -8,7 +8,6 @@ use Domain\Report\Services\InstrumentIdentityEntryService;
 use Domain\Report\Services\MediumEntryService;
 use Domain\Report\Models\Report;
 use Domain\Report\Models\ReportApproval;
-use Domain\Report\Models\SectionSignature;
 use Domain\User\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -234,11 +233,6 @@ class SupervisorReportController extends Controller
             'notes' => $request->input('notes'),
             'returned_to_user_id' => $returnedToUserId,
         ]);
-
-        // Clear per-section TTDs so signatures must be re-stamped on revision.
-        SectionSignature::where('report_id', $report->id)
-            ->whereIn('role', ['monitoring', 'reading', 'supervisor'])
-            ->delete();
 
         $report->update(['status' => 'returned', 'locked_by' => null]);
 
