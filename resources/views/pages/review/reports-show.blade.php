@@ -12,7 +12,7 @@
     $routeSave    = $reviewRole . '.reports.save';
     $routeApprove = $reviewRole . '.reports.approve';
     $routeReturn  = $reviewRole . '.reports.return';
-    $isEditable   = $approval->isPending();
+    $isEditable   = $approval->isPending() && $reviewRole === 'supervisor';
     $reviewTimeRequiresAnalystValue = $reviewRole === 'supervisor';
     $reviewTimePlaceholder = 'N/A';
     $canEditReviewTime = static function (...$values) use ($isEditable, $reviewTimeRequiresAnalystValue): bool {
@@ -97,6 +97,11 @@
         {{ session('success') }}
     </div>
     @endif
+    @if ($errors->has('save_error'))
+    <div class="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        {{ $errors->first('save_error') }}
+    </div>
+    @endif
 
     {{-- Approval status strip --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex flex-wrap items-center gap-3">
@@ -117,6 +122,9 @@
         @endif
         @if ($approval->notes)
             <span class="text-xs text-gray-500 border-l border-gray-200 pl-3">&ldquo;{{ $approval->notes }}&rdquo;</span>
+        @endif
+        @if ($reviewRole === 'manager' && $approval->isPending())
+            <span class="text-xs text-gray-500 border-l border-gray-200 pl-3">Mode baca saja: edit data monitoring hanya oleh Supervisor.</span>
         @endif
     </div>
 
