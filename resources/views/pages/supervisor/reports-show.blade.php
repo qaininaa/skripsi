@@ -1130,7 +1130,7 @@ function openConfirmModal(action) {
     document.getElementById('modal-password').value = '';
 
     if (action === 'approve') {
-        form.action = '{{ route('supervisor.reports.approve', $report->id) }}';
+        form.action = "{{ route('supervisor.reports.approve', $report->id) }}";
         iconApprove.classList.remove('hidden');
         iconReturn.classList.add('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700';
@@ -1142,7 +1142,7 @@ function openConfirmModal(action) {
             alert('Silakan pilih analis tujuan terlebih dahulu.');
             return;
         }
-        form.action = '{{ route('supervisor.reports.return', $report->id) }}';
+        form.action = "{{ route('supervisor.reports.return', $report->id) }}";
         iconApprove.classList.add('hidden');
         iconReturn.classList.remove('hidden');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700';

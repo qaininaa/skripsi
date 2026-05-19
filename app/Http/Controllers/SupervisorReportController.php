@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Reports\ReportWorkflowService;
 use Domain\Report\Services\IncubatorEntryService;
 use Domain\Report\Services\InstrumentIdentityEntryService;
 use Domain\Report\Services\MediumEntryService;
@@ -143,7 +144,7 @@ class SupervisorReportController extends Controller
         ));
     }
 
-    public function approve(Request $request, Report $report)
+    public function approve(Request $request, Report $report, ReportWorkflowService $workflowService)
     {
         $request->validate([
             'username' => 'required|string',
@@ -170,35 +171,7 @@ class SupervisorReportController extends Controller
             'signed_at' => $signedAt,
         ]);
 
-        // Stamp per-section supervisor TTD ke tabel section_signatures.
-        $report->loadMissing(['reportType.sections', 'sectionSignatures']);
-        foreach ($report->reportType->sections as $sec) {
-            $instanceNumbers = $report->sectionSignatures
-                ->where('section_id', $sec->id)
-                ->whereIn('role', ['monitoring', 'reading'])
-                ->pluck('instance_number')
-                ->filter()
-                ->map(fn ($num) => (int) $num)
-                ->unique()
-                ->values();
-
-            if ($instanceNumbers->isEmpty()) {
-                $instanceNumbers = collect([1]);
-            }
-
-            foreach ($instanceNumbers as $instanceNumber) {
-                SectionSignature::updateOrCreate(
-                    [
-                        'report_id' => $report->id,
-                        'section_id' => $sec->id,
-                        'instance_number' => (int) $instanceNumber,
-                        'user_id' => $userId,
-                        'role' => 'supervisor',
-                    ],
-                    ['signed_at' => $signedAt]
-                );
-            }
-        }
+        $workflowService->stampSupervisorSignaturesForFilledSections($report, (string) $userId, $signedAt);
 
         // Create or reset step 3 approval for manager
         $manager = User::where('role', 'manager')->first();

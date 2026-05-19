@@ -830,7 +830,7 @@
                             @if ($konklusi === 'TMS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
                             @elseif ($konklusi === 'MS')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-700">MS</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">MS</span>
                             @else
                                 <span class="text-gray-300 text-[11px]">N/A</span>
                             @endif
@@ -883,7 +883,7 @@
                 @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
-                        <span class="text-sky-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
+                        <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
                     @elseif ($sk === 'TMS')
                         <span class="text-red-700 font-semibold">Tidak Memenuhi Spesifikasi (TMS)</span>
                     @else
@@ -924,6 +924,7 @@
             $_mngrApproval = $mngrApproval;
             $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
             $_secUserMap = \Domain\User\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
+            $_sectionHasData = !empty($_secMonIds) || !empty($_secReadIds);
         @endphp
         <div class="px-5 py-4 border-t border-gray-100">
             <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Tanda Tangan & Verifikasi</p>
@@ -984,7 +985,7 @@
                 <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                     <p class="text-[11px] font-semibold text-gray-600 mb-2">Direview oleh:</p>
                     <div class="flex-1 flex flex-col gap-2 justify-center">
-                        @if ($_supApproval?->user)
+                        @if ($_sectionHasData && $_supApproval?->user)
                         <div class="text-center">
                             <p class="text-sm font-semibold text-gray-700">{{ $_supApproval->user->name }}</p>
                             @if ($_supApproval->signed_at)
@@ -1005,7 +1006,7 @@
                 <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                     <p class="text-[11px] font-semibold text-gray-600 mb-2">Disetujui oleh:</p>
                     <div class="flex-1 flex flex-col gap-2 justify-center">
-                        @if ($_mngrApproval?->user)
+                        @if ($_sectionHasData && $_mngrApproval?->user)
                         <div class="text-center">
                             <p class="text-sm font-semibold text-gray-700">{{ $_mngrApproval->user->name }}</p>
                             @if ($_mngrApproval->signed_at)
