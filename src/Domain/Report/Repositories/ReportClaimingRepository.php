@@ -28,6 +28,8 @@ class ReportClaimingRepository implements ReportClaimingRepositoryInterface
     {
         return ReportApproval::where('report_id', $report->id)
             ->where('status', 'returned')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
             ->with('user')
             ->first();
     }
@@ -155,6 +157,13 @@ class ReportClaimingRepository implements ReportClaimingRepositoryInterface
         }
 
         if ($report->status === 'returned' && $report->locked_by === null) {
+            $returnedApproval = $this->getReturnedApproval($report);
+            $returnedToUserId = (string) ($returnedApproval?->returned_to_user_id ?? '');
+
+            if ($returnedToUserId !== '' && $returnedToUserId !== $userId) {
+                return;
+            }
+
             $targetStatus = $this->resolveReturnedTargetStatus($report, $userId);
 
             $report->update(['status' => $targetStatus, 'locked_by' => $userId]);
@@ -212,14 +221,7 @@ class ReportClaimingRepository implements ReportClaimingRepositoryInterface
     public function baseAnalystQuery(string $userId, array $visibleStatuses): Builder
     {
         return AnalystReport::query()
-            ->whereIn('status', $visibleStatuses)
-            ->where(function (Builder $query) use ($userId): void {
-                $query->where('status', '!=', 'returned')
-                    ->orWhereHas('approvals', function (Builder $approvalQuery) use ($userId): void {
-                        $approvalQuery->where('status', 'returned')
-                            ->where('returned_to_user_id', $userId);
-                    });
-            });
+            ->whereIn('status', $visibleStatuses);
     }
 
     /**

@@ -59,12 +59,12 @@ class ManagerReportController extends Controller
     public function ongoingReports(Request $request)
     {
         $status = $request->query('status', 'all');
-        $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager', 'returned'];
         if (! in_array($status, $validStatuses, true)) {
             $status = 'all';
         }
 
-        $countKeys = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        $countKeys = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager', 'returned'];
         $counts = [];
         foreach ($countKeys as $key) {
             $countQuery = $this->progressBaseQuery();
@@ -73,7 +73,7 @@ class ManagerReportController extends Controller
         }
 
         $reportsQuery = $this->progressBaseQuery()
-            ->with(['reportType', 'lockedByUser', 'analysts.user', 'approvals.user']);
+            ->with(['reportType', 'lockedByUser', 'analysts.user', 'approvals.user', 'approvals.returnedTo']);
         $this->applyProgressStatusFilter($reportsQuery, $status);
 
         $reports = $reportsQuery
@@ -384,6 +384,10 @@ class ManagerReportController extends Controller
                     })
                     ->orWhereHas('approvals', function ($approvalQuery) {
                         $approvalQuery->where('step', 3)->where('status', 'pending');
+                    })
+                    ->orWhereIn('status', ['returned', 'returned_to_supervisor'])
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->whereIn('step', [2, 3])->where('status', 'returned');
                     });
             });
             return;
@@ -404,6 +408,16 @@ class ManagerReportController extends Controller
         if ($status === 'waiting_manager') {
             $query->whereHas('approvals', function ($approvalQuery) {
                 $approvalQuery->where('step', 3)->where('status', 'pending');
+            });
+            return;
+        }
+
+        if ($status === 'returned') {
+            $query->where(function ($nested) {
+                $nested->whereIn('status', ['returned', 'returned_to_supervisor'])
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->whereIn('step', [2, 3])->where('status', 'returned');
+                    });
             });
             return;
         }

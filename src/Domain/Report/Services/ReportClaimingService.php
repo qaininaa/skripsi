@@ -73,18 +73,15 @@ class ReportClaimingService
     {
         $returnedApproval = $this->repository->getReturnedApproval($report);
 
-        if ($report->status === 'returned'
+        $isReturnedToAnotherAnalyst = $report->status === 'returned'
             && $returnedApproval
             && $returnedApproval->returned_to_user_id !== null
-            && $returnedApproval->returned_to_user_id !== $userId) {
-            return [
-                'forbidden' => true,
-                'message' => 'Laporan ini dikembalikan ke analis lain dan tidak dapat Anda akses.',
-            ];
-        }
+            && $returnedApproval->returned_to_user_id !== $userId;
 
-        $this->repository->claimReport($report, $userId);
-        $report->refresh();
+        if (! $isReturnedToAnotherAnalyst) {
+            $this->repository->claimReport($report, $userId);
+            $report->refresh();
+        }
 
         $this->viewService->loadRelations($report);
 
@@ -130,6 +127,7 @@ class ReportClaimingService
                 'forbidden' => false,
                 'report' => $report,
                 'returnedApproval' => $returnedApproval,
+                'canViewReturnedNotes' => ! $isReturnedToAnotherAnalyst,
                 'isRevision' => $isRevision,
                 'revisionActionMode' => $revisionActionMode,
             ],
