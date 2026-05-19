@@ -11,7 +11,7 @@ class CreateReportSectionDto
         public readonly string $measurementUnit,
         public readonly string $measurementType,
         public readonly int $maxColumn,
-        public readonly string $columnLabel,
+        public readonly ?string $columnLabel,
         public readonly string $timeSlotType,
         public readonly bool $hasMachineSetup,
     ) {}
@@ -27,7 +27,7 @@ class CreateReportSectionDto
             measurementUnit: (string) $validated['measurement_unit'],
             measurementType: (string) $validated['measurement_type'],
             maxColumn: (int) $validated['max_column'],
-            columnLabel: (string) $validated['column_label'],
+            columnLabel: self::nullableString($validated['column_label'] ?? null),
             timeSlotType: (string) $validated['time_slot_type'],
             hasMachineSetup: (bool) ($validated['has_machine_setup'] ?? false),
         );
@@ -48,5 +48,16 @@ class CreateReportSectionDto
             'time_slot_type' => $this->timeSlotType,
             'has_machine_setup' => $this->hasMachineSetup,
         ];
+    }
+
+    private static function nullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized === '' ? null : $normalized;
     }
 }
