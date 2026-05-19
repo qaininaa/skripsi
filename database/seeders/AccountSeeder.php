@@ -20,7 +20,7 @@ class AccountSeeder extends Seeder
             'name' => 'Super Admin',
             'username' => 'superadmin',
             'role' => 'super',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -28,7 +28,7 @@ class AccountSeeder extends Seeder
             'name' => 'Maya',
             'username' => 'adminqc',
             'role' => 'admin',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -36,7 +36,7 @@ class AccountSeeder extends Seeder
             'name' => 'Karina Ghaisani',
             'username' => 'analis1',
             'role' => 'analyst',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -44,7 +44,7 @@ class AccountSeeder extends Seeder
             'name' => 'Farhanah Basri',
             'username' => 'analis2',
             'role' => 'analyst',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -52,7 +52,7 @@ class AccountSeeder extends Seeder
             'name' => 'Sandiva Amalia',
             'username' => 'analis3',
             'role' => 'analyst',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -60,7 +60,7 @@ class AccountSeeder extends Seeder
             'name' => 'Rafly Aziz',
             'username' => 'analis4',
             'role' => 'analyst',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -68,7 +68,7 @@ class AccountSeeder extends Seeder
             'name' => 'Ananda Sadewa',
             'username' => 'analis5',
             'role' => 'analyst',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -76,7 +76,7 @@ class AccountSeeder extends Seeder
             'name' => 'Saputra',
             'username' => 'analis6',
             'role' => 'analyst',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
@@ -84,7 +84,7 @@ class AccountSeeder extends Seeder
             'name' => 'Dewi Ikha',
             'username' => 'manajer',
             'role' => 'manager',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
         
@@ -92,7 +92,7 @@ class AccountSeeder extends Seeder
             'name' => 'Restu',
             'username' => 'supervisor1',
             'role' => 'supervisor',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
     }
