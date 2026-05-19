@@ -157,8 +157,10 @@
 
     {{-- Edit form opens here (only when pending) --}}
     @if ($isEditable)
-    <form method="POST" action="{{ route($routeSave, $report) }}" class="space-y-4">
+    <form id="review-save-form" method="POST" action="{{ route($routeSave, $report) }}" class="space-y-4">
     @csrf
+    <input type="hidden" name="username" id="save-auth-username" value="">
+    <input type="hidden" name="password" id="save-auth-password" value="">
     @endif
 
     {{-- ── 2. Identitas Instrumen — Air Sampler ──────────── --}}
@@ -1025,7 +1027,7 @@
     {{-- Save button + close form (after all sections) --}}
     @if ($isEditable)
     <div class="flex justify-end">
-        <button type="submit"
+        <button type="button" onclick="openConfirmModal('save')"
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl shadow hover:bg-sky-700 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -1123,6 +1125,17 @@
 <div id="confirm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeConfirmModal()"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl shadow-black ring-1 ring-black/10 w-full max-w-md p-6">
+        <div id="modal-icon-save" class="hidden items-center gap-3 mb-5">
+            <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-base font-semibold text-gray-800">Konfirmasi Simpan Perubahan</p>
+                <p class="text-xs text-gray-500">Masukkan kredensial Anda untuk menyimpan perubahan</p>
+            </div>
+        </div>
         <div id="modal-icon-approve" class="hidden items-center gap-3 mb-5">
             <div class="h-10 w-10 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1179,25 +1192,40 @@
 </div>
 
 <script>
+let confirmAction = null;
+
 function openConfirmModal(action) {
     const modal     = document.getElementById('confirm-modal');
     const form      = document.getElementById('confirm-form');
+    const iconSave = document.getElementById('modal-icon-save');
     const iconApprove = document.getElementById('modal-icon-approve');
     const iconReturn  = document.getElementById('modal-icon-return');
     const submitBtn   = document.getElementById('modal-submit-btn');
+    confirmAction = action;
 
     document.getElementById('modal-username').value = '';
     document.getElementById('modal-password').value = '';
+    document.getElementById('modal-returned-to-user-id').value = '';
+    document.getElementById('modal-notes').value = '';
 
-    if (action === 'approve') {
+    if (action === 'save') {
+        form.action = '{{ route($routeSave, $report->id) }}';
+        iconSave.classList.remove('hidden');
+        iconSave.classList.add('flex');
+        iconApprove.classList.add('hidden');
+        iconApprove.classList.remove('flex');
+        iconReturn.classList.add('hidden');
+        iconReturn.classList.remove('flex');
+        submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800';
+    } else if (action === 'approve') {
         form.action = '{{ route($routeApprove, $report->id) }}';
+        iconSave.classList.add('hidden');
+        iconSave.classList.remove('flex');
         iconApprove.classList.remove('hidden');
         iconApprove.classList.add('flex');
         iconReturn.classList.add('hidden');
         iconReturn.classList.remove('flex');
         submitBtn.className = 'flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-semibold transition-colors shadow-sm bg-sky-500 hover:bg-sky-600 active:bg-sky-700';
-        document.getElementById('modal-returned-to-user-id').value = '';
-        document.getElementById('modal-notes').value = '';
     } else {
         const targetVal = document.getElementById('return-target-select').value;
         if (!targetVal) {
@@ -1205,6 +1233,8 @@ function openConfirmModal(action) {
             return;
         }
         form.action = '{{ route($routeReturn, $report->id) }}';
+        iconSave.classList.add('hidden');
+        iconSave.classList.remove('flex');
         iconApprove.classList.add('hidden');
         iconApprove.classList.remove('flex');
         iconReturn.classList.remove('hidden');
@@ -1223,10 +1253,29 @@ function closeConfirmModal() {
     const modal = document.getElementById('confirm-modal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    confirmAction = null;
 }
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeConfirmModal();
+});
+
+document.getElementById('confirm-form').addEventListener('submit', function(e) {
+    if (confirmAction !== 'save') {
+        return;
+    }
+
+    e.preventDefault();
+
+    const saveForm = document.getElementById('review-save-form');
+    if (!saveForm) {
+        return;
+    }
+
+    document.getElementById('save-auth-username').value = document.getElementById('modal-username').value;
+    document.getElementById('save-auth-password').value = document.getElementById('modal-password').value;
+    closeConfirmModal();
+    saveForm.submit();
 });
 </script>
 
