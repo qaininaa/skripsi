@@ -72,6 +72,23 @@ class SectionTableComposer
         $colLabelRaw     = is_string($section->column_label) ? trim($section->column_label) : null;
         $colLabel        = $colLabelRaw !== '' ? $colLabelRaw : null;
         $subColsPerExp   = $isPerLocation ? 4 : 3;
+        $availableSwabSlots = [
+            's1' => false,
+            's1_2' => false,
+            's1_3' => false,
+        ];
+        foreach ($section->locations as $loc) {
+            $locNum = (string) ($loc->location_number ?? '');
+            if (stripos($locNum, 'S1-3') !== false) {
+                $availableSwabSlots['s1_3'] = true;
+                continue;
+            }
+            if (stripos($locNum, 'S1-2') !== false) {
+                $availableSwabSlots['s1_2'] = true;
+                continue;
+            }
+            $availableSwabSlots['s1'] = true;
+        }
 
         $isMonitoring = $report->status === 'monitoring';
         $isReading    = $report->status === 'reading';
@@ -235,7 +252,7 @@ class SectionTableComposer
         $view->with(compact(
             'hasMachineSetup', 'hasTime', 'isPerLocation', 'isDualAB', 'isSwabTime',
             'isSettlePlate',
-            'colLabel', 'subColsPerExp',
+            'colLabel', 'subColsPerExp', 'availableSwabSlots',
             'isMonitoring', 'isReading',
             'ms0Locked', 'msHasTime',
             'secTimesFromEntries',
