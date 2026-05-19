@@ -109,6 +109,12 @@ class SectionTableComposer
                 continue;
             }
 
+            $currentLabel = trim((string) ($columnNames[$periodNum] ?? ''));
+            if ($currentLabel === '') {
+                $columnLabelLockedByOther[$periodNum] = false;
+                continue;
+            }
+
             $ownerMap = $this->fieldLockRepository->getOwnerMap(
                 'report_section_columns',
                 $rowId,
@@ -153,8 +159,14 @@ class SectionTableComposer
                     }
 
                     $ownerMap = $timeLockOwnerByRow[(string) $entry->id] ?? [];
-                    $startLocked = isset($ownerMap['start_time']) && $ownerMap['start_time'] !== $currentUserId;
-                    $endLocked = isset($ownerMap['end_time']) && $ownerMap['end_time'] !== $currentUserId;
+                    $hasStartValue = $this->normalizeTimeValue($entry->start_time) !== null;
+                    $hasEndValue = $this->normalizeTimeValue($entry->end_time) !== null;
+                    $startLocked = $hasStartValue
+                        && isset($ownerMap['start_time'])
+                        && $ownerMap['start_time'] !== $currentUserId;
+                    $endLocked = $hasEndValue
+                        && isset($ownerMap['end_time'])
+                        && $ownerMap['end_time'] !== $currentUserId;
 
                     if (! $startLocked && ! $endLocked) {
                         continue;
@@ -234,5 +246,12 @@ class SectionTableComposer
             'cfuNum', 'cfuTot',
             'sectionConclusion', 'sectionNote',
         ));
+    }
+
+    private function normalizeTimeValue(mixed $raw): ?string
+    {
+        $value = trim((string) ($raw ?? ''));
+
+        return $value !== '' ? $value : null;
     }
 }

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Reports\ReportWorkflowService;
 use Domain\Report\Services\IncubatorEntryService;
 use Domain\Report\Services\InstrumentIdentityEntryService;
 use Domain\Report\Services\MediumEntryService;
 use Domain\Report\Models\Report;
 use Domain\Report\Models\ReportApproval;
-use Domain\Report\Models\SectionSignature;
 use Domain\User\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,12 +77,12 @@ class SupervisorReportController extends Controller
     public function ongoingReports(Request $request)
     {
         $status = $request->query('status', 'all');
-        $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager', 'returned'];
         if (! in_array($status, $validStatuses, true)) {
             $status = 'all';
         }
 
-        $countKeys = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        $countKeys = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager', 'returned'];
         $counts = [];
         foreach ($countKeys as $key) {
             $countQuery = $this->progressBaseQuery();
@@ -91,7 +91,7 @@ class SupervisorReportController extends Controller
         }
 
         $reportsQuery = $this->progressBaseQuery()
-            ->with(['reportType', 'lockedByUser', 'analysts.user', 'approvals.user']);
+            ->with(['reportType', 'lockedByUser', 'analysts.user', 'approvals.user', 'approvals.returnedTo']);
         $this->applyProgressStatusFilter($reportsQuery, $status);
 
         $reports = $reportsQuery
@@ -143,7 +143,7 @@ class SupervisorReportController extends Controller
         ));
     }
 
-    public function approve(Request $request, Report $report)
+    public function approve(Request $request, Report $report, ReportWorkflowService $workflowService)
     {
         $request->validate([
             'username' => 'required|string',
@@ -170,35 +170,7 @@ class SupervisorReportController extends Controller
             'signed_at' => $signedAt,
         ]);
 
-        // Stamp per-section supervisor TTD ke tabel section_signatures.
-        $report->loadMissing(['reportType.sections', 'sectionSignatures']);
-        foreach ($report->reportType->sections as $sec) {
-            $instanceNumbers = $report->sectionSignatures
-                ->where('section_id', $sec->id)
-                ->whereIn('role', ['monitoring', 'reading'])
-                ->pluck('instance_number')
-                ->filter()
-                ->map(fn ($num) => (int) $num)
-                ->unique()
-                ->values();
-
-            if ($instanceNumbers->isEmpty()) {
-                $instanceNumbers = collect([1]);
-            }
-
-            foreach ($instanceNumbers as $instanceNumber) {
-                SectionSignature::updateOrCreate(
-                    [
-                        'report_id' => $report->id,
-                        'section_id' => $sec->id,
-                        'instance_number' => (int) $instanceNumber,
-                        'user_id' => $userId,
-                        'role' => 'supervisor',
-                    ],
-                    ['signed_at' => $signedAt]
-                );
-            }
-        }
+        $workflowService->stampSupervisorSignaturesForFilledSections($report, (string) $userId, $signedAt);
 
         // Create or reset step 3 approval for manager
         $manager = User::where('role', 'manager')->first();
@@ -261,11 +233,6 @@ class SupervisorReportController extends Controller
             'notes' => $request->input('notes'),
             'returned_to_user_id' => $returnedToUserId,
         ]);
-
-        // Clear per-section TTDs so signatures must be re-stamped on revision.
-        SectionSignature::where('report_id', $report->id)
-            ->whereIn('role', ['monitoring', 'reading', 'supervisor'])
-            ->delete();
 
         $report->update(['status' => 'returned', 'locked_by' => null]);
 
@@ -376,6 +343,10 @@ class SupervisorReportController extends Controller
                     })
                     ->orWhereHas('approvals', function ($approvalQuery) {
                         $approvalQuery->where('step', 3)->where('status', 'pending');
+                    })
+                    ->orWhereIn('status', ['returned', 'returned_to_supervisor'])
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->whereIn('step', [2, 3])->where('status', 'returned');
                     });
             });
             return;
@@ -396,6 +367,16 @@ class SupervisorReportController extends Controller
         if ($status === 'waiting_manager') {
             $query->whereHas('approvals', function ($approvalQuery) {
                 $approvalQuery->where('step', 3)->where('status', 'pending');
+            });
+            return;
+        }
+
+        if ($status === 'returned') {
+            $query->where(function ($nested) {
+                $nested->whereIn('status', ['returned', 'returned_to_supervisor'])
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->whereIn('step', [2, 3])->where('status', 'returned');
+                    });
             });
             return;
         }

@@ -6,6 +6,7 @@
         'reading' => ['label' => 'Pembacaan'],
         'review_supervisor' => ['label' => 'Direview Supervisor'],
         'waiting_manager' => ['label' => 'Menunggu Persetujuan Manajer'],
+        'returned' => ['label' => 'Pengembalian Laporan'],
     ];
 
     $accent = $accent ?? 'emerald';
@@ -101,6 +102,10 @@
                                     ->first(fn ($approval) => (int) $approval->step === 2 && $approval->status === 'pending');
                                 $pendingManagerApproval = $report->approvals
                                     ->first(fn ($approval) => (int) $approval->step === 3 && $approval->status === 'pending');
+                                $latestReturnedApproval = $report->approvals
+                                    ->whereIn('status', ['returned', 'rejected'])
+                                    ->sortByDesc('updated_at')
+                                    ->first();
 
                                 if ($report->status === 'pending') {
                                     $activeWorker = '-';
@@ -110,6 +115,8 @@
                                     $activeWorker = optional($pendingSupervisorApproval->user)->name ?: 'Menunggu penetapan supervisor';
                                 } elseif ($pendingManagerApproval) {
                                     $activeWorker = optional($pendingManagerApproval->user)->name ?: 'Menunggu penetapan manajer';
+                                } elseif (in_array($report->status, ['returned', 'returned_to_supervisor'], true)) {
+                                    $activeWorker = optional($latestReturnedApproval?->returnedTo)->name ?: '-';
                                 } else {
                                     $activeWorker = '-';
                                 }
@@ -144,6 +151,14 @@
                                     @elseif ($pendingManagerApproval)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
                                             Menunggu Persetujuan Manajer
+                                        </span>
+                                    @elseif ($report->status === 'returned_to_supervisor')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                                            Pengembalian Manajer
+                                        </span>
+                                    @elseif ($report->status === 'returned')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                                            Pengembalian Laporan
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">

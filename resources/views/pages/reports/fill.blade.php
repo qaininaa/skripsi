@@ -64,7 +64,7 @@
 </div>
 @endif
 
-@if (!empty($returnedApproval?->notes))
+@if (($canViewReturnedNotes ?? true) && !empty($returnedApproval?->notes))
 <div class="mb-5 px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl flex items-start gap-3">
     <div class="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
         <svg class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

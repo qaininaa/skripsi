@@ -1,6 +1,21 @@
 {{-- ── Bottom Save Bar + Hidden Inputs ────────────────── --}}
 @if ($isEditable)
 <div class="flex justify-end gap-2 pb-2">
+    @if (($revisionActionMode ?? 'default') === 'switch_to_reading')
+    <button type="button" onclick="openSwitchToReadingFlow()"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-amber-200 bg-amber-50 text-sm font-medium text-amber-700 hover:bg-amber-100 transition-colors shadow-sm">
+        Ke Pembacaan
+    </button>
+    <button type="button" onclick="openRevisionSubmitFlow()"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
+        Kirim ke Supervisor
+    </button>
+    @elseif (($revisionActionMode ?? 'default') === 'submit_revision_only')
+    <button type="button" onclick="openRevisionSubmitFlow()"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition-colors shadow-sm">
+        Kirim ke Supervisor
+    </button>
+    @else
     <button type="button" onclick="openSaveModal()"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
         Simpan Draft
@@ -19,6 +34,7 @@
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition-colors shadow-sm">
         Kirim ke Supervisor
     </button>
+    @endif
     @endif
 </div>
 @endif

@@ -256,31 +256,32 @@ class EnvironmentalEntryService
                     if (! is_array($abData)) {
                         continue;
                     }
-                    $hasVal = collect($abData)->flatten()
-                        ->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                    if ($hasVal) {
-                        $savedSectionIds["{$secId}|{$instNum}"] = true;
-                        foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
-                            $ab = $locInfo['class'];
-                            $st = $abData[$ab] ?? [];
-                            $startTime = ($st['start_time'] ?? '') ?: null;
-                            $endTime = ($st['end_time'] ?? '') ?: null;
-                            if ($startTime === null && $endTime === null) {
-                                continue;
-                            }
-                            $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
-                            if (! $instanceId) {
-                                continue;
-                            }
-                            $this->persistTimeEntryWithFieldLocks(
-                                reportId: (string) $report->id,
-                                instanceId: (string) $instanceId,
-                                periodNumber: (int) $col,
-                                shift: 1,
-                                startTime: $startTime,
-                                endTime: $endTime
-                            );
+                    $sectionChanged = false;
+                    foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
+                        $ab = $locInfo['class'];
+                        $st = $abData[$ab] ?? [];
+                        $startTime = ($st['start_time'] ?? '') ?: null;
+                        $endTime = ($st['end_time'] ?? '') ?: null;
+                        if ($startTime === null && $endTime === null) {
+                            continue;
                         }
+                        $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
+                        if (! $instanceId) {
+                            continue;
+                        }
+                        $changed = $this->persistTimeEntryWithFieldLocks(
+                            reportId: (string) $report->id,
+                            instanceId: (string) $instanceId,
+                            periodNumber: (int) $col,
+                            shift: 1,
+                            startTime: $startTime,
+                            endTime: $endTime
+                        );
+                        $sectionChanged = $sectionChanged || $changed;
+                    }
+
+                    if ($sectionChanged) {
+                        $savedSectionIds["{$secId}|{$instNum}"] = true;
                     }
                 }
             }
@@ -321,38 +322,39 @@ class EnvironmentalEntryService
                     if (! is_array($slotData)) {
                         continue;
                     }
-                    $hasVal = collect($slotData)->flatten()
-                        ->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                    if ($hasVal) {
-                        $savedSectionIds["{$secId}|{$instNum}"] = true;
-                        foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
-                            $locNum = $locInfo['location_number'];
-                            if (stripos($locNum, 'S1-3') !== false) {
-                                $swabKey = 's1_3';
-                            } elseif (stripos($locNum, 'S1-2') !== false) {
-                                $swabKey = 's1_2';
-                            } else {
-                                $swabKey = 's1';
-                            }
-                            $st = $slotData[$swabKey] ?? [];
-                            $startTime = ($st['mulai'] ?? '') ?: null;
-                            $endTime = ($st['selesai'] ?? '') ?: null;
-                            if ($startTime === null && $endTime === null) {
-                                continue;
-                            }
-                            $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
-                            if (! $instanceId) {
-                                continue;
-                            }
-                            $this->persistTimeEntryWithFieldLocks(
-                                reportId: (string) $report->id,
-                                instanceId: (string) $instanceId,
-                                periodNumber: (int) $col,
-                                shift: 1,
-                                startTime: $startTime,
-                                endTime: $endTime
-                            );
+                    $sectionChanged = false;
+                    foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
+                        $locNum = $locInfo['location_number'];
+                        if (stripos($locNum, 'S1-3') !== false) {
+                            $swabKey = 's1_3';
+                        } elseif (stripos($locNum, 'S1-2') !== false) {
+                            $swabKey = 's1_2';
+                        } else {
+                            $swabKey = 's1';
                         }
+                        $st = $slotData[$swabKey] ?? [];
+                        $startTime = ($st['mulai'] ?? '') ?: null;
+                        $endTime = ($st['selesai'] ?? '') ?: null;
+                        if ($startTime === null && $endTime === null) {
+                            continue;
+                        }
+                        $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
+                        if (! $instanceId) {
+                            continue;
+                        }
+                        $changed = $this->persistTimeEntryWithFieldLocks(
+                            reportId: (string) $report->id,
+                            instanceId: (string) $instanceId,
+                            periodNumber: (int) $col,
+                            shift: 1,
+                            startTime: $startTime,
+                            endTime: $endTime
+                        );
+                        $sectionChanged = $sectionChanged || $changed;
+                    }
+
+                    if ($sectionChanged) {
+                        $savedSectionIds["{$secId}|{$instNum}"] = true;
                     }
                 }
             }
@@ -393,29 +395,30 @@ class EnvironmentalEntryService
                     if (! is_array($times)) {
                         continue;
                     }
-                    $hasVal = collect($times)->flatten()
-                        ->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty();
-                    if ($hasVal) {
-                        $savedSectionIds["{$secId}|{$instNum}"] = true;
-                        foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
-                            $startTime = ($times['start_time'] ?? '') ?: null;
-                            $endTime = ($times['end_time'] ?? '') ?: null;
-                            if ($startTime === null && $endTime === null) {
-                                continue;
-                            }
-                            $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
-                            if (! $instanceId) {
-                                continue;
-                            }
-                            $this->persistTimeEntryWithFieldLocks(
-                                reportId: (string) $report->id,
-                                instanceId: (string) $instanceId,
-                                periodNumber: (int) $col,
-                                shift: 1,
-                                startTime: $startTime,
-                                endTime: $endTime
-                            );
+                    $sectionChanged = false;
+                    foreach ($sectionLocations[$secId] ?? [] as $locInfo) {
+                        $startTime = ($times['start_time'] ?? '') ?: null;
+                        $endTime = ($times['end_time'] ?? '') ?: null;
+                        if ($startTime === null && $endTime === null) {
+                            continue;
                         }
+                        $instanceId = $instanceLookup[(string) $locInfo['location_id']][(int) $instNum] ?? null;
+                        if (! $instanceId) {
+                            continue;
+                        }
+                        $changed = $this->persistTimeEntryWithFieldLocks(
+                            reportId: (string) $report->id,
+                            instanceId: (string) $instanceId,
+                            periodNumber: (int) $col,
+                            shift: 1,
+                            startTime: $startTime,
+                            endTime: $endTime
+                        );
+                        $sectionChanged = $sectionChanged || $changed;
+                    }
+
+                    if ($sectionChanged) {
+                        $savedSectionIds["{$secId}|{$instNum}"] = true;
                     }
                 }
             }
@@ -499,17 +502,40 @@ class EnvironmentalEntryService
                         continue;
                     }
 
-                    $this->repository->upsertEnvironmentalEntry(
-                        [
-                            'report_id' => $report->id,
-                            'env_section_instance_id' => $instanceId,
-                            'period_number' => $periodNumber,
-                            'shift' => $shift,
-                        ],
-                        $updateValues
-                    );
+                    $identity = [
+                        'report_id' => $report->id,
+                        'env_section_instance_id' => $instanceId,
+                        'period_number' => $periodNumber,
+                        'shift' => $shift,
+                    ];
 
-                    if ($sectionId) {
+                    $existingEntry = $this->repository->findEnvironmentalEntry($identity);
+                    $hasChanged = $existingEntry === null;
+
+                    if ($existingEntry !== null && isset($updateValues['cfu_bacteria'])) {
+                        $hasChanged = $hasChanged
+                            || $existingEntry->cfu_bacteria !== $updateValues['cfu_bacteria'];
+                    }
+                    if ($existingEntry !== null && isset($updateValues['cfu_fungi'])) {
+                        $hasChanged = $hasChanged
+                            || $existingEntry->cfu_fungi !== $updateValues['cfu_fungi'];
+                    }
+                    if ($existingEntry !== null && array_key_exists('start_time', $updateValues)) {
+                        $hasChanged = $hasChanged
+                            || $this->normalizeTimeValue($existingEntry->start_time) !== $this->normalizeTimeValue($updateValues['start_time']);
+                    }
+                    if ($existingEntry !== null && array_key_exists('end_time', $updateValues)) {
+                        $hasChanged = $hasChanged
+                            || $this->normalizeTimeValue($existingEntry->end_time) !== $this->normalizeTimeValue($updateValues['end_time']);
+                    }
+
+                    if (! $hasChanged) {
+                        continue;
+                    }
+
+                    $this->repository->upsertEnvironmentalEntry($identity, $updateValues);
+
+                    if ($sectionId !== null) {
                         $savedSectionIds["{$sectionId}|{$instanceNumber}"] = true;
                     }
                 }
@@ -682,9 +708,9 @@ class EnvironmentalEntryService
         int $shift,
         ?string $startTime,
         ?string $endTime
-    ): void {
+    ): bool {
         if ($startTime === null && $endTime === null) {
-            return;
+            return false;
         }
 
         $identity = [
@@ -708,7 +734,7 @@ class EnvironmentalEntryService
             $payload['analyst_id'] = $userId;
 
             if ($payload === []) {
-                return;
+                return false;
             }
 
             $entry = $this->repository->createEnvironmentalEntry($identity, $payload);
@@ -730,7 +756,7 @@ class EnvironmentalEntryService
                 );
             }
 
-            return;
+            return true;
         }
 
         $updates = [];
@@ -784,7 +810,11 @@ class EnvironmentalEntryService
                 $updates['analyst_id'] = $userId;
             }
             $this->repository->updateEnvironmentalEntry($entry, $updates);
+
+            return true;
         }
+
+        return false;
     }
 
     private function normalizeTimeValue(mixed $raw): ?string

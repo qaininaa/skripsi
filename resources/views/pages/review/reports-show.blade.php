@@ -51,8 +51,6 @@
     // Users that can receive the return:
     $allReturnableIds = $report->analysts->pluck('user_id')->unique()->toArray();
     $returnableAnalysts = \Domain\User\Models\User::whereIn('id', $allReturnableIds)->orderBy('name')->get();
-    // For manajer: also supervisor
-    $returnSupervisor = $returnSupervisor ?? null; // passed from controller for manajer only
     // Table-based lookups (no more $hd for these)
     $airSamplerRecord = $report->instrumentEntries->firstWhere('tool_name', 'Air Sampler');
     $incubatorByRtiId = $report->incubators->keyBy('report_type_incubator_id');
@@ -81,14 +79,6 @@
             </p>
         </div>
         </div>
-        <a href="{{ route($routeCetak, $report->id) }}" target="_blank"
-           class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-            </svg>
-            Generate Dokumen
-        </a>
     </div>
 
     {{-- Flash message --}}
@@ -115,7 +105,7 @@
             @endif
         @elseif ($approval->isReturned())
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
-                Dikembalikan{{ $reviewRole === 'manager' ? ' ke Supervisor' : '' }}
+                Dikembalikan
             </span>
         @else
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Ditolak</span>
@@ -830,7 +820,7 @@
                             @if ($konklusi === 'TMS')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-700">TMS</span>
                             @elseif ($konklusi === 'MS')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-700">MS</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700">MS</span>
                             @else
                                 <span class="text-gray-300 text-[11px]">N/A</span>
                             @endif
@@ -883,7 +873,7 @@
                 @endphp
                 <div class="px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 inline-block text-xs">
                     @if ($sk === 'MS')
-                        <span class="text-sky-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
+                        <span class="text-green-700 font-semibold">Memenuhi Spesifikasi (MS)</span>
                     @elseif ($sk === 'TMS')
                         <span class="text-red-700 font-semibold">Tidak Memenuhi Spesifikasi (TMS)</span>
                     @else
@@ -924,6 +914,7 @@
             $_mngrApproval = $mngrApproval;
             $_secUniqueIds = array_unique(array_filter(array_merge($_secMonIds, $_secReadIds)));
             $_secUserMap = \Domain\User\Models\User::whereIn('id', $_secUniqueIds)->get()->keyBy('id');
+            $_sectionHasData = !empty($_secMonIds) || !empty($_secReadIds);
         @endphp
         <div class="px-5 py-4 border-t border-gray-100">
             <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Tanda Tangan & Verifikasi</p>
@@ -984,14 +975,16 @@
                 <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                     <p class="text-[11px] font-semibold text-gray-600 mb-2">Direview oleh:</p>
                     <div class="flex-1 flex flex-col gap-2 justify-center">
-                        @if ($_supApproval?->user)
+                        @if ($_sectionHasData && $_supApproval?->user)
                         <div class="text-center">
-                            <p class="text-sm font-semibold text-gray-700">{{ $_supApproval->user->name }}</p>
                             @if ($_supApproval->signed_at)
-                            <span class="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700 mt-0.5">
+                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mb-1">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 Disetujui
                             </span>
+                            @endif
+                            <p class="text-sm font-semibold text-gray-700">{{ $_supApproval->user->name }}</p>
+                            @if ($_supApproval->signed_at)
                             <p class="text-[11px] text-gray-500 mt-0.5">{{ \Illuminate\Support\Carbon::parse($_supApproval->signed_at)->isoFormat('D MMM Y, HH:mm') }}</p>
                             @endif
                         </div>
@@ -1005,14 +998,16 @@
                 <div class="border border-gray-200 rounded-xl p-3 flex flex-col min-h-[110px]">
                     <p class="text-[11px] font-semibold text-gray-600 mb-2">Disetujui oleh:</p>
                     <div class="flex-1 flex flex-col gap-2 justify-center">
-                        @if ($_mngrApproval?->user)
+                        @if ($_sectionHasData && $_mngrApproval?->user)
                         <div class="text-center">
-                            <p class="text-sm font-semibold text-gray-700">{{ $_mngrApproval->user->name }}</p>
                             @if ($_mngrApproval->signed_at)
-                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mt-0.5">
+                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 mb-1">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 Disetujui
                             </span>
+                            @endif
+                            <p class="text-sm font-semibold text-gray-700">{{ $_mngrApproval->user->name }}</p>
+                            @if ($_mngrApproval->signed_at)
                             <p class="text-[11px] text-gray-500 mt-0.5">{{ \Illuminate\Support\Carbon::parse($_mngrApproval->signed_at)->isoFormat('D MMM Y, HH:mm') }}</p>
                             @endif
                         </div>
@@ -1093,11 +1088,7 @@
                     <div>
                         <p class="text-sm font-semibold text-orange-800">Kembalikan Laporan</p>
                         <p class="text-xs text-orange-600">
-                            @if ($reviewRole === 'manager')
-                                Kirim kembali ke Supervisor atau Analis untuk diperbaiki
-                            @else
-                                Kirim kembali ke analis untuk diperbaiki
-                            @endif
+                            Kirim kembali ke analis untuk diperbaiki
                         </p>
                     </div>
                 </div>
@@ -1105,9 +1096,6 @@
                     <select id="return-target-select"
                         class="flex-1 rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none">
                         <option value="">-- Pilih Tujuan Pengembalian --</option>
-                        @if ($reviewRole === 'manager' && $returnSupervisor)
-                        <option value="{{ $returnSupervisor->id }}">{{ $returnSupervisor->name }} (Supervisor)</option>
-                        @endif
                         @foreach ($returnableAnalysts as $analyst)
                         <option value="{{ $analyst->id }}">{{ $analyst->name }} (Analis)</option>
                         @endforeach

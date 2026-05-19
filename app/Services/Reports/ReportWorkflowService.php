@@ -2,6 +2,7 @@
 
 namespace App\Services\Reports;
 
+use DateTimeInterface;
 use Domain\Report\Models\Analyst;
 use Domain\Report\Models\Report;
 use Domain\Report\Models\ReportApproval;
@@ -63,6 +64,33 @@ class ReportWorkflowService
         }
     }
 
+    public function stampSupervisorSignaturesForFilledSections(Report $report, string $userId, DateTimeInterface $signedAt): void
+    {
+        $analystSectionSignatures = SectionSignature::query()
+            ->where('report_id', $report->id)
+            ->whereIn('role', ['monitoring', 'reading'])
+            ->whereNotNull('signed_at')
+            ->get(['section_id', 'instance_number'])
+            ->unique(fn (SectionSignature $signature) => $signature->section_id . '|' . (int) $signature->instance_number);
+
+        SectionSignature::query()
+            ->where('report_id', $report->id)
+            ->where('user_id', $userId)
+            ->where('role', 'supervisor')
+            ->delete();
+
+        foreach ($analystSectionSignatures as $signature) {
+            SectionSignature::create([
+                'report_id' => $report->id,
+                'section_id' => $signature->section_id,
+                'instance_number' => (int) $signature->instance_number,
+                'user_id' => $userId,
+                'role' => 'supervisor',
+                'signed_at' => $signedAt,
+            ]);
+        }
+    }
+
     /**
      * Selesaikan tahap monitoring. Laporan masuk ke tahap 'reading'.
      * Kunci dilepas agar analis pembaca bisa mengambil laporan.
@@ -70,6 +98,18 @@ class ReportWorkflowService
     public function finishMonitoring(Report $report): void
     {
         Report::where('id', $report->id)->update(['status' => 'reading', 'locked_by' => null]);
+    }
+
+    /**
+     * Pindahkan laporan ke tahap reading tanpa melepas lock analis saat ini.
+     * Dipakai pada flow revisi ketika user yang sama perlu lanjut mengisi pembacaan.
+     */
+    public function switchToReadingKeepingLock(Report $report, string $userId): void
+    {
+        Report::where('id', $report->id)->update([
+            'status' => 'reading',
+            'locked_by' => $userId,
+        ]);
     }
 
     /**

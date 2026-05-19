@@ -7,7 +7,6 @@ use Domain\Report\Services\InstrumentIdentityEntryService;
 use Domain\Report\Services\MediumEntryService;
 use Domain\Report\Models\Report;
 use Domain\Report\Models\ReportApproval;
-use Domain\Report\Models\SectionSignature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -59,12 +58,12 @@ class ManagerReportController extends Controller
     public function ongoingReports(Request $request)
     {
         $status = $request->query('status', 'all');
-        $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        $validStatuses = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager', 'returned'];
         if (! in_array($status, $validStatuses, true)) {
             $status = 'all';
         }
 
-        $countKeys = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager'];
+        $countKeys = ['all', 'pending', 'monitoring', 'reading', 'review_supervisor', 'waiting_manager', 'returned'];
         $counts = [];
         foreach ($countKeys as $key) {
             $countQuery = $this->progressBaseQuery();
@@ -73,7 +72,7 @@ class ManagerReportController extends Controller
         }
 
         $reportsQuery = $this->progressBaseQuery()
-            ->with(['reportType', 'lockedByUser', 'analysts.user', 'approvals.user']);
+            ->with(['reportType', 'lockedByUser', 'analysts.user', 'approvals.user', 'approvals.returnedTo']);
         $this->applyProgressStatusFilter($reportsQuery, $status);
 
         $reports = $reportsQuery
@@ -106,10 +105,6 @@ class ManagerReportController extends Controller
             'incubators',
         ]);
 
-        // Supervisor (step 2 user) for the return dropdown
-        $supervisorApproval = $report->approvals->firstWhere('step', 2);
-        $returnSupervisor = $supervisorApproval?->user;
-
         $sectionService = app(\App\Services\ReportSectionService::class);
         $entryMap = $sectionService->buildEntryMap($report);
         $sectionInstances = $sectionService->buildSectionInstances($report);
@@ -122,7 +117,7 @@ class ManagerReportController extends Controller
         $reviewRole = 'manager';
 
         return view('pages.review.reports-show', compact(
-            'report', 'approval', 'entryMap', 'sectionInstances', 'returnSupervisor',
+            'report', 'approval', 'entryMap', 'sectionInstances',
             'needsAirSampler', 'needsInkubator', 'needsMedium',
             'reviewRole'
         ));
@@ -208,6 +203,7 @@ class ManagerReportController extends Controller
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
+            'returned_to_user_id' => 'required|uuid|exists:users,id',
         ]);
 
         $user = Auth::user();
@@ -224,12 +220,7 @@ class ManagerReportController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        $returnedToUserId = $request->input('returned_to_user_id');
-
-        $supervisorApproval = ReportApproval::where('report_id', $report->id)
-            ->where('step', 2)
-            ->first();
-
+        $returnedToUserId = (string) $request->input('returned_to_user_id');
         $allowedAnalysts = $report->analysts
             ->pluck('user_id')
             ->map(fn ($id) => (string) $id)
@@ -237,10 +228,7 @@ class ManagerReportController extends Controller
             ->values()
             ->all();
 
-        $isToSupervisor = $supervisorApproval && $supervisorApproval->user_id === $returnedToUserId;
-        $isToAnalyst = in_array($returnedToUserId, $allowedAnalysts);
-
-        abort_unless($isToSupervisor || $isToAnalyst, 422, 'Penerima pengembalian tidak valid.');
+        abort_unless(in_array($returnedToUserId, $allowedAnalysts, true), 422, 'Analis tujuan tidak valid.');
 
         $approval->update([
             'status' => 'returned',
@@ -248,34 +236,10 @@ class ManagerReportController extends Controller
             'returned_to_user_id' => $returnedToUserId,
         ]);
 
-        if ($isToAnalyst) {
-            // Clear per-section TTDs so all roles re-sign from scratch.
-            SectionSignature::where('report_id', $report->id)
-                ->whereIn('role', ['monitoring', 'reading', 'supervisor', 'manager'])
-                ->delete();
-
-            $analystApproval = ReportApproval::where('report_id', $report->id)
-                ->where('step', 1)
-                ->first();
-            if ($analystApproval) {
-                $analystApproval->update(['status' => 'pending', 'signed_at' => null]);
-            }
-            if ($supervisorApproval) {
-                $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
-            }
-
-            $report->update(['status' => 'returned', 'locked_by' => null]);
-
-            return redirect()->route('manager.incoming-reports')
-                ->with('success', 'Laporan telah dikembalikan ke Analis.');
-        }
-
-        // Return to supervisor
-        $supervisorApproval->update(['status' => 'pending', 'signed_at' => null]);
-        $report->update(['status' => 'returned_to_supervisor']);
+        $report->update(['status' => 'returned', 'locked_by' => null]);
 
         return redirect()->route('manager.incoming-reports')
-            ->with('success', 'Laporan telah dikembalikan ke Supervisor.');
+            ->with('success', 'Laporan telah dikembalikan ke analis.');
     }
 
     public function save(Request $request, Report $report)
@@ -384,6 +348,10 @@ class ManagerReportController extends Controller
                     })
                     ->orWhereHas('approvals', function ($approvalQuery) {
                         $approvalQuery->where('step', 3)->where('status', 'pending');
+                    })
+                    ->orWhereIn('status', ['returned', 'returned_to_supervisor'])
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->whereIn('step', [2, 3])->where('status', 'returned');
                     });
             });
             return;
@@ -404,6 +372,16 @@ class ManagerReportController extends Controller
         if ($status === 'waiting_manager') {
             $query->whereHas('approvals', function ($approvalQuery) {
                 $approvalQuery->where('step', 3)->where('status', 'pending');
+            });
+            return;
+        }
+
+        if ($status === 'returned') {
+            $query->where(function ($nested) {
+                $nested->whereIn('status', ['returned', 'returned_to_supervisor'])
+                    ->orWhereHas('approvals', function ($approvalQuery) {
+                        $approvalQuery->whereIn('step', [2, 3])->where('status', 'returned');
+                    });
             });
             return;
         }
