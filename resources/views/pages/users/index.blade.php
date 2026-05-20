@@ -126,13 +126,10 @@
                                     <a href="{{ route('users.edit', $user) }}" class="btn-action-edit">
                                         Edit
                                     </a>
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-action-delete">
-                                            Hapus
-                                        </button>
-                                    </form>
+                                    <x-buttons.delete-button
+                                        :action="route('users.destroy', $user)"
+                                        :name="$user->name"
+                                    />
                                 </div>
                             </td>
                         </tr>
