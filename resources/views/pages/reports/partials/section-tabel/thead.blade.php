@@ -99,19 +99,22 @@
                 @foreach (['s1' => 'S1', 's1_2' => '*) S1-2', 's1_3' => '*) S1-3'] as $swabKey => $swabLabel)
                 @php
                     $st = $swabColTimes[$swabKey] ?? [];
+                    $swabSlotAvailable = (bool) ($availableSwabSlots[$swabKey] ?? false);
                     $swabLocks = $timeLockedByOther[$col]['swab'][$swabKey] ?? [];
-                    $swabStartLocked = (bool) ($swabLocks['mulai'] ?? false);
-                    $swabEndLocked = (bool) ($swabLocks['selesai'] ?? false);
+                    $swabStartLocked = ! $swabSlotAvailable || (bool) ($swabLocks['mulai'] ?? false);
+                    $swabEndLocked = ! $swabSlotAvailable || (bool) ($swabLocks['selesai'] ?? false);
                 @endphp
                 <div class="flex items-center justify-center gap-0.5">
                     <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
                     <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][mulai]"
                            value="{{ $st['mulai'] ?? '' }}"
+                           @if(! $swabSlotAvailable) disabled @endif
                            @if($swabStartLocked) readonly @endif
                            class="rounded border {{ $swabStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                     <span class="text-gray-400 text-[10px]">-</span>
                     <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][selesai]"
                            value="{{ $st['selesai'] ?? '' }}"
+                           @if(! $swabSlotAvailable) disabled @endif
                            @if($swabEndLocked) readonly @endif
                            class="rounded border {{ $swabEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
                 </div>

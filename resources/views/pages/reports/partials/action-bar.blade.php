@@ -26,7 +26,7 @@
     <div class="flex items-center gap-2">
         @if (($revisionActionMode ?? 'default') === 'switch_to_reading')
         <button type="button" onclick="openSwitchToReadingFlow()"
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-amber-200 bg-amber-50 text-sm font-medium text-amber-700 hover:bg-amber-100 transition-colors shadow-sm">
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border bg-amber-500 hover:bg-amber-600 text-sm font-medium text-white transition-colors shadow-sm">
             Ke Pembacaan
         </button>
         <button type="button" onclick="openRevisionSubmitFlow()"

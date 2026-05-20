@@ -242,6 +242,18 @@ class SupervisorReportController extends Controller
 
     public function save(Request $request, Report $report)
     {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        if ($user->username !== $request->username || ! Hash::check($request->password, $user->password)) {
+            return back()
+                ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
+                ->withInput($request->except('password'));
+        }
+
         $userId = Auth::id();
         ReportApproval::where('report_id', $report->id)
             ->where('step', 2)

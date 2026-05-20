@@ -7,6 +7,7 @@ use Domain\Report\Services\InstrumentIdentityEntryService;
 use Domain\Report\Services\MediumEntryService;
 use Domain\Report\Models\Report;
 use Domain\Report\Models\ReportApproval;
+use Domain\Report\Models\SectionSignature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;

@@ -150,6 +150,10 @@ class ReportWorkflowService
             ->where('step', 2)
             ->firstOrFail();
 
+        $existingStep3 = ReportApproval::where('report_id', $report->id)
+            ->where('step', 3)
+            ->first();
+
         $report->update([
             'status'      => 'submitted',
             'locked_by'   => null,
@@ -161,6 +165,14 @@ class ReportWorkflowService
             'notes'              => null,
             'returned_to_user_id' => null,
         ]);
+
+        // Jika revisi berasal dari return manager, tandai step 3 sebagai menunggu
+        // review supervisor ulang agar tidak tetap terlihat "returned".
+        if ($existingStep3 && $existingStep3->status === 'returned') {
+            $existingStep3->update([
+                'status' => 'waiting_supervisor',
+            ]);
+        }
     }
 
     /**

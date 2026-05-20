@@ -205,7 +205,7 @@ const _modalConfig = {
         title: 'Konfirmasi Ke Pembacaan',
         desc:  'Status laporan akan diubah ke tahap pembacaan dan tetap dikunci oleh Anda. Masukkan username dan password Anda untuk melanjutkan.',
         btnText: 'Ke Pembacaan',
-        btnClass: 'bg-indigo-500 hover:bg-indigo-600',
+        btnClass: 'bg-amber-500 hover:bg-amber-600',
     },
 };
 
