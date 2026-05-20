@@ -7,8 +7,14 @@
 {{-- Welcome Banner --}}
 <x-welcome-banner />
 
+@php
+    $managerTmsTotalMethods = $managerTmsTotalMethods ?? 0;
+    $managerTmsTotalReports = $managerTmsTotalReports ?? 0;
+    $managerTmsByMethod = $managerTmsByMethod ?? [];
+@endphp
+
 {{-- Stats --}}
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
         <div class="h-12 w-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
             <svg class="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,6 +50,18 @@
             <p class="text-2xl font-bold text-gray-800 mt-0.5">{{ $returned }}</p>
         </div>
     </div>
+
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+        <div class="h-12 w-12 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0l.172.172.172-.172a4 4 0 115.656 5.656l-5.828 5.828a2 2 0 01-2.828 0L6.344 14.828a4 4 0 015.656-5.656l.172.172z" />
+            </svg>
+        </div>
+        <div>
+            <p class="text-xs text-gray-500 font-medium">Total Metode yang Berstatus TMS (Approved)</p>
+            <p class="text-2xl font-bold text-gray-800 mt-0.5">{{ $managerTmsTotalMethods }}</p>
+        </div>
+    </div>
 </div>
 
 {{-- Quick link --}}
@@ -61,5 +79,70 @@
     </a>
 </div>
 @endif
+
+<div class="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+        <div>
+            <h3 class="text-sm font-semibold text-gray-800">Ringkasan Metode yang Berstatus TMS (Laporan Approved)</h3>
+            <p class="text-xs text-gray-500 mt-0.5">
+                {{ $managerTmsTotalMethods }} metode berstatus TMS dari {{ $managerTmsTotalReports }} laporan yang sudah Anda setujui.
+            </p>
+        </div>
+        <a href="{{ route('report-archive.index') }}"
+           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+            Buka Arsip
+        </a>
+    </div>
+
+    @if ($managerTmsTotalMethods === 0)
+    <div class="px-5 py-10 text-center">
+        <p class="text-sm text-gray-500">Belum ada metode yang berstatus TMS pada laporan approved.</p>
+    </div>
+    @else
+    <div class="p-5 grid grid-cols-1 xl:grid-cols-2 gap-4">
+        @foreach ($managerTmsByMethod as $method)
+        <div class="rounded-xl border border-rose-100 bg-rose-50/40">
+            <div class="px-4 py-3 border-b border-rose-100 flex items-center justify-between">
+                <p class="text-sm font-semibold text-rose-800">{{ $method['label'] }}</p>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700">
+                    {{ $method['count'] }} TMS
+                </span>
+            </div>
+            <div class="p-3 space-y-2 max-h-72 overflow-y-auto">
+                @forelse ($method['items'] as $item)
+                <div class="rounded-lg border border-white/80 bg-white px-3 py-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-sm font-semibold text-gray-800 truncate">{{ $item['product_name'] }}</p>
+                        <a href="{{ route('report-archive.show', $item['report_id']) }}"
+                           class="inline-flex items-center gap-1 text-xs font-medium text-sky-600 hover:text-sky-700 whitespace-nowrap">
+                            Lihat
+                        </a>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Batch: {{ $item['batch_number'] ?: 'N/A' }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Section: {{ $item['section_label'] }}
+                        @if (($item['instance_number'] ?? 1) > 1)
+                            - Duplikat {{ $item['instance_number'] }}
+                        @endif
+                    </p>
+                    @if (! empty($item['approved_at']))
+                    <p class="text-[11px] text-gray-400 mt-1">
+                        Approved: {{ $item['approved_at']->isoFormat('D MMM Y, HH:mm') }}
+                    </p>
+                    @endif
+                </div>
+                @empty
+                <div class="px-2 py-4 text-center">
+                    <p class="text-xs text-gray-400">Tidak ada data TMS untuk metode ini.</p>
+                </div>
+                @endforelse
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+</div>
 
 @endsection

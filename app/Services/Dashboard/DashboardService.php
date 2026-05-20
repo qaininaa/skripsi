@@ -14,6 +14,10 @@ use InvalidArgumentException;
  */
 class DashboardService
 {
+    public function __construct(
+        private ManagerDashboardTmsService $managerDashboardTmsService,
+    ) {}
+
     /**
      * Map application role keys to dashboard view names.
      *
@@ -124,6 +128,13 @@ class DashboardService
             $data['pendingReports'] = $this->latestReportsByStatus('pending');
             $data['monitoringReports'] = $this->latestReportsByStatus('monitoring');
             $data['readingReports'] = $this->latestReportsByStatus('reading');
+        }
+
+        if ($approvalStep === 3) {
+            $data = array_merge(
+                $data,
+                $this->managerDashboardTmsService->buildSummaryForManager((string) $userId)
+            );
         }
 
         return $data;
