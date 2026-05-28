@@ -66,6 +66,35 @@ class ReportFieldAuditService
         );
     }
 
+    public function logReadingStageTransition(
+        Report $report,
+        string $action,
+        ?string $beforeStatus,
+        ?string $afterStatus,
+        ?string $beforeLockedBy,
+        ?string $afterLockedBy
+    ): void {
+        if (! $this->isAnalystActor()) {
+            return;
+        }
+
+        if (
+            $this->normalizeComparable($beforeStatus) === $this->normalizeComparable($afterStatus)
+            && $this->normalizeComparable($beforeLockedBy) === $this->normalizeComparable($afterLockedBy)
+        ) {
+            return;
+        }
+
+        $actor = $this->actorLabel();
+        $reportLabel = $this->reportLabel($report);
+
+        $this->auditLogService->log(
+            'move_to_reading',
+            "{$actor} memproses aksi {$action} pada laporan {$reportLabel}: status {$this->display($beforeStatus)} -> {$this->display($afterStatus)}, lock {$this->display($beforeLockedBy)} -> {$this->display($afterLockedBy)}",
+            $this->meta()
+        );
+    }
+
     /**
      * @return array{user_id: string|null, ip_address: string|null, user_agent: string|null}
      */
