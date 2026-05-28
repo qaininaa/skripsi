@@ -22,6 +22,7 @@ class MediumEntryService
     public function __construct(
         private MediumEntryRepositoryInterface $repository,
         private FieldLockRepositoryInterface $fieldLockRepository,
+        private ReportFieldAuditService $reportFieldAuditService,
     ) {}
 
     public function saveFromRequest(Request $request, Report $report): void
@@ -109,6 +110,13 @@ class MediumEntryService
                 }
 
                 $allowedUpdates[$fieldName] = $newValue;
+
+                $this->reportFieldAuditService->logFieldChange(
+                    $report,
+                    "medium.{$data->name}.{$fieldName}",
+                    $currentValue,
+                    $newValue
+                );
             }
 
             $this->repository->updateFields($entry, $allowedUpdates);

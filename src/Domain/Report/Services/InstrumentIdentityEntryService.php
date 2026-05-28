@@ -22,6 +22,7 @@ class InstrumentIdentityEntryService
     public function __construct(
         private InstrumentIdentityEntryRepositoryInterface $repository,
         private FieldLockRepositoryInterface $fieldLockRepository,
+        private ReportFieldAuditService $reportFieldAuditService,
     ) {}
 
     public function saveFromRequest(Request $request, Report $report): void
@@ -87,6 +88,13 @@ class InstrumentIdentityEntryService
             }
 
             $allowedUpdates[$fieldName] = $newValue;
+
+            $this->reportFieldAuditService->logFieldChange(
+                $report,
+                "air_sampler.{$data->toolName}.{$fieldName}",
+                $currentValue,
+                $newValue
+            );
         }
 
         $this->repository->updateFields($entry, $allowedUpdates);

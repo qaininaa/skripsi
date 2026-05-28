@@ -29,6 +29,7 @@ class ReportClaimingService
     public function __construct(
         private ReportClaimingRepositoryInterface $repository,
         private ReportViewService $viewService,
+        private ReportFieldAuditService $reportFieldAuditService,
     ) {}
 
     /**
@@ -79,8 +80,19 @@ class ReportClaimingService
             && $returnedApproval->returned_to_user_id !== $userId;
 
         if (! $isReturnedToAnotherAnalyst) {
+            $beforeStatus = $report->status;
+            $beforeLockedBy = $report->locked_by !== null ? (string) $report->locked_by : null;
+
             $this->repository->claimReport($report, $userId);
             $report->refresh();
+
+            $this->reportFieldAuditService->logClaimStateChange(
+                $report,
+                $beforeStatus,
+                $report->status,
+                $beforeLockedBy,
+                $report->locked_by !== null ? (string) $report->locked_by : null
+            );
         }
 
         $this->viewService->loadRelations($report);

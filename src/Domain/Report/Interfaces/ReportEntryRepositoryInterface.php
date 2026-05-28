@@ -69,6 +69,12 @@ interface ReportEntryRepositoryInterface
         int $periodNumber
     ): ?object;
 
+    public function findSectionNote(
+        string $reportId,
+        string $sectionId,
+        int $instanceNumber
+    ): ?object;
+
     public function upsertSectionColumn(
         string $reportId,
         string $sectionId,

@@ -125,6 +125,18 @@ class ReportEntryRepository implements ReportEntryRepositoryInterface
         );
     }
 
+    public function findSectionNote(
+        string $reportId,
+        string $sectionId,
+        int $instanceNumber
+    ): ?object {
+        return ReportSectionNote::where([
+            'report_id' => $reportId,
+            'section_id' => $sectionId,
+            'instance_number' => $instanceNumber,
+        ])->first();
+    }
+
     public function upsertSectionNote(
         string $reportId,
         string $sectionId,

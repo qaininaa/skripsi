@@ -23,6 +23,7 @@ class EnvironmentalEntryService
     public function __construct(
         private ReportEntryRepositoryInterface $repository,
         private FieldLockRepositoryInterface $fieldLockRepository,
+        private ReportFieldAuditService $reportFieldAuditService,
     ) {}
 
     /**
@@ -270,6 +271,7 @@ class EnvironmentalEntryService
                             continue;
                         }
                         $changed = $this->persistTimeEntryWithFieldLocks(
+                            report: $report,
                             reportId: (string) $report->id,
                             instanceId: (string) $instanceId,
                             periodNumber: (int) $col,
@@ -343,6 +345,7 @@ class EnvironmentalEntryService
                             continue;
                         }
                         $changed = $this->persistTimeEntryWithFieldLocks(
+                            report: $report,
                             reportId: (string) $report->id,
                             instanceId: (string) $instanceId,
                             periodNumber: (int) $col,
@@ -407,6 +410,7 @@ class EnvironmentalEntryService
                             continue;
                         }
                         $changed = $this->persistTimeEntryWithFieldLocks(
+                            report: $report,
                             reportId: (string) $report->id,
                             instanceId: (string) $instanceId,
                             periodNumber: (int) $col,
@@ -534,6 +538,39 @@ class EnvironmentalEntryService
                     }
 
                     $this->repository->upsertEnvironmentalEntry($identity, $updateValues);
+
+                    if (array_key_exists('cfu_bacteria', $updateValues)) {
+                        $this->reportFieldAuditService->logFieldChange(
+                            $report,
+                            $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'cfu_bacteria'),
+                            $existingEntry?->cfu_bacteria,
+                            $updateValues['cfu_bacteria']
+                        );
+                    }
+                    if (array_key_exists('cfu_fungi', $updateValues)) {
+                        $this->reportFieldAuditService->logFieldChange(
+                            $report,
+                            $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'cfu_fungi'),
+                            $existingEntry?->cfu_fungi,
+                            $updateValues['cfu_fungi']
+                        );
+                    }
+                    if (array_key_exists('start_time', $updateValues)) {
+                        $this->reportFieldAuditService->logFieldChange(
+                            $report,
+                            $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'start_time'),
+                            $this->normalizeTimeValue($existingEntry?->start_time),
+                            $this->normalizeTimeValue($updateValues['start_time'])
+                        );
+                    }
+                    if (array_key_exists('end_time', $updateValues)) {
+                        $this->reportFieldAuditService->logFieldChange(
+                            $report,
+                            $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'end_time'),
+                            $this->normalizeTimeValue($existingEntry?->end_time),
+                            $this->normalizeTimeValue($updateValues['end_time'])
+                        );
+                    }
 
                     if ($sectionId !== null) {
                         $savedSectionIds["{$sectionId}|{$instanceNumber}"] = true;
@@ -702,6 +739,7 @@ class EnvironmentalEntryService
     }
 
     private function persistTimeEntryWithFieldLocks(
+        Report $report,
         string $reportId,
         string $instanceId,
         int $periodNumber,
@@ -746,6 +784,13 @@ class EnvironmentalEntryService
                     'start_time',
                     $userId
                 );
+
+                $this->reportFieldAuditService->logFieldChange(
+                    $report,
+                    $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'start_time'),
+                    null,
+                    $startTime
+                );
             }
             if ($endTime !== null) {
                 $this->fieldLockRepository->acquireOrOwned(
@@ -753,6 +798,13 @@ class EnvironmentalEntryService
                     (string) $entry->id,
                     'end_time',
                     $userId
+                );
+
+                $this->reportFieldAuditService->logFieldChange(
+                    $report,
+                    $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'end_time'),
+                    null,
+                    $endTime
                 );
             }
 
@@ -773,6 +825,12 @@ class EnvironmentalEntryService
 
             if ($canWriteStart) {
                 $updates['start_time'] = $startTime;
+                $this->reportFieldAuditService->logFieldChange(
+                    $report,
+                    $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'start_time'),
+                    $currentStart,
+                    $startTime
+                );
                 if ($startTime === null) {
                     $this->fieldLockRepository->releaseIfOwned(
                         'report_environmental_entries',
@@ -794,6 +852,12 @@ class EnvironmentalEntryService
 
             if ($canWriteEnd) {
                 $updates['end_time'] = $endTime;
+                $this->reportFieldAuditService->logFieldChange(
+                    $report,
+                    $this->environmentalFieldPath((string) $instanceId, $periodNumber, $shift, 'end_time'),
+                    $currentEnd,
+                    $endTime
+                );
                 if ($endTime === null) {
                     $this->fieldLockRepository->releaseIfOwned(
                         'report_environmental_entries',
@@ -822,5 +886,14 @@ class EnvironmentalEntryService
         $value = trim((string) ($raw ?? ''));
 
         return $value !== '' ? $value : null;
+    }
+
+    private function environmentalFieldPath(
+        string $instanceId,
+        int $periodNumber,
+        int $shift,
+        string $fieldName
+    ): string {
+        return "environmental_entries.instance_{$instanceId}.period_{$periodNumber}.shift_{$shift}.{$fieldName}";
     }
 }

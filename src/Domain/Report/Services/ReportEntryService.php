@@ -21,6 +21,7 @@ class ReportEntryService
         private EnvironmentalEntryService $environmentalEntryService,
         private ReportEntryRepositoryInterface $repository,
         private FieldLockRepositoryInterface $fieldLockRepository,
+        private ReportFieldAuditService $reportFieldAuditService,
     ) {}
 
     /**
@@ -146,12 +147,38 @@ class ReportEntryService
                     ? strtoupper(trim($noteData['conclusion']))
                     : null;
                 $conclusion = in_array($conclusionRaw, ['MS', 'TMS'], true) ? $conclusionRaw : null;
+                $existingNote = $this->repository->findSectionNote(
+                    (string) $report->id,
+                    (string) $sectionId,
+                    $instanceNumber
+                );
+                $beforeNotes = is_string($existingNote?->notes ?? null)
+                    ? trim((string) $existingNote->notes)
+                    : null;
+                $beforeConclusion = is_string($existingNote?->conclusion ?? null)
+                    ? strtoupper(trim((string) $existingNote->conclusion))
+                    : null;
+                $normalizedNotes = $notes !== '' ? $notes : null;
 
                 $this->repository->upsertSectionNote(
                     (string) $report->id,
                     (string) $sectionId,
                     $instanceNumber,
-                    $notes !== '' ? $notes : null,
+                    $normalizedNotes,
+                    $conclusion
+                );
+
+                $fieldPrefix = "section_notes.{$sectionId}.instance_{$instanceNumber}";
+                $this->reportFieldAuditService->logFieldChange(
+                    $report,
+                    "{$fieldPrefix}.notes",
+                    $beforeNotes,
+                    $normalizedNotes
+                );
+                $this->reportFieldAuditService->logFieldChange(
+                    $report,
+                    "{$fieldPrefix}.conclusion",
+                    $beforeConclusion,
                     $conclusion
                 );
             }
@@ -202,6 +229,9 @@ class ReportEntryService
                         $instanceNumber,
                         $periodNumber
                     );
+                    $beforeLabel = is_string($existingRow?->label ?? null)
+                        ? trim((string) $existingRow->label)
+                        : null;
 
                     // If a row already exists, enforce lock before allowing overwrite
                     if ($existingRow !== null && ! empty($existingRow->label)) {
@@ -232,6 +262,13 @@ class ReportEntryService
                         (string) $sectionId,
                         $instanceNumber,
                         $periodNumber,
+                        $value
+                    );
+
+                    $this->reportFieldAuditService->logFieldChange(
+                        $report,
+                        "column_names.{$sectionId}.instance_{$instanceNumber}.period_{$periodNumber}.label",
+                        $beforeLabel,
                         $value
                     );
 
