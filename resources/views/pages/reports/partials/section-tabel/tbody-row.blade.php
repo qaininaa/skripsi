@@ -67,6 +67,7 @@
             <input type="text" inputmode="text"
                    name="entries[{{ $loc->id }}][{{ $instance }}][0][cfu_bacteria]"
                    value="{{ $msEntry?->cfu_bacteria }}"
+                   list="cfu-value-options"
                    placeholder="—"
                    data-loc="{{ $loc->id }}-{{ $instance }}" data-col="0" data-type="b"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
@@ -89,6 +90,7 @@
             <input type="text" inputmode="text"
                    name="entries[{{ $loc->id }}][{{ $instance }}][0][cfu_fungi]"
                    value="{{ $msEntry?->cfu_fungi }}"
+                   list="cfu-value-options"
                    placeholder="—"
                    data-loc="{{ $loc->id }}-{{ $instance }}" data-col="0" data-type="f"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
@@ -185,6 +187,7 @@
         @if ($cfuEditable)
             <input type="text" inputmode="text" name="{{ $iName }}[cfu_bacteria]"
                    value="{{ $existEntry?->cfu_bacteria }}"
+                   list="cfu-value-options"
                    placeholder="—"
                    data-loc="{{ $loc->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="b"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"
@@ -208,6 +211,7 @@
         @if ($cfuEditable)
             <input type="text" inputmode="text" name="{{ $iName }}[cfu_fungi]"
                    value="{{ $existEntry?->cfu_fungi }}"
+                   list="cfu-value-options"
                    placeholder="—"
                    data-loc="{{ $loc->id }}-{{ $instance }}" data-col="{{ $col }}" data-type="f"
                    data-section-id="{{ $section->id }}" data-section-instance="{{ $section->id }}-{{ $instance }}"

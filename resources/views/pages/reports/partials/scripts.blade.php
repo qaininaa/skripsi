@@ -12,6 +12,22 @@ const REPORT_CONFIG        = JSON.parse(document.getElementById('report-config')
 const VERIFY_PASSWORD_URL  = REPORT_CONFIG.verifyPasswordUrl;
 const MY_SHIFT             = REPORT_CONFIG.myShift;
 const FOCUS_INPUT          = REPORT_CONFIG.focusInput;
+const CFU_VALUE_REGEX      = /^(<1|TNTC|(?:[1-9][0-9]?|1[0-9]{2}|200))$/i;
+let activeCfuInput         = null;
+
+function isValidCfuValue(raw) {
+    return raw === '' || CFU_VALUE_REGEX.test(raw);
+}
+
+function applyCfuInputValidation(input) {
+    if (!(input instanceof HTMLInputElement)) return true;
+    const valid = isValidCfuValue(input.value.trim());
+    input.classList.toggle('border-red-400', !valid);
+    input.classList.toggle('ring-1', !valid);
+    input.classList.toggle('ring-red-400', !valid);
+
+    return valid;
+}
 
 function focusAndScrollToInput(input) {
     if (!input) return;
@@ -25,7 +41,7 @@ function blockIfInvalidCfuInputs() {
 
     showAlertModal(
         'Format Nilai CFU Tidak Valid',
-        'Terdapat ' + invalidInputs.length + ' field CFU dengan nilai tidak valid.\n\nNilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC.\n\nJika tidak ada koloni, gunakan <1. Nilai desimal, nol, dan negatif tidak diperbolehkan.'
+        'Terdapat ' + invalidInputs.length + ' field CFU dengan nilai tidak valid.\n\nNilai yang diperbolehkan: bilangan bulat 1 sampai 200, <1, atau TNTC.\n\nJika tidak ada koloni, gunakan <1. Nilai desimal, nol, negatif, dan angka di atas 200 tidak diperbolehkan.'
     );
     focusAndScrollToInput(invalidInputs[0]);
 
@@ -425,12 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Re-validate CFU inputs on page load (restores red border after back()->withInput())
     document.querySelectorAll('.cfu-input').forEach(inp => {
-        const raw = inp.value;
-        if (raw === '') return;
-        const valid = /^(<1|TNTC|[1-9][0-9]*)$/i.test(raw);
-        inp.classList.toggle('border-red-400', !valid);
-        inp.classList.toggle('ring-1',          !valid);
-        inp.classList.toggle('ring-red-400',    !valid);
+        applyCfuInputValidation(inp);
     });
 
     const focusInputName = FOCUS_INPUT;
@@ -492,6 +503,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         syncIncubatorOwnerInRow(target.closest('[data-incubator-entry-row]'));
     });
+
+    document.addEventListener('focusin', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (!target.classList.contains('cfu-input')) return;
+        activeCfuInput = target;
+    });
+
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
+
+        const button = target.closest('[data-cfu-template-value]');
+        if (!(button instanceof HTMLButtonElement)) return;
+
+        e.preventDefault();
+
+        if (!(activeCfuInput instanceof HTMLInputElement)) {
+            showAlertModal('Pilih Field CFU', 'Klik dulu field CFU (B/F) yang ingin diisi, lalu pilih template.');
+            return;
+        }
+
+        if (activeCfuInput.readOnly || activeCfuInput.disabled) {
+            return;
+        }
+
+        const templateValue = (button.dataset.cfuTemplateValue ?? '').trim();
+        if (templateValue === '') {
+            return;
+        }
+
+        activeCfuInput.value = templateValue;
+        activeCfuInput.dispatchEvent(new Event('input', { bubbles: true }));
+        activeCfuInput.dispatchEvent(new Event('change', { bubbles: true }));
+        activeCfuInput.focus({ preventScroll: true });
+        formDirty = true;
+    });
 });
 
 // CFU string helpers — support <1, TNTC, positive integers
@@ -500,7 +548,7 @@ function cfuToNum(v) {
     if (v.toUpperCase() === 'TNTC') return Infinity;
     if (v === '<1') return 0;
     const n = parseInt(v, 10);
-    return isNaN(n) || n <= 0 ? null : n;
+    return isNaN(n) || n <= 0 || n > 200 ? null : n;
 }
 function cfuSumStr(b, f) {
     const bn = cfuToNum(b);
@@ -518,10 +566,10 @@ document.addEventListener('input', function (e) {
 
     // Validate input value — highlight red if not a recognised CFU value
     const raw = e.target.value;
-    const valid = raw === '' || /^(<1|TNTC|[1-9][0-9]*)$/i.test(raw);
-    e.target.classList.toggle('border-red-400', !valid);
-    e.target.classList.toggle('ring-1',          !valid);
-    e.target.classList.toggle('ring-red-400',    !valid);
+    if (/^[a-z]+$/i.test(raw)) {
+        e.target.value = raw.toUpperCase();
+    }
+    applyCfuInputValidation(e.target);
 
     const loc = e.target.dataset.loc;
     const col = e.target.dataset.col;

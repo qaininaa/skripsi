@@ -34,7 +34,7 @@ class EnvironmentalEntryService
      */
     public function validateCfu(array $entries): array
     {
-        $cfuPattern = '/^(<1|TNTC|[1-9][0-9]*)$/i';
+        $cfuPattern = '/^(<1|TNTC|(?:[1-9][0-9]?|1[0-9]{2}|200))$/i';
         $invalidFields = [];
 
         $walk = function (array $node, array $path) use (&$walk, $cfuPattern, &$invalidFields): void {
@@ -731,7 +731,7 @@ class EnvironmentalEntryService
         if (strtoupper($v) === 'TNTC') {
             return 'TNTC';
         }
-        if (preg_match('/^[1-9][0-9]*$/', $v)) {
+        if (preg_match('/^(?:[1-9][0-9]?|1[0-9]{2}|200)$/', $v)) {
             return $v;
         }
 

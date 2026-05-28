@@ -7,6 +7,11 @@
 <form method="POST" action="{{ route('reports.save', $report) }}" id="report-form">
 @csrf
 
+<datalist id="cfu-value-options">
+    <option value="&lt;1"></option>
+    <option value="TNTC"></option>
+</datalist>
+
 @include('pages.reports.partials.action-bar')
 
 @if (session('success'))
