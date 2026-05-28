@@ -370,6 +370,55 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-incubator-entry-row]').forEach(syncIncubatorOwnerInRow);
     };
 
+    const padToTwoDigits = (value) => String(value).padStart(2, '0');
+
+    const getCurrentLocalIncubatorValues = () => {
+        const now = new Date();
+
+        return {
+            date: `${now.getFullYear()}-${padToTwoDigits(now.getMonth() + 1)}-${padToTwoDigits(now.getDate())}`,
+            time: `${padToTwoDigits(now.getHours())}:${padToTwoDigits(now.getMinutes())}`,
+        };
+    };
+
+    const fillIncubatorDateTimeNow = (row, direction) => {
+        if (!row) return;
+
+        const suffix = direction === 'out' ? 'out' : 'in';
+        const dateInput = row.querySelector(`input[data-incubator-input="date_${suffix}"]`);
+        const timeInput = row.querySelector(`input[data-incubator-input="time_${suffix}"]`);
+
+        if (!(dateInput instanceof HTMLInputElement) || !(timeInput instanceof HTMLInputElement)) {
+            return;
+        }
+
+        if (dateInput.readOnly || dateInput.disabled || timeInput.readOnly || timeInput.disabled) {
+            return;
+        }
+
+        const nowValues = getCurrentLocalIncubatorValues();
+        dateInput.value = nowValues.date;
+        timeInput.value = nowValues.time;
+
+        dateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        timeInput.dispatchEvent(new Event('input', { bubbles: true }));
+        dateInput.dispatchEvent(new Event('change', { bubbles: true }));
+        timeInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+        syncIncubatorOwnerInRow(row);
+        formDirty = true;
+    };
+
+    const fillSingleTimeInputNow = (input) => {
+        if (!(input instanceof HTMLInputElement)) return;
+        if (input.readOnly || input.disabled) return;
+
+        input.value = getCurrentLocalIncubatorValues().time;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        formDirty = true;
+    };
+
     document.getElementById('save-modal-password')?.addEventListener('keydown', e => {
         if (e.key === 'Enter') confirmSave();
     });
@@ -394,6 +443,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     syncAllIncubatorOwners();
+
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
+
+        const button = target.closest('[data-incubator-now-btn]');
+        if (!(button instanceof HTMLButtonElement)) return;
+
+        e.preventDefault();
+        if (button.disabled) return;
+
+        const direction = (button.dataset.incubatorNowBtn ?? '').trim();
+        if (!['in', 'out'].includes(direction)) return;
+
+        fillIncubatorDateTimeNow(button.closest('[data-incubator-entry-row]'), direction);
+    });
+
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
+
+        const button = target.closest('[data-time-now-btn]');
+        if (!(button instanceof HTMLButtonElement)) return;
+
+        e.preventDefault();
+        if (button.disabled) return;
+
+        const wrapper = button.closest('[data-time-now-wrapper]');
+        if (!(wrapper instanceof HTMLElement)) return;
+
+        const input = wrapper.querySelector('input[type="time"][data-time-now-input]');
+        fillSingleTimeInputNow(input);
+    });
 
     document.addEventListener('input', (e) => {
         const target = e.target;

@@ -27,15 +27,35 @@
             <div class="whitespace-nowrap text-xs font-semibold text-gray-700 mb-1">Machine Set-up</div>
             @if ($isEditable && $isMonitoring)
             <div class="flex justify-center items-center gap-1">
-                <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][start_time]"
-                       value="{{ $msJamMulai }}"
-                       @if($msStartLocked) readonly @endif
-                       class="rounded border {{ $msStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][start_time]"
+                           value="{{ $msJamMulai }}"
+                           data-time-now-input
+                           @if($msStartLocked) readonly @endif
+                           class="rounded border {{ $msStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <button type="button"
+                            data-time-now-btn
+                            title="Isi jam sekarang"
+                            @if($msStartLocked) disabled @endif
+                            class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                        Now
+                    </button>
+                </div>
                 <span class="text-gray-400 text-[10px] font-normal">-</span>
-                <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][end_time]"
-                       value="{{ $msJamSelesai }}"
-                       @if($msEndLocked) readonly @endif
-                       class="rounded border {{ $msEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][0][end_time]"
+                           value="{{ $msJamSelesai }}"
+                           data-time-now-input
+                           @if($msEndLocked) readonly @endif
+                           class="rounded border {{ $msEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0.5 text-[10px] font-normal text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <button type="button"
+                            data-time-now-btn
+                            title="Isi jam sekarang"
+                            @if($msEndLocked) disabled @endif
+                            class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                        Now
+                    </button>
+                </div>
             </div>
             @else
             <div class="text-[10px] font-normal text-gray-500 whitespace-nowrap">
@@ -106,17 +126,37 @@
                 @endphp
                 <div class="flex items-center justify-center gap-0.5">
                     <span class="text-[9px] font-bold text-gray-500 w-12 text-left shrink-0">{{ $swabLabel }}:</span>
-                    <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][mulai]"
-                           value="{{ $st['mulai'] ?? '' }}"
-                           @if(! $swabSlotAvailable) disabled @endif
-                           @if($swabStartLocked) readonly @endif
-                           class="rounded border {{ $swabStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                        <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][mulai]"
+                               value="{{ $st['mulai'] ?? '' }}"
+                               data-time-now-input
+                               @if(! $swabSlotAvailable) disabled @endif
+                               @if($swabStartLocked) readonly @endif
+                               class="rounded border {{ $swabStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <button type="button"
+                                data-time-now-btn
+                                title="Isi jam sekarang"
+                                @if($swabStartLocked) disabled @endif
+                                class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                            Now
+                        </button>
+                    </div>
                     <span class="text-gray-400 text-[10px]">-</span>
-                    <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][selesai]"
-                           value="{{ $st['selesai'] ?? '' }}"
-                           @if(! $swabSlotAvailable) disabled @endif
-                           @if($swabEndLocked) readonly @endif
-                           class="rounded border {{ $swabEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                        <input type="time" name="swab_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $swabKey }}][selesai]"
+                               value="{{ $st['selesai'] ?? '' }}"
+                               data-time-now-input
+                               @if(! $swabSlotAvailable) disabled @endif
+                               @if($swabEndLocked) readonly @endif
+                               class="rounded border {{ $swabEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <button type="button"
+                                data-time-now-btn
+                                title="Isi jam sekarang"
+                                @if($swabEndLocked) disabled @endif
+                                class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                            Now
+                        </button>
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -142,15 +182,35 @@
                 @endphp
                 <div class="flex items-center justify-center gap-0.5">
                     <span class="text-[9px] font-bold text-gray-500 w-3 text-left">{{ $abLabel }}:</span>
-                    <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][start_time]"
-                           value="{{ $stAB['start_time'] ?? '' }}"
-                           @if($abStartLocked) readonly @endif
-                           class="rounded border {{ $abStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                        <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][start_time]"
+                               value="{{ $stAB['start_time'] ?? '' }}"
+                               data-time-now-input
+                               @if($abStartLocked) readonly @endif
+                               class="rounded border {{ $abStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <button type="button"
+                                data-time-now-btn
+                                title="Isi jam sekarang"
+                                @if($abStartLocked) disabled @endif
+                                class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                            Now
+                        </button>
+                    </div>
                     <span class="text-gray-400 text-[10px]">-</span>
-                    <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][end_time]"
-                           value="{{ $stAB['end_time'] ?? '' }}"
-                           @if($abEndLocked) readonly @endif
-                           class="rounded border {{ $abEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                        <input type="time" name="settle_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][{{ $ab }}][end_time]"
+                               value="{{ $stAB['end_time'] ?? '' }}"
+                               data-time-now-input
+                               @if($abEndLocked) readonly @endif
+                               class="rounded border {{ $abEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <button type="button"
+                                data-time-now-btn
+                                title="Isi jam sekarang"
+                                @if($abEndLocked) disabled @endif
+                                class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                            Now
+                        </button>
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -173,17 +233,37 @@
             <div class="space-y-0.5 mt-1">
                 <div class="flex items-center justify-center gap-0.5">
                     <span class="text-[9px] text-gray-500 w-10 shrink-0">Mulai:</span>
-                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][start_time]"
-                           value="{{ $expJamMulai }}"
-                           @if($timeStartLocked) readonly @endif
-                           class="rounded border {{ $timeStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                        <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][start_time]"
+                               value="{{ $expJamMulai }}"
+                               data-time-now-input
+                               @if($timeStartLocked) readonly @endif
+                               class="rounded border {{ $timeStartLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <button type="button"
+                                data-time-now-btn
+                                title="Isi jam sekarang"
+                                @if($timeStartLocked) disabled @endif
+                                class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                            Now
+                        </button>
+                    </div>
                 </div>
                 <div class="flex items-center justify-center gap-0.5">
                     <span class="text-[9px] text-gray-500 w-10 shrink-0">Selesai:</span>
-                    <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][end_time]"
-                           value="{{ $expJamSelesai }}"
-                           @if($timeEndLocked) readonly @endif
-                           class="rounded border {{ $timeEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                    <div class="flex items-center gap-0.5" data-time-now-wrapper>
+                        <input type="time" name="exposure_times[{{ $section->id }}][{{ $instance }}][{{ $col }}][end_time]"
+                               value="{{ $expJamSelesai }}"
+                               data-time-now-input
+                               @if($timeEndLocked) readonly @endif
+                               class="rounded border {{ $timeEndLocked ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed' : 'border-sky-200 bg-white' }} px-1 py-0 text-[10px] text-gray-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                        <button type="button"
+                                data-time-now-btn
+                                title="Isi jam sekarang"
+                                @if($timeEndLocked) disabled @endif
+                                class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+                            Now
+                        </button>
+                    </div>
                 </div>
             </div>
             @else

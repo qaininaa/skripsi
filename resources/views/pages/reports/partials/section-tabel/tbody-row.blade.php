@@ -154,10 +154,19 @@
     @if ($isPerLocation)
     <td class="px-1 py-2 border-r border-gray-100 text-center">
         @if ($timeEditable)
-            <input type="time" name="{{ $iName }}[start_time]"
-                   value="{{ $existEntry?->start_time }}"
-                   class="w-[84px] rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-gray-700
-                          focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+            <div class="inline-flex items-center gap-0.5" data-time-now-wrapper>
+                <input type="time" name="{{ $iName }}[start_time]"
+                       value="{{ $existEntry?->start_time }}"
+                       data-time-now-input
+                       class="w-[84px] rounded border border-gray-200 bg-white px-1 py-0.5 text-[11px] text-gray-700
+                              focus:border-sky-400 focus:ring-1 focus:ring-sky-400 focus:outline-none">
+                <button type="button"
+                        data-time-now-btn
+                        title="Isi jam sekarang"
+                        class="rounded border border-sky-200 bg-sky-50 px-1 py-0 text-[9px] font-semibold text-sky-700 hover:bg-sky-100">
+                    Now
+                </button>
+            </div>
         @elseif ($entryLocked)
             <input type="time" value="{{ $existEntry?->start_time }}" disabled
                    class="w-[84px] rounded border border-gray-200 bg-gray-100 px-1 py-0.5 text-[11px] text-gray-400 cursor-not-allowed">
