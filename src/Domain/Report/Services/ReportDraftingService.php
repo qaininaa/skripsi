@@ -37,7 +37,7 @@ class ReportDraftingService
             return back()
                 ->withInput()
                 ->with('focus_input', $invalidFields[0])
-                ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC. Nilai nol, desimal, dan negatif tidak diperbolehkan.']);
+                ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat 1 sampai 200, <1, atau TNTC. Nilai nol, desimal, negatif, dan angka di atas 200 tidak diperbolehkan.']);
         }
 
         $this->entryService->process($request, $report);

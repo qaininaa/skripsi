@@ -32,6 +32,7 @@ class IncubatorEntryService
     public function __construct(
         private IncubatorEntryRepositoryInterface $repository,
         private FieldLockRepositoryInterface $fieldLockRepository,
+        private ReportFieldAuditService $reportFieldAuditService,
     ) {}
 
     public function saveFromRequest(Request $request, Report $report): void
@@ -77,7 +78,12 @@ class IncubatorEntryService
                 'due_date_calibration' => $this->normalizeValue($data['due_date_calibration'] ?? ($data['due_date'] ?? null)),
             ];
 
-            $this->persistIncubatorWithLocks($incubator, $incomingIncubator);
+            $this->persistIncubatorWithLocks(
+                $report,
+                (string) $reportTypeIncubatorId,
+                $incubator,
+                $incomingIncubator
+            );
 
             foreach ($this->extractEntryPayloads($data) as $mediumType => $entryData) {
                 if (! in_array((string) $mediumType, ['monitoring', 'swab'], true) || ! is_array($entryData)) {
@@ -115,7 +121,12 @@ class IncubatorEntryService
                     'time_out' => $timeOut,
                 ];
 
-                $this->persistIncubatorEntryWithLocks($entry, $incomingEntry);
+                $this->persistIncubatorEntryWithLocks(
+                    $report,
+                    (string) $reportTypeIncubatorId,
+                    $entry,
+                    $incomingEntry
+                );
             }
         }
     }
@@ -221,7 +232,12 @@ class IncubatorEntryService
     /**
      * @param  array<string, mixed>  $incoming
      */
-    private function persistIncubatorWithLocks($incubator, array $incoming): void
+    private function persistIncubatorWithLocks(
+        Report $report,
+        string $reportTypeIncubatorId,
+        $incubator,
+        array $incoming
+    ): void
     {
         $user = Auth::user();
         if (($user?->role ?? null) !== 'analyst') {
@@ -264,6 +280,13 @@ class IncubatorEntryService
             }
 
             $allowedUpdates[$fieldName] = $newValue;
+
+            $this->reportFieldAuditService->logFieldChange(
+                $report,
+                "incubator.{$reportTypeIncubatorId}.info.{$fieldName}",
+                $currentValue,
+                $newValue
+            );
         }
 
         $this->repository->updateIncubatorFields($incubator, $allowedUpdates);
@@ -272,7 +295,12 @@ class IncubatorEntryService
     /**
      * @param  array<string, mixed>  $incoming
      */
-    private function persistIncubatorEntryWithLocks($entry, array $incoming): void
+    private function persistIncubatorEntryWithLocks(
+        Report $report,
+        string $reportTypeIncubatorId,
+        $entry,
+        array $incoming
+    ): void
     {
         $user = Auth::user();
         if (($user?->role ?? null) !== 'analyst') {
@@ -283,6 +311,7 @@ class IncubatorEntryService
 
         $userId = (string) $user->id;
         $allowedUpdates = [];
+        $mediumType = (string) ($entry->medium_type ?? 'unknown');
 
         $pairOwners = $this->fieldLockRepository->getOwnerMap(
             self::LOCK_TABLE_INCUBATOR_ENTRIES,
@@ -333,6 +362,13 @@ class IncubatorEntryService
             }
 
             $allowedUpdates[$fieldName] = $newValue;
+
+            $this->reportFieldAuditService->logFieldChange(
+                $report,
+                "incubator.{$reportTypeIncubatorId}.{$mediumType}.{$fieldName}",
+                $currentValue,
+                $newValue
+            );
         }
 
         $this->repository->updateIncubatorEntryFields($entry, $allowedUpdates);

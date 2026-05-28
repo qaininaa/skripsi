@@ -9,7 +9,6 @@ use Domain\ReportAssignment\Models\ReportAssignment;
 use Domain\ReportAssignment\Services\ReportAssignmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 /**
@@ -47,7 +46,14 @@ class ReportAssignmentController extends Controller
      */
     public function store(ReportAssignmentStoreRequest $request): RedirectResponse
     {
-        $this->assignmentService->createAssignment($request->toDTO(), (string) Auth::id());
+        $meta = $this->meta($request);
+        $createdBy = (string) ($request->user()?->id ?? '');
+
+        $this->assignmentService->createAssignment(
+            $request->toDTO(),
+            $createdBy,
+            $meta
+        );
 
         return redirect()
             ->route('report-assignment.index')
@@ -72,7 +78,7 @@ class ReportAssignmentController extends Controller
      */
     public function update(ReportAssignmentUpdateRequest $request, ReportAssignment $report): RedirectResponse
     {
-        $this->assignmentService->updateAssignment($report, $request->toDTO());
+        $this->assignmentService->updateAssignment($report, $request->toDTO(), $this->meta($request));
 
         return redirect()
             ->route('report-assignment.index')
@@ -82,9 +88,9 @@ class ReportAssignmentController extends Controller
     /**
      * Delete a pending assignment.
      */
-    public function destroy(ReportAssignment $report): RedirectResponse
+    public function destroy(Request $request, ReportAssignment $report): RedirectResponse
     {
-        $deleted = $this->assignmentService->deletePendingAssignment($report);
+        $deleted = $this->assignmentService->deletePendingAssignment($report, $this->meta($request));
 
         if (! $deleted) {
             return back()->with('error', 'Tugas tidak dapat dihapus karena sudah dikerjakan.');
@@ -93,5 +99,20 @@ class ReportAssignmentController extends Controller
         return redirect()
             ->route('report-assignment.index')
             ->with('success', 'Tugas pelaporan berhasil dihapus.');
+    }
+
+    /**
+     * Build audit log meta from current request.
+     *
+     * @return array{user_id: string|null, ip_address: string|null, user_agent: string|null, actor_username: string|null}
+     */
+    private function meta(Request $request): array
+    {
+        return [
+            'user_id' => $request->user()?->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'actor_username' => $request->user()?->username,
+        ];
     }
 }

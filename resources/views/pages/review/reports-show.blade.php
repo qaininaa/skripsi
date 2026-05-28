@@ -12,7 +12,8 @@
     $routeSave    = $reviewRole . '.reports.save';
     $routeApprove = $reviewRole . '.reports.approve';
     $routeReturn  = $reviewRole . '.reports.return';
-    $isEditable   = $approval->isPending() && $reviewRole === 'supervisor';
+    // Review supervisor & manager bersifat read-only untuk data monitoring.
+    $isEditable   = false;
     $reviewTimeRequiresAnalystValue = $reviewRole === 'supervisor';
     $reviewTimePlaceholder = 'N/A';
     $canEditReviewTime = static function (...$values) use ($isEditable, $reviewTimeRequiresAnalystValue): bool {
@@ -113,8 +114,8 @@
         @if ($approval->notes)
             <span class="text-xs text-gray-500 border-l border-gray-200 pl-3">&ldquo;{{ $approval->notes }}&rdquo;</span>
         @endif
-        @if ($reviewRole === 'manager' && $approval->isPending())
-            <span class="text-xs text-gray-500 border-l border-gray-200 pl-3">Mode baca saja: edit data monitoring hanya oleh Supervisor.</span>
+        @if ($approval->isPending())
+            <span class="text-xs text-gray-500 border-l border-gray-200 pl-3">Mode baca saja: edit data monitoring hanya dapat dilakukan oleh Analis.</span>
         @endif
     </div>
 

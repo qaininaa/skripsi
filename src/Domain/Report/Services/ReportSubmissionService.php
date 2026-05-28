@@ -23,6 +23,7 @@ class ReportSubmissionService
         private ReportEntryService $entryService,
         private EnvironmentalEntryService $environmentalEntryService,
         private ReportWorkflowService $workflowService,
+        private ReportFieldAuditService $reportFieldAuditService,
     ) {}
 
     /**
@@ -42,7 +43,7 @@ class ReportSubmissionService
             return back()
                 ->withInput()
                 ->with('focus_input', $invalidFields[0])
-                ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat positif (misal: 1, 250), <1, atau TNTC. Nilai nol, desimal, dan negatif tidak diperbolehkan.']);
+                ->withErrors(['cfu' => 'Terdapat ' . count($invalidFields) . ' nilai CFU tidak valid. Nilai yang diperbolehkan: bilangan bulat 1 sampai 200, <1, atau TNTC. Nilai nol, desimal, negatif, dan angka di atas 200 tidak diperbolehkan.']);
         }
 
         if ($dto->action === 'finish_monitoring') {
@@ -105,6 +106,15 @@ class ReportSubmissionService
             }
 
             $this->workflowService->finishMonitoring($report);
+            $report->refresh();
+            $this->reportFieldAuditService->logReadingStageTransition(
+                $report,
+                'finish_monitoring',
+                'monitoring',
+                $report->status,
+                (string) Auth::id(),
+                $report->locked_by !== null ? (string) $report->locked_by : null
+            );
 
             return redirect()->route('reports.index')
                 ->with('success', 'Monitoring selesai. Laporan masuk ke tahap pembacaan.');
@@ -113,6 +123,15 @@ class ReportSubmissionService
         if ($dto->action === 'switch_to_reading') {
             abort_unless($report->status === 'monitoring', 403);
             $this->workflowService->switchToReadingKeepingLock($report, (string) Auth::id());
+            $report->refresh();
+            $this->reportFieldAuditService->logReadingStageTransition(
+                $report,
+                'switch_to_reading',
+                'monitoring',
+                $report->status,
+                (string) Auth::id(),
+                $report->locked_by !== null ? (string) $report->locked_by : null
+            );
 
             return redirect()->route('reports.fill', $report)
                 ->with('success', 'Anda dapat melanjutkan perbaikan pengisian pembacaan.');

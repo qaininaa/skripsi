@@ -139,6 +139,8 @@
             $existingIncubatedByName = $entry?->incubatedBy?->name ?? '';
             $existingRemovedByName = $entry?->removedBy?->name ?? '';
             $currentAnalystName = auth()->user()?->name ?? '';
+            $canAutoFillInNow = ! $dateInLockedByOther && ! $timeInLockedByOther;
+            $canAutoFillOutNow = ! $dateOutLockedByOther && ! $timeOutLockedByOther;
 
             $dateInErrorKey = "incubator.{$config->id}.{$medType}.date_in";
             $timeInErrorKey = "incubator.{$config->id}.{$medType}.time_in";
@@ -167,7 +169,17 @@
                 <div class="space-y-3">
                     @if ($isEditable)
                     <div data-incubator-owner="in">
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Diinkubasi oleh</label>
+                        <div class="mb-1 flex items-center justify-between gap-2">
+                            <label class="block text-xs font-medium text-gray-500">Diinkubasi oleh</label>
+                            <button
+                                type="button"
+                                data-incubator-now-btn="in"
+                                @if (! $canAutoFillInNow) disabled @endif
+                                class="inline-flex items-center rounded-md border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+                            >
+                                Diinkubasi Sekarang
+                            </button>
+                        </div>
                         <div
                             data-incubator-owner-name
                             data-existing-name="{{ $existingIncubatedByName }}"
@@ -216,7 +228,17 @@
                 <div class="space-y-3">
                     @if ($isEditable)
                     <div data-incubator-owner="out">
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Dikeluarkan oleh</label>
+                        <div class="mb-1 flex items-center justify-between gap-2">
+                            <label class="block text-xs font-medium text-gray-500">Dikeluarkan oleh</label>
+                            <button
+                                type="button"
+                                data-incubator-now-btn="out"
+                                @if (! $canAutoFillOutNow) disabled @endif
+                                class="inline-flex items-center rounded-md border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+                            >
+                                Dikeluarkan Sekarang
+                            </button>
+                        </div>
                         <div
                             data-incubator-owner-name
                             data-existing-name="{{ $existingRemovedByName }}"

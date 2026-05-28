@@ -3,9 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\Reports\ReportWorkflowService;
-use Domain\Report\Services\IncubatorEntryService;
-use Domain\Report\Services\InstrumentIdentityEntryService;
-use Domain\Report\Services\MediumEntryService;
 use Domain\Report\Models\Report;
 use Domain\Report\Models\ReportApproval;
 use Domain\User\Models\User;
@@ -242,18 +239,6 @@ class SupervisorReportController extends Controller
 
     public function save(Request $request, Report $report)
     {
-        $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
-
-        $user = Auth::user();
-        if ($user->username !== $request->username || ! Hash::check($request->password, $user->password)) {
-            return back()
-                ->withErrors(['auth_error' => 'Username atau password tidak valid.'])
-                ->withInput($request->except('password'));
-        }
-
         $userId = Auth::id();
         ReportApproval::where('report_id', $report->id)
             ->where('step', 2)
@@ -261,32 +246,9 @@ class SupervisorReportController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        $instrumentIdentityEntryService = app(InstrumentIdentityEntryService::class);
-        $incubatorEntryService = app(IncubatorEntryService::class);
-        $mediumEntryService = app(MediumEntryService::class);
-        $entryService = app(\Domain\Report\Services\ReportEntryService::class);
-
-        // Identitas instrumen (Air Sampler) → instrument_entries
-        $instrumentIdentityEntryService->saveFromRequest($request, $report);
-
-        // Identitas medium agar → medium_identities
-        $mediumEntryService->saveFromRequest($request, $report);
-
-        // Data inkubator info → incubators + incubator_entries
-        $incubatorEntryService->saveFromRequest($request, $report);
-
-        // Waktu paparan → report_environmental_entries (start_time/end_time)
-        $entryService->saveReviewTimesToEntries(
-            $request->input('settle_times',   []),
-            $request->input('swab_times',     []),
-            $request->input('exposure_times', []),
-            $report
-        );
-
-        // Catatan & kesimpulan per section -> report_section_notes
-        $entryService->saveSectionNotes($request, $report);
-
-        return back()->with('success', 'Data berhasil disimpan.');
+        return back()->withErrors([
+            'save_error' => 'Supervisor tidak dapat mengubah data monitoring saat meninjau. Perubahan hanya dapat dilakukan oleh Analis.',
+        ]);
     }
 
     public function print(Report $report)

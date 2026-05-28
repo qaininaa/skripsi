@@ -23,7 +23,7 @@ class ReportPreviewStructureController extends Controller
     {
         $this->ensureAdminAccess();
 
-        return $this->respond($request, $this->previewService->duplicateSection($report, $sectionId));
+        return $this->respond($request, $this->previewService->duplicateSection($report, $sectionId, $this->meta($request)));
     }
 
     /**
@@ -33,12 +33,27 @@ class ReportPreviewStructureController extends Controller
     {
         $this->ensureAdminAccess();
 
-        return $this->respond($request, $this->previewService->removeSection($report, $sectionId));
+        return $this->respond($request, $this->previewService->removeSection($report, $sectionId, $this->meta($request)));
     }
 
     private function ensureAdminAccess(): void
     {
         abort_unless(auth()->user()?->role === 'admin', 403);
+    }
+
+    /**
+     * Build audit log meta from current request.
+     *
+     * @return array{user_id: string|null, ip_address: string|null, user_agent: string|null, actor_username: string|null}
+     */
+    private function meta(Request $request): array
+    {
+        return [
+            'user_id' => $request->user()?->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'actor_username' => $request->user()?->username,
+        ];
     }
 
     /**
