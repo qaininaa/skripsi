@@ -4,21 +4,7 @@
 @section('page-title', 'Dashboard')
 @section('content')
 
-{{-- Welcome Banner --}}
-<div class="mb-6 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold">Selamat Datang, {{ Auth::user()->name }}!</h2>
-            <p class="mt-1 text-emerald-200 text-sm">Panel Supervisor Lab. Mikrobiologi — tinjau dan setujui laporan dari analis.</p>
-            <p class="mt-2 text-emerald-300 text-xs">{{ now()->isoFormat('dddd, D MMMM Y') }}</p>
-        </div>
-        <div class="hidden md:flex h-20 w-20 rounded-2xl bg-white bg-opacity-10 items-center justify-center flex-shrink-0">
-            <svg class="w-11 h-11 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        </div>
-    </div>
-</div>
+<x-welcome-banner />
 
 {{-- Stats --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -53,8 +39,8 @@
             </svg>
         </div>
         <div>
-            <p class="text-xs text-gray-500 font-medium">Ditolak</p>
-            <p class="text-2xl font-bold text-gray-800 mt-0.5">{{ $rejected }}</p>
+            <p class="text-xs text-gray-500 font-medium">Dikembalikan</p>
+            <p class="text-2xl font-bold text-gray-800 mt-0.5">{{ $returned }}</p>
         </div>
     </div>
 </div>
@@ -68,7 +54,7 @@
         </svg>
         <p class="text-sm font-medium text-amber-800">Ada <span class="font-bold">{{ $pending }}</span> laporan menunggu tinjauan Anda.</p>
     </div>
-    <a href="{{ route('supervisor.laporan-masuk') }}"
+    <a href="{{ route('supervisor.incoming-reports') }}"
        class="flex-shrink-0 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition-colors">
         Tinjau Sekarang
     </a>
@@ -100,7 +86,7 @@
                     <p class="text-sm font-medium text-gray-800 truncate">{{ $item->product_name }}</p>
                     <p class="text-xs text-gray-400 mt-0.5">{{ $item->batch_number }} · {{ $item->created_at->isoFormat('D MMM') }}</p>
                 </div>
-                <a href="{{ route('supervisor.laporan.preview', $item) }}"
+                <a href="{{ route('supervisor.reports.preview', $item) }}"
                    class="ml-3 flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -145,7 +131,7 @@
                         @endif
                     </p>
                 </div>
-                <a href="{{ route('supervisor.laporan.preview', $item) }}"
+                <a href="{{ route('supervisor.reports.preview', $item) }}"
                    class="ml-3 flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -190,7 +176,7 @@
                         @endif
                     </p>
                 </div>
-                <a href="{{ route('supervisor.laporan.preview', $item) }}"
+                <a href="{{ route('supervisor.reports.preview', $item) }}"
                    class="ml-3 flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-100 transition-colors">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

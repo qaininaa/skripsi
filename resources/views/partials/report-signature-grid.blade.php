@@ -4,19 +4,34 @@
     $notice = $notice ?? null;
     $onlySupervisor = $onlySupervisor ?? false;  // when true, skip monitoring/reading columns
 
-    $hd = $report->header_data ?? [];
+    // Ensure required relations are available in this shared partial.
+    $report->loadMissing(['analysts.user', 'approvals.user', 'sectionSignatures']);
 
-    // All monitoring analysts
-    $monitoringUsers = \App\Models\User::whereIn('id', $report->analyst_monitoring ?? [])->get()->keyBy('id');
-    $monitoringUsersSorted = collect($report->analyst_monitoring ?? [])->map(fn($id) => $monitoringUsers->get($id))->filter();
+    $monitoringUsersSorted = $report->analysts->where('type', 'monitoring')->map->user->filter()->values();
+    $readingUsersSorted    = $report->analysts->where('type', 'reading')->map->user->filter()->values();
 
-    // All reading analysts
-    $readingUsers = \App\Models\User::whereIn('id', $report->analyst_reading ?? [])->get()->keyBy('id');
-    $readingUsersSorted = collect($report->analyst_reading ?? [])->map(fn($id) => $readingUsers->get($id))->filter();
+    // Per-analyst timestamps from section signatures (latest per user + role).
+    $monTimestamps = [];
+    $readTimestamps = [];
+    foreach ($report->sectionSignatures as $sig) {
+        if (! $sig->user_id || ! $sig->signed_at) {
+            continue;
+        }
 
-    // Per-analyst timestamps (associative: userId => datetime string)
-    $monTimestamps  = $hd['ttd_monitoring_timestamps'] ?? [];
-    $readTimestamps = $hd['ttd_reading_timestamps']    ?? [];
+        $uid = (string) $sig->user_id;
+
+        if ($sig->role === 'monitoring') {
+            if (! isset($monTimestamps[$uid]) || $sig->signed_at->gt($monTimestamps[$uid])) {
+                $monTimestamps[$uid] = $sig->signed_at;
+            }
+        }
+
+        if ($sig->role === 'reading') {
+            if (! isset($readTimestamps[$uid]) || $sig->signed_at->gt($readTimestamps[$uid])) {
+                $readTimestamps[$uid] = $sig->signed_at;
+            }
+        }
+    }
 
     $supervisorApproval = $report->approvals->firstWhere('step', 2);
     $managerApproval    = $report->approvals->firstWhere('step', 3);
@@ -27,20 +42,18 @@
             'sub'     => '(Analis Lab. Mikrobiologi)',
             'entries' => $monitoringUsersSorted->map(fn($u) => [
                 'user'      => $u,
-                'signed_at' => isset($monTimestamps[(string) $u->id])
-                    ? \Illuminate\Support\Carbon::parse($monTimestamps[(string) $u->id])
-                    : null,
+                'signed_at' => $monTimestamps[(string) $u->id] ?? null,
             ]),
+            'status_label' => 'Tersimpan',
         ],
         [
             'label'   => 'Dibaca oleh:',
             'sub'     => '(Analis Lab. Mikrobiologi)',
             'entries' => $readingUsersSorted->map(fn($u) => [
                 'user'      => $u,
-                'signed_at' => isset($readTimestamps[(string) $u->id])
-                    ? \Illuminate\Support\Carbon::parse($readTimestamps[(string) $u->id])
-                    : null,
+                'signed_at' => $readTimestamps[(string) $u->id] ?? null,
             ]),
+            'status_label' => 'Tersimpan',
         ],
         [
             'label'   => 'Direview oleh:',
@@ -50,6 +63,7 @@
                 'signed_at' => $supervisorApproval->signed_at
                     ? \Illuminate\Support\Carbon::parse($supervisorApproval->signed_at) : null,
             ]] : []),
+            'status_label' => 'Disetujui',
         ],
         [
             'label'   => 'Disetujui oleh:',
@@ -59,6 +73,7 @@
                 'signed_at' => $managerApproval->signed_at
                     ? \Illuminate\Support\Carbon::parse($managerApproval->signed_at) : null,
             ]] : []),
+            'status_label' => 'Disetujui',
         ],
     ];
 
@@ -87,14 +102,16 @@
             <div class="flex-1 flex flex-col gap-3 justify-center">
                 @forelse ($card['entries'] as $entry)
                 <div class="text-center">
-                    <p class="text-sm font-semibold text-gray-700">{{ $entry['user']->name }}</p>
                     @if ($entry['signed_at'])
-                        <div class="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                        <div class="mb-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            Tersimpan
+                            {{ $card['status_label'] }}
                         </div>
+                    @endif
+                    <p class="text-sm font-semibold text-gray-700">{{ $entry['user']->name }}</p>
+                    @if ($entry['signed_at'])
                         <p class="mt-1 text-[11px] text-gray-500">{{ $entry['signed_at']->isoFormat('D MMM Y, HH:mm') }}</p>
                     @endif
                 </div>
