@@ -9,18 +9,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('reports', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('report_type_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('report_type_id')->constrained('report_types')->cascadeOnDelete();
             $table->string('product_name');
-            $table->string('batch_number');
-            $table->json('analyst_monitoring')->nullable();
-            $table->json('analyst_reading')->nullable();
+            $table->string('batch_number')->nullable();
             $table->string('status', 30)->default('pending');
             $table->json('header_data')->nullable();
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('locked_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('created_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('locked_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('printed_at')->nullable();
+            $table->foreignUuid('printed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('batch_number');
             $table->index('status');
+            $table->index('printed_at');
             $table->timestamps();
         });
     }

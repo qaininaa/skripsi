@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use Domain\User\Models\User;
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class AccountSeeder extends Seeder
 {
@@ -20,65 +20,79 @@ class AccountSeeder extends Seeder
             'name' => 'Super Admin',
             'username' => 'superadmin',
             'role' => 'super',
-            'password' => Hash::make('admin123'),
-            'last_password_changed_at' => $now,
-        ]);
-        User::create([
-            'name' => 'Admin QC',
-            'username' => 'adminqc',
-            'role' => 'admin',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
 
-        // 4 Akun Analis
         User::create([
-            'name' => 'Analis 1',
+            'name' => 'Maya',
+            'username' => 'adminqc',
+            'role' => 'admin',
+            'password' => Hash::make('Password123!'),
+            'last_password_changed_at' => $now,
+        ]);
+
+        User::create([
+            'name' => 'Karina Ghaisani',
             'username' => 'analis1',
-            'role' => 'analis',
-            'password' => Hash::make('admin123'),
+            'role' => 'analyst',
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
+
         User::create([
-            'name' => 'Analis 2',
+            'name' => 'Farhanah Basri',
             'username' => 'analis2',
-            'role' => 'analis',
-            'password' => Hash::make('admin123'),
+            'role' => 'analyst',
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
+
         User::create([
-            'name' => 'Analis 3',
+            'name' => 'Sandiva Amalia',
             'username' => 'analis3',
-            'role' => 'analis',
-            'password' => Hash::make('admin123'),
+            'role' => 'analyst',
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
+
         User::create([
-            'name' => 'Analis 4',
+            'name' => 'Rafly Aziz',
             'username' => 'analis4',
-            'role' => 'analis',
-            'password' => Hash::make('admin123'),
+            'role' => 'analyst',
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
+
         User::create([
-            'name' => 'Manajer',
+            'name' => 'Ananda Sadewa',
+            'username' => 'analis5',
+            'role' => 'analyst',
+            'password' => Hash::make('Password123!'),
+            'last_password_changed_at' => $now,
+        ]);
+
+        User::create([
+            'name' => 'Saputra',
+            'username' => 'analis6',
+            'role' => 'analyst',
+            'password' => Hash::make('Password123!'),
+            'last_password_changed_at' => $now,
+        ]);
+
+        User::create([
+            'name' => 'Dewi Ikha',
             'username' => 'manajer',
-            'role' => 'manajer',
-            'password' => Hash::make('admin123'),
+            'role' => 'manager',
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
+        
         User::create([
-            'name' => 'Supervisor 1',
+            'name' => 'Restu',
             'username' => 'supervisor1',
             'role' => 'supervisor',
-            'password' => Hash::make('admin123'),
-            'last_password_changed_at' => $now,
-        ]);
-        User::create([
-            'name' => 'Supervisor 2',
-            'username' => 'supervisor2',
-            'role' => 'supervisor',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('Password123!'),
             'last_password_changed_at' => $now,
         ]);
     }

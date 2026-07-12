@@ -10,7 +10,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-gray-100">
-    <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
+    <div x-data="{ sidebarOpen: false, showDeleteModal: false, deleteAction: null, itemName: null }">
+
+    <div class="flex h-screen overflow-hidden">
 
         {{-- Mobile backdrop --}}
         <div
@@ -26,12 +28,14 @@
         ></div>
 
         {{-- Sidebar --}}
-        <div
+        <aside
+            id="app-sidebar"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 z-30 w-64 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:flex-shrink-0"
+            class="fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:translate-x-0 lg:flex-shrink-0 h-screen"
+            :aria-hidden="sidebarOpen ? 'false' : 'true'"
         >
-            @include('layouts.sidebar')
-        </div>
+            @include('components.sidebar.sidebar')
+        </aside>
 
         {{-- Main Content --}}
         <div class="flex flex-col flex-1 overflow-hidden min-w-0">
@@ -46,6 +50,11 @@
 
         </div>
     </div>
+
+    {{-- Global delete modal: di luar overflow-hidden agar fixed inset-0 cover full screen --}}
+    <x-modals.delete-modal />
+
+    </div>{{-- end x-data wrapper --}}
     @stack('scripts')
 </body>
 </html>
