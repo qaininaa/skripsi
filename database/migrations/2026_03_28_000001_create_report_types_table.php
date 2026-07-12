@@ -9,12 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('report_types', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
+            $table->string('code')->unique();
             $table->string('name');
-            $table->integer('annex_number');
-            $table->string('sop_code');
-            $table->string('sop_version');
-            $table->boolean('has_personnel')->default(false);
+            $table->string('annex_number', 50);
+            $table->json('medium_groups')->nullable();
+            $table->json('incubators')->nullable();
             $table->timestamps();
         });
     }
