@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('password_settings', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('key')->unique();
             $table->string('value');
             $table->timestamps();

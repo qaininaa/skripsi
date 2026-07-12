@@ -11,23 +11,22 @@ class PasswordComplexity implements ValidationRule
     {
         if (strlen($value) < 8) {
             $fail('Password minimal 8 karakter.');
-
             return;
         }
 
-        if (! preg_match('/[A-Z]/', $value)) {
+        if (!preg_match('/[A-Z]/', $value)) {
             $fail('Password harus mengandung huruf besar.');
         }
 
-        if (! preg_match('/[a-z]/', $value)) {
+        if (!preg_match('/[a-z]/', $value)) {
             $fail('Password harus mengandung huruf kecil.');
         }
 
-        if (! preg_match('/[0-9]/', $value)) {
+        if (!preg_match('/[0-9]/', $value)) {
             $fail('Password harus mengandung angka.');
         }
 
-        if (! preg_match('/[^A-Za-z0-9]/', $value)) {
+        if (!preg_match('/[^A-Za-z0-9]/', $value)) {
             $fail('Password harus mengandung simbol.');
         }
     }

@@ -35,16 +35,12 @@
             {{-- Info Dasar --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode SOP <span class="text-red-500">*</span></label>
-                    <input type="text" name="sop_code" value="{{ old('sop_code') }}" placeholder="cth: SOP-QC035-A18" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Versi SOP <span class="text-red-500">*</span></label>
-                    <input type="text" name="sop_version" value="{{ old('sop_version') }}" placeholder="cth: 11" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode <span class="text-red-500">*</span></label>
+                    <input type="text" name="code" value="{{ old('code') }}" placeholder="cth: HVAC-6.1.1-B-FL2" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Annex <span class="text-red-500">*</span></label>
-                    <input type="number" name="annex_number" value="{{ old('annex_number') }}" placeholder="cth: 18" min="1" step="1" onwheel="this.blur()" onkeydown="if (event.key === 'ArrowUp' || event.key === 'ArrowDown') event.preventDefault();" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <input type="text" name="annex_number" value="{{ old('annex_number') }}" placeholder="cth: Annex 18" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
             </div>
 
@@ -58,7 +54,7 @@
             <div class="border-t border-gray-100 pt-5">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Medium <span class="text-red-500">*</span></h3>
+                        <h3 class="text-sm font-semibold text-gray-800">Medium Groups</h3>
                         <p class="text-xs text-gray-500">Daftar medium yang digunakan (Medium TSP, Swab Kit, dll).</p>
                     </div>
                     <button type="button" @click="addMedium()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
@@ -92,8 +88,8 @@
             <div class="border-t border-gray-100 pt-5">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Inkubator <span class="text-red-500">*</span></h3>
-                        <p class="text-xs text-gray-500">Daftar suhu inkubasi dan durasi minimum hari.</p>
+                        <h3 class="text-sm font-semibold text-gray-800">Inkubator</h3>
+                        <p class="text-xs text-gray-500">Pilih suhu inkubasi dan durasi minimum hari.</p>
                     </div>
                     <button type="button" @click="addIncubator()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
@@ -106,13 +102,13 @@
                             <div class="flex-1 flex items-center rounded-lg border border-gray-300 shadow-sm bg-white focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
                                 <input type="text" :name="'incubator_labels[' + idx + ']'" x-model="inc.label"
                                        @focus="inc.label = inc.label.replace(/°C$/, '')"
-                                       @blur="if (inc.label.trim()) { inc.label = inc.label.replace(/°C$/, '').trim() + '°C' }; inc.min_day = incPresets[inc.label] ?? inc.min_day"
+                                       @blur="if (inc.label.trim()) { inc.label = inc.label.replace(/°C$/, '').trim() + '°C' }; inc.min_days = incPresets[inc.label] ?? inc.min_days"
                                        placeholder="cth: 20-25"
                                        class="flex-1 min-w-0 px-3 py-[7px] text-sm border border-gray-300 rounded-lg focus:ring-0">
                                 <span class="px-3 text-sm text-gray-400 select-none pointer-events-none">°C</span>
                             </div>
                             <div class="flex items-center gap-1">
-                                <input type="number" :name="'incubator_min_days[' + idx + ']'" x-model="inc.min_day"
+                                <input type="number" :name="'incubator_min_days[' + idx + ']'" x-model="inc.min_days"
                                        min="1" placeholder="Hari"
                                        class="w-16 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 <span class="text-xs text-gray-500 whitespace-nowrap">hari min.</span>
@@ -144,7 +140,7 @@ function reportTypeForm() {
             this.mediums.push({ label: '' });
         },
         addIncubator() {
-            this.incubators.push({ label: '', min_day: 3 });
+            this.incubators.push({ label: '', min_days: 3 });
         },
     }
 }

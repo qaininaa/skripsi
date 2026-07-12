@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Audit Log')
-@section('page-title', 'Audit Log')
+@section('title', 'Audit Trail')
+@section('page-title', 'Audit Trail')
 @section('content')
 
     <div class="mb-4">
-        <h2 class="text-xl font-bold text-gray-800">Audit Log</h2>
-        <p class="text-sm text-gray-500 mt-0.5">Riwayat aktivitas penting seperti login, logout, manajemen akun, ruangan, dan lokasi.</p>
+        <h2 class="text-xl font-bold text-gray-800">Audit Trail</h2>
+        <p class="text-sm text-gray-500 mt-0.5">Riwayat aktivitas penting seperti login dan manajemen akun.</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

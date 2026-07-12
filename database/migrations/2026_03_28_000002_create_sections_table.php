@@ -9,14 +9,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sections', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('report_type_id')->constrained('report_types')->cascadeOnDelete();
-            $table->string('measurement_unit', 50);
-            $table->string('measurement_type', 50);
-            $table->unsignedTinyInteger('max_column')->default(1);
-            $table->string('column_label', 50)->nullable();
+            $table->id();
+            $table->foreignId('report_type_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->string('measurement_unit', 50)->default('cfu');
+            $table->string('measurement_type', 50)->default('exposure');
+            $table->unsignedTinyInteger('max_exposure')->default(1);
+            $table->string('column_label', 50)->default('Exposure');
             $table->string('time_slot_type', 20)->default('none');
-            $table->boolean('has_machine_setup')->default(false);
+            $table->boolean('has_shared_time')->default(false);
+            $table->boolean('has_shift_toggle')->default(true);
             $table->unsignedTinyInteger('order')->default(0);
             $table->timestamps();
         });
@@ -24,6 +26,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sections');
+        Schema::dropIfExists('report_sections');
     }
 };

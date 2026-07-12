@@ -18,12 +18,6 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Edit Jenis Laporan — {{ $reportType->annex_number }}</h2>
 
-        @if (session('info'))
-            <div class="mb-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 text-sm">
-                {{ session('info') }}
-            </div>
-        @endif
-
         @if ($errors->any())
             <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
                 <p class="font-semibold mb-1">Terjadi kesalahan:</p>
@@ -42,16 +36,12 @@
             {{-- Info Dasar --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode SOP <span class="text-red-500">*</span></label>
-                    <input type="text" name="sop_code" value="{{ old('sop_code', $reportType->sop_code) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Versi SOP <span class="text-red-500">*</span></label>
-                    <input type="text" name="sop_version" value="{{ old('sop_version', $reportType->sop_version) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kode <span class="text-red-500">*</span></label>
+                    <input type="text" name="code" value="{{ old('code', $reportType->code) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Annex <span class="text-red-500">*</span></label>
-                    <input type="number" name="annex_number" value="{{ old('annex_number', $reportType->annex_number) }}" min="1" step="1" onwheel="this.blur()" onkeydown="if (event.key === 'ArrowUp' || event.key === 'ArrowDown') event.preventDefault();" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <input type="text" name="annex_number" value="{{ old('annex_number', $reportType->annex_number) }}" class="block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                 </div>
             </div>
 
@@ -65,7 +55,7 @@
             <div class="border-t border-gray-100 pt-5">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Medium <span class="text-red-500">*</span></h3>
+                        <h3 class="text-sm font-semibold text-gray-800">Medium Groups</h3>
                         <p class="text-xs text-gray-500">Daftar medium yang digunakan (Medium TSP, Swab Kit, dll).</p>
                     </div>
                     <button type="button" @click="addMedium()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
@@ -99,8 +89,8 @@
             <div class="border-t border-gray-100 pt-5">
                 <div class="flex items-center justify-between mb-3">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Inkubator <span class="text-red-500">*</span></h3>
-                        <p class="text-xs text-gray-500">Daftar suhu inkubasi dan durasi minimum hari.</p>
+                        <h3 class="text-sm font-semibold text-gray-800">Inkubator</h3>
+                        <p class="text-xs text-gray-500">Pilih suhu inkubasi — durasi min. terisi otomatis.</p>
                     </div>
                     <button type="button" @click="addIncubator()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
@@ -113,13 +103,13 @@
                             <div class="flex-1 flex items-center rounded-lg border border-gray-300 shadow-sm bg-white focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
                                 <input type="text" :name="'incubator_labels[' + idx + ']'" x-model="inc.label"
                                        @focus="inc.label = inc.label.replace(/°C$/, '')"
-                                       @blur="if (inc.label.trim()) { inc.label = inc.label.replace(/°C$/, '').trim() + '°C' }; inc.min_day = incPresets[inc.label] ?? inc.min_day"
+                                       @blur="if (inc.label.trim()) { inc.label = inc.label.replace(/°C$/, '').trim() + '°C' }; inc.min_days = incPresets[inc.label] ?? inc.min_days"
                                        placeholder="cth: 20-25"
                                        class="flex-1 min-w-0 px-3 py-[7px] text-sm border border-gray-300 rounded-lg focus:ring-0">
                                 <span class="px-3 text-sm text-gray-400 select-none pointer-events-none">°C</span>
                             </div>
                             <div class="flex items-center gap-1">
-                                <input type="number" :name="'incubator_min_days[' + idx + ']'" x-model="inc.min_day"
+                                <input type="number" :name="'incubator_min_days[' + idx + ']'" x-model="inc.min_days"
                                        min="1" placeholder="Hari"
                                        class="w-16 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                 <span class="text-xs text-gray-500 whitespace-nowrap">hari min.</span>
@@ -142,8 +132,8 @@
 </div>
 
 @php
-    $mediumsJson    = json_encode($reportType->mediumTypes->map(fn($m) => ['label' => $m->name])->values());
-    $incubatorsJson = json_encode($reportType->incubatorTypes->map(fn($inc) => ['label' => $inc->temperature_label, 'min_day' => $inc->min_day])->values());
+    $mediumsJson    = json_encode(collect($reportType->medium_groups ?? [])->map(fn($label, $key) => ['key' => $key, 'label' => $label])->values());
+    $incubatorsJson = json_encode(collect($reportType->incubators ?? [])->map(fn($val, $key) => ['key' => $key, 'label' => $val['label'] ?? '', 'min_days' => $val['min_days'] ?? 3])->values());
 @endphp
 <script>
 function reportTypeForm() {
@@ -155,7 +145,7 @@ function reportTypeForm() {
             this.mediums.push({ label: '' });
         },
         addIncubator() {
-            this.incubators.push({ label: '', min_day: 3 });
+            this.incubators.push({ label: '', min_days: 3 });
         },
     }
 }
